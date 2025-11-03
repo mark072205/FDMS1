@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mark & Motion · Payments{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/client.css')}} ">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/client.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+{% include 'client/_headerclient.html.twig' with { active: 'payments' } %}
+
+<main class="client-main">
+    <div class="example-wrapper">
+        <h1>Payments</h1>
+        <p>This page is coming soon.</p>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,87 @@
+{# Client top navigation partial. Expects an optional `active` variable (e.g. 'dashboard') #}
+<header class="header-client-no-avatar">
+    <div class="header-client-left">
+        <a href="{{ path('app_client_homepage') }}" class="client-logo-link">
+            <img src="{{ asset('img/Logo2.png') }}" alt="Mark & Motion">
+        </a>
+
+        <nav class="client-nav" aria-label="Main navigation">
+            <a href="{{ path('app_client_homepage') }}" class="client-nav-item {{ active is defined and active == 'home' ? 'active' : '' }}">Project Board</a>
+            <a href="{{ path('app_client_projects') }}" class="client-nav-item {{ active is defined and active == 'projects' ? 'active' : '' }}">Projects</a>
+            <a href="{{ path('app_client_proposals') }}" class="client-nav-item {{ active is defined and active == 'proposals' ? 'active' : '' }}">Proposals</a>
+            <a href="{{ path('app_client_messages') }}" class="client-nav-item {{ active is defined and active == 'messages' ? 'active' : '' }}">Messages</a>
+            <a href="{{ path('app_client_payments') }}" class="client-nav-item {{ active is defined and active == 'payments' ? 'active' : '' }}">Payments</a>
+            <a href="{{ path('app_client_saved_designers') }}" class="client-nav-item {{ active is defined and active == 'saved' ? 'active' : '' }}">Saved Designers</a>
+        </nav>
+    </div>
+
+    <div class="header-client-right">
+        <div class="client-search-box" role="client-search">
+            <svg class="client-icon search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M21 21l-4.35-4.35" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="11" cy="11" r="6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input type="search" placeholder="Search orders, designers, services..." aria-label="Search" id="clientSearchInput">
+        </div>
+
+        <button class="client-icon bell" type="button" aria-label="Notifications">
+            {# Use bootstrap icon element so markup is consistent with other icons #}
+            <i class="bi bi-bell" aria-hidden="true"></i>
+            <span class="dot" aria-hidden></span>
+        </button>
+
+        <div class="client-badge" onclick="toggleDropdown()" title="Account">
+            <div class="client-profile-avatar">
+                {% if app.user and app.user.profilePicture %}
+                    <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}" alt="{{ app.user.firstName }} {{ app.user.lastName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                {% else %}
+                    {% if app.user %}
+                        {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+                    {% else %}
+                        C
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="client-dropdown" id="clientDropdown">
+                <div class="client-profile-section">
+                    <div class="client-profile-info">
+                        <div class="client-profile-avatar">
+                            {% if app.user and app.user.profilePicture %}
+                                <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}" alt="{{ app.user.firstName }} {{ app.user.lastName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                            {% else %}
+                                {% if app.user %}
+                                    {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+                                {% else %}
+                                    C
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <a href="{{ path('app_client_profile') }}" class="client-profile-details" style="text-decoration: none; color: inherit;">
+                            <h3>{{ app.user ? app.user.firstName ~ ' ' ~ app.user.lastName : 'Client' }}</h3>
+                            <p>Client</p>
+                        </a>
+                    </div>
+                </div>
+                <div class="client-dropdown-menu">
+                    <a href="#" class="client-menu-item">
+                        <div class="client-menu-item-icon"><i class="bi bi-person"></i></div>
+                        Profile Settings
+                    </a>
+                    <a href="#" class="client-menu-item">
+                        <div class="client-menu-item-icon"><i class="bi bi-gear"></i></div>
+                        Account Settings
+                    </a>
+                    <a href="#" class="client-menu-item">
+                        <div class="client-menu-item-icon"><i class="bi bi-question-circle"></i></div>
+                        Help & Support
+                    </a>
+                    <div class="client-menu-divider"></div>
+                    <a href="{{ path('app_logout') }}" class="client-menu-item logout-item">
+                        <div class="client-menu-item-icon"><i class="bi bi-box-arrow-left"></i></div>
+                        Log out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

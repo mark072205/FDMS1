@@ -1,0 +1,310 @@
+body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 24px;
+    background: #ffffff;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header a {
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.header img {
+    height: 30px;
+    display: block;
+}
+
+.logo-link img {
+    height: 30px;
+    width: auto;
+    display: block;
+}
+
+.login-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-box {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 2rem;
+    margin-top: 5rem;
+    width: 400px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background: #fff;
+}
+
+.login-box h1 {
+    font-size: 1.5rem;
+    margin-top: 0rem;
+    margin-bottom: 1.5rem;
+    font-family: Poppins, Arial, sans-serif;
+    font-weight: 500;
+}
+
+.input-field,
+.login-btn {
+    display: block;
+    width: 100%;
+    box-sizing: border-box; 
+    font-family: 'Montserrat', Arial, sans-serif;
+}
+
+.input-field {
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
+}
+
+/* Input with leading icon */
+.input-group-icon {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #6b7280;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "bootstrap-icons" !important;
+    font-style: normal;
+    font-size: 1.1rem;
+    line-height: 1;
+    width: 1.1rem;
+    height: 1.1rem;
+    font-weight: normal;
+    pointer-events: none;
+}
+
+.input-with-icon {
+    padding-left: 2.2rem; /* room for icon */
+}
+
+/* Password wrapper for toggle button */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper .input-field {
+    padding-left: 2.2rem; /* make room for lock icon */
+    padding-right: 2.5rem; /* make room for toggle button */
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: color 0.2s ease;
+}
+
+.toggle-password:hover {
+    color: #1e3a8a;
+}
+
+.toggle-password svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+}
+
+.input-field::placeholder {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.input-field:focus {
+    border-color: #1e3a8a;
+    box-shadow: 0 0 4px rgba(30, 58, 138, 0.3);
+}
+
+.login-btn {
+    background: #1e3a8a;
+    color: #fff;
+    border: none;
+    padding: 0.8rem;
+    width: 100%;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+}
+
+.login-btn:hover {
+    background: #162c5a;
+}
+
+.signup-text {
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.signup-text a {
+    color: #1e3a8a;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.signup-text a:hover {
+    text-decoration: underline;
+}
+
+/* Signup call-to-action (text + outlined button) */
+.signup-cta {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.signup-cta-text {
+    font-size: 15px;
+    color: #6b7280; /* neutral gray similar to screenshot */
+    font-family: 'Montserrat', Arial, sans-serif;
+    margin: 0;
+    padding-bottom: 3px;
+}
+
+.signup-outline-btn {
+    display: block;
+    text-decoration: none;
+    color: #14a800; /* Upwork green */
+    border: 2px solid #14a800;
+    background: transparent;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    width: 50%;
+    max-width: none;
+    text-align: center;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 15px;
+}
+
+.signup-outline-btn:hover {
+    background: #14a800;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(20, 168, 0, 0.25);
+}
+
+/* Footer - Unified design for all pages */
+.footer-landing,
+.footer-login,
+.footer-designer {
+    background: #000000;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 60px 24px 24px;
+    font-size: 14px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    border-radius: 16px;
+    margin: 2rem auto 1rem;
+    max-width: 1304px;
+    /* Use consistent width calculation that works regardless of parent container */
+    width: min(1304px, calc(100% - 32px));
+    box-sizing: border-box;
+    overflow: hidden;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+    /* Ensure consistent positioning regardless of parent layout */
+    display: block;
+    position: relative;
+}
+
+/* Landing footer - left-align content in grid, center footer-bottom */
+.footer-landing {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Login and Designer footers - center their content */
+.footer-login,
+.footer-designer {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+/* Ensure login footer width in flex context and content centered */
+.footer-login {
+    /* Override body flex alignment for this element */
+    align-self: auto;
+    /* Match landing footer width - use responsive calculation */
+    width: min(1304px, calc(100vw - 32px)) !important;
+    max-width: 1304px !important;
+    /* Center the footer container in the flex parent */
+    margin-left: auto !important;
+    margin-right: auto !important;
+    /* Override asymmetric padding for vertical centering */
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
+    /* Center content both horizontally and vertically using flexbox */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+@media (max-width: 1336px) {
+    /* On smaller screens, use responsive width */
+    .footer-login {
+        width: calc(100vw - 32px) !important;
+        max-width: calc(100vw - 32px) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-landing,
+    .footer-login,
+    .footer-designer {
+        margin: 2rem 16px 1rem;
+        padding: 48px 16px 24px;
+        width: calc(100% - 32px) !important;
+        max-width: calc(100% - 32px) !important;
+    }
+}

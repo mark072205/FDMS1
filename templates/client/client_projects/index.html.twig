@@ -1,0 +1,257 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mark & Motion · Projects{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/client.css')}} ">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/client.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+{% include 'client/_headerclient.html.twig' with { active: 'projects' } %}
+
+<main class="client-main projects-main">
+    <!-- Feed Header -->
+    <section class="projects-feed-header">
+        <h1 class="feed-title">Projects Feed</h1>
+        <button type="button" class="btn-post-feed" id="postProjectBtn" title="Post a new project">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>Post Project</span>
+        </button>
+    </section>
+
+    <!-- Search and Filters -->
+    <section class="projects-filters">
+        <div class="search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21l-4.35-4.35" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="11" cy="11" r="6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input type="search" id="projectsSearch" placeholder="Search projects by title or category" aria-label="Search projects">
+        </div>
+        <div class="filters-wrapper">
+            <select id="categoryFilter" class="filter-select" aria-label="Filter by category">
+                <option value="">All Categories</option>
+                <option value="logo">Logo Design</option>
+                <option value="poster">Poster Design</option>
+                <option value="web">Web Design</option>
+                <option value="branding">Branding</option>
+                <option value="print">Print Design</option>
+            </select>
+            <select id="statusFilter" class="filter-select" aria-label="Filter by status">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="draft">Draft</option>
+            </select>
+            <select id="budgetFilter" class="filter-select" aria-label="Filter by budget">
+                <option value="">All Budgets</option>
+                <option value="0-500">$0 - $500</option>
+                <option value="500-1000">$500 - $1,000</option>
+                <option value="1000-5000">$1,000 - $5,000</option>
+                <option value="5000+">$5,000+</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Tabs -->
+    <section class="projects-tabs">
+        <button type="button" class="tab-btn active" data-tab="my-projects" id="tabMyProjects">
+            My Projects
+        </button>
+        <button type="button" class="tab-btn" data-tab="explore" id="tabExplore">
+            Explore Projects
+        </button>
+    </section>
+
+    <!-- Projects Content -->
+    <section class="projects-content">
+        <!-- My Projects Tab -->
+        <div class="tab-content active" id="contentMyProjects">
+            <div class="projects-grid" id="myProjectsGrid">
+                <!-- Sample project cards - will be replaced with dynamic content -->
+                <div class="project-card">
+                    <div class="project-header">
+                        <h3>Brand Identity Package</h3>
+                        <span class="status-badge status-active">Active</span>
+                    </div>
+                    <div class="project-meta">
+                        <span class="project-category">Branding</span>
+                        <span class="project-date">Posted 3 days ago</span>
+                    </div>
+                    <p class="project-description">Looking for a complete brand identity package including logo, color palette, and typography guidelines.</p>
+                    <div class="project-actions">
+                        <a href="#" class="btn btn-sm btn-primary">View</a>
+                        <a href="#" class="btn btn-sm btn-secondary">Edit</a>
+                        <button type="button" class="btn btn-sm btn-danger">Delete</button>
+                    </div>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <h3>Website Redesign</h3>
+                        <span class="status-badge status-completed">Completed</span>
+                    </div>
+                    <div class="project-meta">
+                        <span class="project-category">Web Design</span>
+                        <span class="project-date">Posted 2 weeks ago</span>
+                    </div>
+                    <p class="project-description">Modern, responsive website redesign for our e-commerce platform.</p>
+                    <div class="project-actions">
+                        <a href="#" class="btn btn-sm btn-primary">View</a>
+                        <a href="#" class="btn btn-sm btn-secondary">Edit</a>
+                        <button type="button" class="btn btn-sm btn-danger">Delete</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State for My Projects -->
+            <div class="empty-state hidden" id="emptyMyProjects">
+                <div class="empty-state-icon">
+                    <i class="bi bi-folder-plus"></i>
+                </div>
+                <h3>You haven't posted any projects yet.</h3>
+                <p>Get started by posting your first project to connect with talented designers.</p>
+                <button type="button" class="btn btn-primary" id="postProjectEmptyBtn">
+                    <i class="bi bi-plus-lg"></i>
+                    Post Your First Project
+                </button>
+            </div>
+        </div>
+
+        <!-- Explore Projects Tab -->
+        <div class="tab-content" id="contentExplore">
+            <div class="projects-grid" id="exploreProjectsGrid">
+                <!-- Sample explore project cards -->
+                <div class="project-card explore-card">
+                    <div class="project-header">
+                        <div class="project-author">
+                            <div class="author-avatar">JD</div>
+                            <span class="author-name">John Doe</span>
+                        </div>
+                        <div class="project-actions-icons">
+                            <button type="button" class="icon-btn-small" title="Save project" aria-label="Save project">
+                                <i class="bi bi-bookmark"></i>
+                            </button>
+                            <button type="button" class="icon-btn-small" title="Share project" aria-label="Share project">
+                                <i class="bi bi-share"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <h3>Restaurant Menu Design</h3>
+                    <div class="project-meta">
+                        <span class="project-category">Print Design</span>
+                        <span class="project-date">Posted 5 days ago</span>
+                    </div>
+                    <p class="project-description">Looking for an elegant menu design for a fine dining restaurant. Minimalist aesthetic preferred.</p>
+                    <div class="project-actions">
+                        <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                    </div>
+                </div>
+
+                <div class="project-card explore-card">
+                    <div class="project-header">
+                        <div class="project-author">
+                            <div class="author-avatar">JS</div>
+                            <span class="author-name">Jane Smith</span>
+                        </div>
+                        <div class="project-actions-icons">
+                            <button type="button" class="icon-btn-small" title="Save project" aria-label="Save project">
+                                <i class="bi bi-bookmark"></i>
+                            </button>
+                            <button type="button" class="icon-btn-small" title="Share project" aria-label="Share project">
+                                <i class="bi bi-share"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <h3>Social Media Templates</h3>
+                    <div class="project-meta">
+                        <span class="project-category">Branding</span>
+                        <span class="project-date">Posted 1 week ago</span>
+                    </div>
+                    <p class="project-description">Need cohesive social media templates for Instagram and Facebook. Bold and vibrant style.</p>
+                    <div class="project-actions">
+                        <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State for Explore -->
+            <div class="empty-state hidden" id="emptyExplore">
+                <div class="empty-state-icon">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h3>No projects found.</h3>
+                <p>Try adjusting your search or filters to find more projects.</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Post Project Modal -->
+<div id="postProjectModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="postProjectTitle">
+        <button type="button" class="project-modal__close" id="closePostProject" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <h2 id="postProjectTitle" class="project-modal__title">Post a New Project</h2>
+        <div class="project-modal__content">
+            <form id="postProjectForm">
+                <div class="form-group">
+                    <label for="projectTitle">Project Title <span class="required">*</span></label>
+                    <input type="text" id="projectTitle" name="title" placeholder="e.g., Logo Design for Tech Startup" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="projectCategory">Category <span class="required">*</span></label>
+                    <select id="projectCategory" name="category" required>
+                        <option value="">Select a category</option>
+                        <option value="logo">Logo Design</option>
+                        <option value="poster">Poster Design</option>
+                        <option value="web">Web Design</option>
+                        <option value="branding">Branding</option>
+                        <option value="print">Print Design</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="projectDescription">Description <span class="required">*</span></label>
+                    <textarea id="projectDescription" name="description" rows="6" placeholder="Describe your project requirements, style preferences, timeline, and any specific details..." required></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="projectBudget">Budget Range</label>
+                        <select id="projectBudget" name="budget">
+                            <option value="">Not specified</option>
+                            <option value="0-500">$0 - $500</option>
+                            <option value="500-1000">$500 - $1,000</option>
+                            <option value="1000-5000">$1,000 - $5,000</option>
+                            <option value="5000+">$5,000+</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="projectVisibility">Visibility</label>
+                        <select id="projectVisibility" name="visibility">
+                            <option value="public">Public (Explore feed)</option>
+                            <option value="private">Private (My Projects only)</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="project-modal__footer">
+            <button type="button" class="btn btn-secondary" id="cancelPostProject">Cancel</button>
+            <button type="submit" form="postProjectForm" class="btn btn-primary" id="submitPostProject">Post Project</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

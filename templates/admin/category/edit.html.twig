@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Category · Admin{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/admin.css')}} ">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin/_header.html.twig' with { active: 'categories' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Edit Category</h1>
+                <p class="admin-subtitle">Update details for this category</p>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="admin-card" style="padding:1rem;">
+            {{ include('admin/category/_form.html.twig', {'button_label': 'Update'}) }}
+        </div>
+
+        <div style="margin-top:1rem; display:flex; justify-content:flex-end;">
+            {{ include('admin/category/_delete_form.html.twig') }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/search_controller.js') }}"></script>
+    <script src="{{ asset('controllers/admin.js') }}"></script>
+{% endblock %}

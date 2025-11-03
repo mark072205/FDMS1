@@ -1,0 +1,250 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mark & Motion · Designer{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/designer.css')}} ">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/designer.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+{% include 'designer/_headerdesigner.html.twig' with { active: 'home' } %}
+
+<main class="designer-main">
+    <!-- Hero / Studio Header -->
+    <section class="studio-hero">
+        <div class="studio-hero-ambient"></div>
+        <div class="studio-hero-content">
+            <div class="studio-hero-avatar">
+                <div class="studio-hero-avatar-circle">
+                    AS
+                </div>
+            </div>
+            <h1 class="studio-hero-title">Welcome back, Aljemark.</h1>
+            <p class="studio-hero-subtitle">Your studio's ready — pick up where you left off.</p>
+            <button class="studio-hero-cta">Resume your latest project</button>
+        </div>
+    </section>
+
+    <!-- Your Studio Space -->
+    <section class="studio-workspace">
+        <h2 class="studio-section-title">Your Studio Space</h2>
+        <div class="workspace-zones">
+            <a href="#" class="workspace-zone">
+                <div class="workspace-zone-icon">📋</div>
+                <div class="workspace-zone-content">
+                    <h3 class="workspace-zone-title">On the Table</h3>
+                    <p class="workspace-zone-desc">Ongoing projects</p>
+                </div>
+                <div class="workspace-zone-preview">
+                    <img src="https://via.placeholder.com/60" alt="" class="workspace-thumb">
+                </div>
+            </a>
+            
+            <a href="#" class="workspace-zone">
+                <div class="workspace-zone-icon">👁️</div>
+                <div class="workspace-zone-content">
+                    <h3 class="workspace-zone-title">In Review</h3>
+                    <p class="workspace-zone-desc">Submitted designs awaiting approval</p>
+                </div>
+                <div class="workspace-zone-preview">
+                    <img src="https://via.placeholder.com/60" alt="" class="workspace-thumb">
+                </div>
+            </a>
+            
+            <a href="#" class="workspace-zone">
+                <div class="workspace-zone-icon">🎯</div>
+                <div class="workspace-zone-content">
+                    <h3 class="workspace-zone-title">Up for Grabs</h3>
+                    <p class="workspace-zone-desc">Explore new client projects</p>
+                </div>
+                <div class="workspace-zone-preview">
+                    <img src="https://via.placeholder.com/60" alt="" class="workspace-thumb">
+                </div>
+            </a>
+            
+            <a href="#" class="workspace-zone">
+                <div class="workspace-zone-icon">📦</div>
+                <div class="workspace-zone-content">
+                    <h3 class="workspace-zone-title">Archived Works</h3>
+                    <p class="workspace-zone-desc">Completed projects</p>
+                </div>
+                <div class="workspace-zone-preview">
+                    <img src="https://via.placeholder.com/60" alt="" class="workspace-thumb">
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Moodboard / Inspiration Wall -->
+    <section class="studio-moodboard">
+        <div class="moodboard-header">
+            <h2 class="studio-section-title">Inspiration Wall</h2>
+            <button class="moodboard-filter-btn">
+                <i class="bi bi-funnel"></i>
+            </button>
+        </div>
+        <div class="moodboard-container">
+            <div class="moodboard-scroll">
+                <div class="moodboard-item">
+                    <img src="https://via.placeholder.com/200x200" alt="Inspiration">
+                    <button class="moodboard-pin-btn"><i class="bi bi-pin-angle"></i></button>
+                </div>
+                <div class="moodboard-item">
+                    <img src="https://via.placeholder.com/200x200" alt="Inspiration">
+                    <button class="moodboard-pin-btn"><i class="bi bi-pin-angle"></i></button>
+                </div>
+                <div class="moodboard-item">
+                    <img src="https://via.placeholder.com/200x200" alt="Inspiration">
+                    <button class="moodboard-pin-btn"><i class="bi bi-pin-angle"></i></button>
+                </div>
+                <div class="moodboard-item">
+                    <img src="https://via.placeholder.com/200x200" alt="Inspiration">
+                    <button class="moodboard-pin-btn"><i class="bi bi-pin-angle"></i></button>
+                </div>
+                <div class="moodboard-item">
+                    <img src="https://via.placeholder.com/200x200" alt="Inspiration">
+                    <button class="moodboard-pin-btn"><i class="bi bi-pin-angle"></i></button>
+                </div>
+                <div class="moodboard-item">
+                    <img src="https://via.placeholder.com/200x200" alt="Inspiration">
+                    <button class="moodboard-pin-btn"><i class="bi bi-pin-angle"></i></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Studio Feed & Creative Journal -->
+    <section class="studio-feed-journal">
+        <div class="feed-journal-layout">
+            <!-- Studio Feed -->
+            <div class="studio-feed">
+                <h2 class="studio-section-title">Studio Feed</h2>
+                <div class="feed-items">
+                    <div class="feed-item">
+                        <div class="feed-item-avatar">JT</div>
+                        <div class="feed-item-content">
+                            <p class="feed-item-text"><strong>Client J. Torres</strong> left feedback on <strong>Brand Identity Mockup</strong>.</p>
+                            <span class="feed-item-time">2 hours ago</span>
+                        </div>
+                    </div>
+                    <div class="feed-item">
+                        <div class="feed-item-avatar">CI</div>
+                        <div class="feed-item-content">
+                            <p class="feed-item-text"><strong>Project Coastal Interiors</strong> moved to the next stage.</p>
+                            <span class="feed-item-time">5 hours ago</span>
+                        </div>
+                    </div>
+                    <div class="feed-item">
+                        <div class="feed-item-avatar">UI</div>
+                        <div class="feed-item-content">
+                            <p class="feed-item-text">You've been invited to collaborate on <strong>UI Revamp</strong>.</p>
+                            <span class="feed-item-time">1 day ago</span>
+                        </div>
+                    </div>
+                    <div class="feed-item">
+                        <div class="feed-item-avatar">MM</div>
+                        <div class="feed-item-content">
+                            <p class="feed-item-text">New branding project opportunity available!</p>
+                            <span class="feed-item-time">2 days ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Creative Journal -->
+            <div class="creative-journal">
+                <div class="journal-header">
+                    <h2 class="studio-section-title">Creative Journal</h2>
+                    <span class="journal-saved-indicator">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Saved</span>
+                    </span>
+                </div>
+                <textarea class="journal-textarea" placeholder="Jot down ideas, color palettes, or concepts you're exploring...">Exploring a new color palette for the spring collection - thinking soft pastels with bold accent colors.</textarea>
+            </div>
+        </div>
+    </section>
+
+    <!-- Spotlight Section -->
+    <section class="studio-spotlight">
+        <div class="spotlight-header">
+            <h2 class="studio-section-title">Spotlight</h2>
+            <div class="spotlight-nav">
+                <button class="spotlight-nav-btn active" data-slide="1">Featured Work</button>
+                <button class="spotlight-nav-btn" data-slide="2">Challenges</button>
+                <button class="spotlight-nav-btn" data-slide="3">Opportunities</button>
+            </div>
+        </div>
+        <div class="spotlight-content">
+            <div class="spotlight-slide active" data-slide="1">
+                <div class="spotlight-card">
+                    <div class="spotlight-card-image">
+                        <img src="https://via.placeholder.com/300x200" alt="Featured Work">
+                    </div>
+                    <div class="spotlight-card-content">
+                        <h3 class="spotlight-card-title">Modern Minimalist Brand Identity</h3>
+                        <p class="spotlight-card-desc">See how Designer Jane crafted a stunning brand identity for a sustainable fashion startup.</p>
+                        <a href="#" class="spotlight-card-link">View Case Study <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="spotlight-slide" data-slide="2">
+                <div class="spotlight-card">
+                    <div class="spotlight-card-image">
+                        <img src="https://via.placeholder.com/300x200" alt="Challenge">
+                    </div>
+                    <div class="spotlight-card-content">
+                        <h3 class="spotlight-card-title">Eco-Friendly Packaging Design Challenge</h3>
+                        <p class="spotlight-card-desc">Create sustainable packaging for a new product line. Winners get featured and cash prize!</p>
+                        <a href="#" class="spotlight-card-link">Accept Challenge <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="spotlight-slide" data-slide="3">
+                <div class="spotlight-card">
+                    <div class="spotlight-card-image">
+                        <img src="https://via.placeholder.com/300x200" alt="Opportunity">
+                    </div>
+                    <div class="spotlight-card-content">
+                        <h3 class="spotlight-card-title">Tech Startup Logo Design</h3>
+                        <p class="spotlight-card-desc">Well-funded startup seeking a modern, tech-forward logo design. $5,000 budget.</p>
+                        <a href="#" class="spotlight-card-link">View Details <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Studio Vibe (Subtle Insights) -->
+    <section class="studio-vibe">
+        <h2 class="studio-section-title">Your Studio's Vibe This Month</h2>
+        <div class="vibe-content">
+            <div class="vibe-palette">
+                <div class="vibe-color" style="background: #1e3a8a;"></div>
+                <div class="vibe-color" style="background: #3b82f6;"></div>
+                <div class="vibe-color" style="background: #60a5fa;"></div>
+                <div class="vibe-color" style="background: #93c5fd;"></div>
+            </div>
+            <div class="vibe-momentum">
+                <div class="momentum-meter">
+                    <div class="momentum-bar" style="width: 75%;"></div>
+                </div>
+                <span class="momentum-label">Creative momentum: Strong</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-designer">
+        <div class="studio-footer-content">
+            <p class="studio-footer-tagline">Built for creators. Powered by Mark & Motion.</p>
+            {# <p class="studio-footer-copy">&copy; 2025 Mark & Motion. All rights reserved.</p> #}
+        </div>
+    </footer>
+</main>
+
+{% endblock %}

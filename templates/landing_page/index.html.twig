@@ -1,0 +1,371 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mark & Motion | Creativity in Motion, Marks that Last{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/landing.css') }}" data-turbo-track="reload">
+{% endblock %}
+
+{% block body %}
+<div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Landing page loaded');
+    
+    // Simple scrollspy implementation
+    const navLinks = document.querySelectorAll('.admin-nav .nav-item[href^="#"]');
+    const sections = document.querySelectorAll('section[id], footer[id]');
+    
+    console.log('Found nav links:', navLinks.length);
+    console.log('Found sections:', sections.length);
+    
+    function updateActiveNav() {
+        let current = '';
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        
+        // Special handling for CTA section and footer (about section)
+        const ctaSection = document.querySelector('.cta-section');
+        const footer = document.getElementById('about');
+        
+        if (ctaSection) {
+            const ctaTop = ctaSection.offsetTop;
+            if (scrollY >= ctaTop - 100) {
+                current = 'about';
+            }
+        }
+        
+        if (footer) {
+            const footerTop = footer.offsetTop;
+            if (scrollY + windowHeight >= footerTop - 200) {
+                current = 'about';
+            }
+        }
+        
+        if (!current) {
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                const sectionHeight = section.offsetHeight;
+                
+                if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+                    current = section.getAttribute('id');
+                }
+            });
+        }
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + current) {
+                link.classList.add('active');
+                console.log('Set active:', current);
+            }
+        });
+    }
+    
+    window.addEventListener('scroll', updateActiveNav);
+    updateActiveNav();
+    
+    // Prevent navigation links from changing URL
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                const headerOffset = 80; // Adjust based on your header height
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Handle smooth scrolling for Learn More button and other anchor links
+    const anchorLinks = document.querySelectorAll('a[href^="#"]');
+    anchorLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href === '#how-it-works' || href === '#about' || href === '#categories' || href === '#home') {
+                e.preventDefault();
+                const targetId = href.substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    const headerOffset = 80; // Adjust based on your header height
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                    
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        });
+    });
+    
+    // Segment tabs functionality
+    const segmentTabs = document.querySelectorAll('.segment-tab');
+    segmentTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            segmentTabs.forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
+            
+            this.classList.add('active');
+            this.setAttribute('aria-selected', 'true');
+            
+            const selectedTab = this.getAttribute('data-tab');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const contentToShow = document.getElementById(selectedTab + '-content');
+            if (contentToShow) {
+                contentToShow.classList.add('active');
+            }
+        });
+    });
+});
+</script>
+<!-- Header (admin layout applied) -->
+<header class="header" id="mainNav">
+    <div class="header-left">
+        <a href="/" class="logo-link">
+            <img src="{{ asset('img/Logo2.png') }}" alt="Mark & Motion">
+        </a>
+
+        <nav class="admin-nav" aria-label="Main navigation">
+            <a href="#home" class="nav-item">Home</a>
+            <a href="#categories" class="nav-item">Explore</a>
+            <a href="#how-it-works" class="nav-item">How It Works</a>
+            <a href="#about" class="nav-item">About</a>
+        </nav>
+    </div>
+
+    <div class="header-right">
+        <a href="{{ path('app_login') }}" class="btn btn-outline">Log In</a>
+        <a href="{{ path('app_signup') }}" class="btn btn-primary">Sign Up</a>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero" id="home" data-turbo="false">
+    <div class="hero-container-centered">
+        <h1 class="hero-heading">Empowering connections between clients and designers.</h1>
+        
+        <div class="hero-panel">
+            <div class="segment-tabs" role="tablist" aria-label="Hero options">
+                <button class="segment-tab active" data-tab="find-talent" role="tab" aria-selected="true">Find designer</button>
+                <button class="segment-tab" data-tab="browse-jobs" role="tab" aria-selected="false">Browse projects</button>
+            </div>
+
+            {# Find Talent Content (shown by default) #}
+            <div class="tab-content active" id="find-talent-content">
+                <div class="search-box" role="search">
+                    <input type="text" placeholder="Search by design category or expertise" aria-label="Search input">
+                    <button type="button" class="search-button" aria-label="Search">
+                        <span class="search-icon-badge"><i class="bi bi-search"></i></span>
+                        <span class="search-button-text">Search</span>
+                    </button>
+                </div>
+                
+                <p class="hero-description" style="margin-top: 16px;">
+                    Discover talented designer ready to bring your vision to life.
+                </p>
+            </div>
+
+            {# Browse Jobs Content (hidden by default) #}
+            <div class="tab-content" id="browse-jobs-content">
+                <p class="hero-description">
+                    Build your designing career on Mark & Motion, with thousands of projects posted every week.
+                </p>
+
+                <div class="hero-cta">
+                    <a href="#" class="btn-cta-green">Explore recently posted projects</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories-section" id="categories">
+    <div class="section-header">
+        <h2>Explore our design categories</h2>
+        <p>Browse through thousands of talented designers ready to bring your vision to life</p>
+    </div>
+    
+    <div class="categories-grid">
+        {% if categories is not empty %}
+            {% for category in categories %}
+                <a href="javascript:void(0)" class="category-card">
+                    {% set iconMap = {
+                        'Logo Design': 'bi-brush',
+                        'Brand Identity': 'bi-palette',
+                        'UI/UX Design': 'bi-layout-text-window-reverse',
+                        'Graphic Design': 'bi-image',
+                        'Illustration': 'bi-pen',
+                        'Print Design': 'bi-printer',
+                        'Packaging Design': 'bi-box-seam',
+                        'Motion Graphics': 'bi-camera-video',
+                        'Web Design': 'bi-window',
+                        'App Design': 'bi-phone',
+                        'Marketing Design': 'bi-megaphone',
+                        'Photography': 'bi-camera',
+                        'Video Editing': 'bi-film',
+                        '3D Design': 'bi-box',
+                        'Animation': 'bi-play-circle',
+                        'Icon Design': 'bi-circle-square'
+                    } %}
+                    <i class="bi {{ iconMap[category.name] ?? 'bi-star' }}"></i>
+                    <h3>{{ category.name }}</h3>
+                    <p>{{ category.description }}</p>
+                </a>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 40px; grid-column: 1 / -1;">
+                <p>No categories available yet. Check back soon!</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section" id="how-it-works">
+    <div class="section-header">
+        <h2>Why choose Mark & Motion?</h2>
+        <p>The easiest way to get professional work done</p>
+    </div>
+    
+    <div class="features-grid">
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="bi bi-search"></i>
+            </div>
+            <h3>Browse & Discover</h3>
+            <p>Search through thousands of talented desingers and find the perfect match for your project needs</p>
+        </div>
+        
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="bi bi-chat-dots"></i>
+            </div>
+            <h3>Connect & Collaborate</h3>
+            <p>Communicate directly with designers, share your vision, and work together seamlessly</p>
+        </div>
+        
+        <div class="feature-item">
+            <div class="feature-icon">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <h3>Secure Payments</h3>
+            <p>Your payments are protected and only released when you're 100% satisfied with the work</p>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+{# <section class="stats-section">
+    <div class="stats-container">
+        <div class="stat-item">
+            <h2>5M+</h2>
+            <p>Registered Users</p>
+        </div>
+        
+        <div class="stat-item">
+            <h2>500K+</h2>
+            <p>Projects Completed</p>
+        </div>
+        
+        <div class="stat-item">
+            <h2>150+</h2>
+            <p>Countries</p>
+        </div>
+        
+        <div class="stat-item">
+            <h2>4.9/5</h2>
+            <p>Average Rating</p>
+        </div>
+    </div>
+</section> #}
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="cta-container">
+        <h2>Ready to get started?</h2>
+        <p>Join thousands of businesses and creative designers who trust Mark & Motion to bring their projects to life</p>
+        <div class="cta-buttons">
+            <a href="{{ path('app_signup') }}" class="btn btn-primary btn-large">Get Started</a>
+            <a href="#how-it-works" class="btn btn-outline btn-large">Learn More</a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer-landing" id="about">
+    <div class="footer-container">
+        <div class="footer-grid">
+            <div class="footer-column">
+                <h4>Mark & Motion</h4>
+                <p>Creativity in Motion, Marks that Last. Connect with talented designers and bring your creative projects to life.</p>
+                <div class="social-links">
+                    <a href="javascript:void(0)"><i class="bi bi-facebook"></i></a>
+                    <a href="javascript:void(0)"><i class="bi bi-instagram"></i></a>
+                    <a href="javascript:void(0)"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-column">
+                <h4>For Clients</h4>
+                <ul>
+                    <li><a href="javascript:void(0)">How to Hire</a></li>
+                    <li><a href="javascript:void(0)">Talent Marketplace</a></li>
+                    <li><a href="javascript:void(0)">Project Catalog</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-column">
+                <h4>For Designers</h4>
+                <ul>
+                    <li><a href="javascript:void(0)">How to Find Work</a></li>
+                    <li><a href="javascript:void(0)">Direct Contracts</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-column">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="javascript:void(0)">Help & Support</a></li>
+                    <li><a href="javascript:void(0)">Community</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-column">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="javascript:void(0)">About Us</a></li>
+                    {# <li><a href="javascript:void(0)">Careers</a></li> #}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div>© 2025 Mark & Motion.</div>
+            <div>
+                <a href="javascript:void(0)" style="color: rgba(255, 255, 255, 0.5); text-decoration: none; margin: 0 12px;">Terms of Service</a>
+                <a href="javascript:void(0)" style="color: rgba(255, 255, 255, 0.5); text-decoration: none; margin: 0 12px;">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+{% endblock %}

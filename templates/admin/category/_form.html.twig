@@ -1,0 +1,18 @@
+{{ form_start(form) }}
+    <div class="form-grid">
+        <div class="form-field">
+            {{ form_label(form.name, 'Category Name') }}
+            {{ form_widget(form.name, {'attr': {'class': 'form-input', 'placeholder': 'e.g. Logo Design'}}) }}
+            {{ form_errors(form.name) }}
+        </div>
+        <div class="form-field">
+            {{ form_label(form.description, 'Description') }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-textarea', 'rows': '5', 'placeholder': 'Short description...'}}) }}
+            {{ form_errors(form.description) }}
+        </div>
+    </div>
+    <div class="form-actions">
+        <a href="{{ path('app_category_index') }}" class="btn-secondary">Cancel</a>
+        <button class="btn-primary" type="submit">{{ button_label|default('Save') }}</button>
+    </div>
+{{ form_end(form) }}

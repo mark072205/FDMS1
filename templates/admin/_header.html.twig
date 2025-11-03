@@ -1,0 +1,55 @@
+{# Admin top navigation partial. Expects an optional `active` variable (e.g. 'categories') #}
+<header class="header-no-avatar">
+    <div class="header-left">
+        <a href="{{ path('app_dashboard') }}" class="logo-link">
+            <img src="{{ asset('img/Logo3.png') }}" alt="Mark & Motion">
+        </a>
+
+        <nav class="admin-nav" aria-label="Main navigation">
+            <a href="{{ path('app_dashboard') }}" class="nav-item {{ active is defined and active == 'dashboard' ? 'active' : '' }}">Dashboard</a>
+            <a href="{{ path('app_category_index') }}" class="nav-item {{ active is defined and active == 'categories' ? 'active' : '' }}">Categories</a>
+            <a href="#" class="nav-item {{ active is defined and active == 'projects' ? 'active' : '' }}">Projects</a>
+            <a href="{{ path('app_user_index') }}" class="nav-item {{ active is defined and active == 'users' ? 'active' : '' }}">Users</a>
+            <a href="#" class="nav-item {{ active is defined and active == 'records' ? 'active' : '' }}">Records</a>
+            <a href="#" class="nav-item {{ active is defined and active == 'files' ? 'active' : '' }}">Files</a>
+        </nav>
+    </div>
+
+    <div class="header-right">
+        <div class="search-box" role="search">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M21 21l-4.35-4.35" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="11" cy="11" r="6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input type="search" placeholder="{% if active is defined and active == 'users' %}Search users...{% elseif active is defined and active == 'categories' %}Search categories...{% else %}Search everything...{% endif %}" aria-label="Search" id="adminSearchInput">
+        </div>
+
+        <button class="icon bell" type="button" aria-label="Notifications">
+            {# Use bootstrap icon element so markup is consistent with other icons #}
+            <i class="bi bi-bell" aria-hidden="true"></i>
+            <span class="dot" aria-hidden></span>
+        </button>
+
+        <div class="admin-badge" onclick="toggleDropdown()" title="Account">
+            <div class="profile-avatar">A</div>
+            <div class="admin-dropdown" id="adminDropdown">
+                <div class="profile-section">
+                    <div class="profile-info">
+                        <div class="profile-avatar">A</div>
+                        <div class="profile-details">
+                            <h3>Admin User</h3>
+                            <p>Administrator</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown-menu">
+                    <div class="menu-divider"></div>
+                    <a href="{{ path('app_logout') }}" class="menu-item logout-item">
+                        <div class="menu-item-icon"><i class="bi bi-box-arrow-left"></i></div>
+                        Log out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

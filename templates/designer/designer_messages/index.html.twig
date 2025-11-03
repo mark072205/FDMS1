@@ -1,0 +1,435 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mark & Motion · Messages{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/designer.css')}} ">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/designer.js') }}"></script>
+{% endblock %}
+
+{% block body_class %} class="designer-messages-page"{% endblock %}
+{% block body %}
+{% include 'designer/_headerdesigner.html.twig' with { active: 'messages' } %}
+
+<main class="designer-main designer-messages-main">
+    <div class="designer-messages-container">
+        <!-- Left Column: Messages List -->
+        <aside class="designer-messages-sidebar">
+            <div class="designer-messages-header">
+                <h1 class="designer-messages-title">Messages</h1>
+                <div class="designer-messages-menu-wrapper">
+                    <button class="designer-messages-menu-btn" type="button" aria-expanded="false">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <div class="designer-messages-menu-dropdown">
+                        <div class="designer-messages-menu-arrow"></div>
+                        <ul class="designer-messages-menu-list">
+                            <li>
+                                <a href="#" class="designer-messages-menu-item">
+                                    <span>Start a new conversation</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="designer-messages-menu-item">
+                                    <span>Message settings</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="designer-messages-menu-item">
+                                    <span>Out of office</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="designer-messages-menu-item">
+                                    <span>Shortcut keys</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="designer-messages-menu-item">
+                                    <span>Configure integrations</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="designer-messages-search-wrapper">
+                <div class="designer-messages-search-box">
+                    <i class="bi bi-search designer-messages-search-icon"></i>
+                    <input type="search" placeholder="Search" class="designer-messages-search-input">
+                </div>
+                <div class="designer-messages-filter-wrapper">
+                    <button class="designer-messages-filter-btn" type="button" aria-expanded="false">
+                        <i class="bi bi-sliders"></i>
+                    </button>
+                    <div class="designer-messages-filter-dropdown">
+                        <div class="designer-messages-filter-header">
+                            <span>Filter conversations by</span>
+                        </div>
+                        <div class="designer-messages-filter-options">
+                            <button class="designer-messages-filter-option active" type="button">
+                                <i class="bi bi-check"></i>
+                                <span>All</span>
+                            </button>
+                            <button class="designer-messages-filter-option" type="button">
+                                <i class="bi bi-envelope"></i>
+                                <span>Unread</span>
+                            </button>
+                            <button class="designer-messages-filter-option" type="button">
+                                <i class="bi bi-star"></i>
+                                <span>Favorites</span>
+                            </button>
+                            <button class="designer-messages-filter-option" type="button">
+                                <i class="bi bi-briefcase"></i>
+                                <span>Interviews</span>
+                            </button>
+                            <button class="designer-messages-filter-option" type="button">
+                                <i class="bi bi-send"></i>
+                                <span>Contracts</span>
+                            </button>
+                            <button class="designer-messages-filter-option" type="button">
+                                <i class="bi bi-tag"></i>
+                                <span>Fixed-price contracts</span>
+                            </button>
+                            <button class="designer-messages-filter-option" type="button">
+                                <i class="bi bi-clock"></i>
+                                <span>Hourly contracts</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="designer-messages-list">
+                <!-- Conversation Item -->
+                <div class="designer-conversation-item active">
+                    <div class="designer-conversation-avatar-wrapper">
+                        <div class="designer-conversation-avatar">RW</div>
+                        <span class="designer-conversation-unread-indicator"></span>
+                    </div>
+                    <div class="designer-conversation-content">
+                        <div class="designer-conversation-header">
+                            <span class="designer-conversation-name">Robin Weninger</span>
+                            <span class="designer-conversation-date">8/12/25</span>
+                        </div>
+                        <div class="designer-conversation-preview-wrapper">
+                            <p class="designer-conversation-preview">You: That works perfectly — I can create the 8 visuals p...</p>
+                            <div class="designer-conversation-actions">
+                                <button class="designer-conversation-action-btn" type="button" title="Favorite">
+                                    <i class="bi bi-star"></i>
+                                </button>
+                                <button class="designer-conversation-action-btn" type="button" title="More options">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversation Item -->
+                <div class="designer-conversation-item">
+                    <div class="designer-conversation-avatar-wrapper">
+                        <div class="designer-conversation-avatar">AS</div>
+                        <span class="designer-conversation-unread-indicator"></span>
+                    </div>
+                    <div class="designer-conversation-content">
+                        <div class="designer-conversation-header">
+                            <span class="designer-conversation-name">Aljemark Sendiong</span>
+                            <span class="designer-conversation-date">8/11/25</span>
+                        </div>
+                        <div class="designer-conversation-preview-wrapper">
+                            <p class="designer-conversation-preview">Thanks for the update on the project timeline...</p>
+                            <div class="designer-conversation-actions">
+                                <button class="designer-conversation-action-btn" type="button" title="Favorite">
+                                    <i class="bi bi-star"></i>
+                                </button>
+                                <button class="designer-conversation-action-btn" type="button" title="More options">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- More conversation items can be added here -->
+            </div>
+        </aside>
+
+        <!-- Middle Column: Chat Window -->
+        <section class="designer-messages-chat">
+            <div class="designer-chat-header">
+                <div class="designer-chat-header-info">
+                    <h2 class="designer-chat-title">Robin Weninger</h2>
+                    <div class="designer-chat-meta">
+                        <i class="bi bi-briefcase designer-chat-meta-icon"></i>
+                        <span class="designer-chat-meta-text">Robin W</span>
+                    </div>
+                </div>
+                <div class="designer-chat-header-actions">
+                    <button class="designer-chat-action-btn" type="button" title="Video call">
+                        <i class="bi bi-camera-video"></i>
+                    </button>
+                    <button class="designer-chat-action-btn" type="button" title="Schedule">
+                        <i class="bi bi-clock"></i>
+                    </button>
+                    <button class="designer-chat-action-btn" id="toggleDesignerInfo" type="button" title="Toggle profile info">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="designer-chat-messages">
+                <!-- NOTE: The messages below are sample/development messages only -->
+                
+                <!-- Date Divider -->
+                <div class="designer-message-date-divider">
+                    <span class="designer-message-date-divider-text">Wednesday, Jul 30</span>
+                </div>
+                
+                <!-- Sample Message: From User (Designer) -->
+                <div class="designer-message-item designer-message-from-user">
+                    <div class="designer-message-avatar-wrapper">
+                        <div class="designer-message-avatar designer-user-avatar">AS</div>
+                        <span class="designer-message-status-online"></span>
+                    </div>
+                    <div class="designer-message-content">
+                        <div class="designer-message-actions">
+                            <button class="designer-message-action-btn" type="button" title="Reply">
+                                <i class="bi bi-reply"></i>
+                            </button>
+                            <button class="designer-message-action-btn" type="button" title="Favorite">
+                                <i class="bi bi-star"></i>
+                            </button>
+                            <button class="designer-message-action-btn" type="button" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="designer-message-action-btn" type="button" title="More options">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                        </div>
+                        <div class="designer-message-header">
+                            <div class="designer-message-sender">Aljemark Sendiong</div>
+                            <span class="designer-message-time">7:33 AM</span>
+                        </div>
+                        <div class="designer-message-text-wrapper">
+                            <p class="designer-message-text">Hi Robin,
+
+Thanks for sharing the sample posts — I've reviewed them, and I see the minimalistic style you're aiming for. I'm confident I can create engaging visuals that match your brand identity and help boost post engagement. Could you let me know the usual format and dimensions you prefer for LinkedIn visuals? Once I have that, I can prepare a proposal and monthly retainer quote for you.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Message: From Client (Robin Weninger) -->
+                <div class="designer-message-item designer-message-from-client">
+                    <div class="designer-message-avatar">RW</div>
+                    <div class="designer-message-content">
+                        <div class="designer-message-actions">
+                            <button class="designer-message-action-btn" type="button" title="Reply">
+                                <i class="bi bi-reply"></i>
+                            </button>
+                            <button class="designer-message-action-btn" type="button" title="Favorite">
+                                <i class="bi bi-star"></i>
+                            </button>
+                            <button class="designer-message-action-btn" type="button" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="designer-message-action-btn" type="button" title="More options">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                        </div>
+                        <div class="designer-message-header">
+                            <div class="designer-message-sender">Robin Weninger</div>
+                            <span class="designer-message-time">9:44 PM</span>
+                        </div>
+                        <div class="designer-message-text-wrapper">
+                            <p class="designer-message-text">Thanks for sharing your feedback. I am aiming at having 8 visuals per month (2 per week), plus maybe some smaller quotes. Working in Canva would be ideal as I could then make minor content changes myself if needed.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="designer-chat-input-area">
+                <div class="designer-chat-input-wrapper">
+                    <textarea placeholder="Send a message..." class="designer-chat-input" rows="1"></textarea>
+                </div>
+                <div class="designer-chat-input-actions">
+                    <div class="designer-chat-input-actions-left">
+                        <button class="designer-chat-tool-btn" type="button" title="Text formatting">
+                            <span class="designer-chat-tool-text">Aa</span>
+                        </button>
+                        <button class="designer-chat-tool-btn" type="button" title="Attach file">
+                            <i class="bi bi-paperclip"></i>
+                        </button>
+                        <button class="designer-chat-tool-btn" type="button" title="AI features">
+                            <i class="bi bi-star"></i>
+                        </button>
+                        <button class="designer-chat-tool-btn" type="button" title="Emoji">
+                            <i class="bi bi-emoji-smile"></i>
+                        </button>
+                    </div>
+                    <div class="designer-chat-input-hint">
+                        Shift + Enter to add a new line.
+                    </div>
+                    <div class="designer-chat-input-actions-right">
+                        <button class="designer-chat-tool-btn" type="button" title="Settings">
+                            <i class="bi bi-gear"></i>
+                        </button>
+                        <button class="designer-chat-send-btn" type="button" title="Send">
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Client Information -->
+        <aside class="designer-messages-designer-info" id="designerInfoSidebar">
+            <button class="designer-info-close" type="button" title="Close">
+                <i class="bi bi-x-lg"></i>
+            </button>
+
+            <div class="designer-info-header">
+                <div class="designer-info-avatar-wrapper">
+                    <div class="designer-info-avatar">RW</div>
+                    <span class="designer-info-online-status"></span>
+                </div>
+                <h3 class="designer-info-name">Robin Weninger</h3>
+                <div class="designer-info-meta">
+                    <i class="bi bi-files designer-info-icon"></i>
+                    <span>Robin W</span>
+                </div>
+                <div class="designer-info-time">
+                    <i class="bi bi-clock designer-info-icon"></i>
+                    <span>3:52 AM GMT+1 (7 h behind)</span>
+                </div>
+            </div>
+
+            <button class="btn-propose-contract" type="button">
+                <i class="bi bi-envelope-plus"></i>
+                <span>Propose contract</span>
+            </button>
+
+            <div class="designer-info-sections-wrapper">
+                <div class="designer-info-section">
+                    <button class="designer-info-section-header" type="button" aria-expanded="false">
+                        <i class="bi bi-search designer-info-section-icon"></i>
+                        <span>Search messages</span>
+                        <i class="bi bi-chevron-down designer-info-section-chevron"></i>
+                    </button>
+                    <div class="designer-info-section-content" style="display: none;">
+                        <!-- Content will be added here -->
+                    </div>
+                </div>
+
+                <div class="designer-info-section">
+                    <button class="designer-info-section-header" type="button" aria-expanded="false">
+                        <i class="bi bi-gear designer-info-section-icon"></i>
+                        <span>Meeting recaps</span>
+                        <i class="bi bi-chevron-down designer-info-section-chevron"></i>
+                    </button>
+                    <div class="designer-info-section-content" style="display: none;">
+                        <!-- Content will be added here -->
+                    </div>
+                </div>
+
+                <div class="designer-info-section">
+                    <button class="designer-info-section-header" type="button" aria-expanded="false">
+                        <i class="bi bi-paperclip designer-info-section-icon"></i>
+                        <span>Files and links</span>
+                        <i class="bi bi-chevron-down designer-info-section-chevron"></i>
+                    </button>
+                    <div class="designer-info-section-content" style="display: none;">
+                        <!-- Content will be added here -->
+                    </div>
+                </div>
+
+                <div class="designer-info-section">
+                    <button class="designer-info-section-header" type="button" aria-expanded="false">
+                        <i class="bi bi-file-earmark-text designer-info-section-icon"></i>
+                        <span>Personal notepad</span>
+                        <i class="bi bi-chevron-down designer-info-section-chevron"></i>
+                    </button>
+                    <div class="designer-info-section-content" style="display: none;">
+                        <!-- Content will be added here -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Messages menu dropdown
+    const menuBtn = document.querySelector('.designer-messages-menu-btn');
+    const menuDropdown = document.querySelector('.designer-messages-menu-dropdown');
+    
+    if (menuBtn && menuDropdown) {
+        // Toggle dropdown on button click
+        menuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
+            menuBtn.setAttribute('aria-expanded', !isExpanded);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+                menuBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+        
+        // Close dropdown when clicking on a menu item
+        const menuItems = menuDropdown.querySelectorAll('.designer-messages-menu-item');
+        menuItems.forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                menuBtn.setAttribute('aria-expanded', 'false');
+                // TODO: Add functionality for each menu item
+                console.log('Menu item clicked:', this.textContent.trim());
+            });
+        });
+    }
+    
+    // Filter dropdown
+    const filterBtn = document.querySelector('.designer-messages-filter-btn');
+    const filterDropdown = document.querySelector('.designer-messages-filter-dropdown');
+    
+    if (filterBtn && filterDropdown) {
+        // Toggle dropdown on button click
+        filterBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isExpanded = filterBtn.getAttribute('aria-expanded') === 'true';
+            filterBtn.setAttribute('aria-expanded', !isExpanded);
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
+                filterBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+        
+        // Handle filter option clicks
+        const filterOptions = filterDropdown.querySelectorAll('.designer-messages-filter-option');
+        filterOptions.forEach(function(option) {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Remove active class from all options
+                filterOptions.forEach(function(opt) {
+                    opt.classList.remove('active');
+                });
+                // Add active class to clicked option
+                this.classList.add('active');
+                // TODO: Apply filter functionality
+                console.log('Filter selected:', this.querySelector('span').textContent.trim());
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

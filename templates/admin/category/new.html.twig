@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add Category · Admin{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/admin.css')}} ">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin/_header.html.twig' with { active: 'categories' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Add Category</h1>
+                <p class="admin-subtitle">Create a new marketplace category</p>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="admin-card" style="padding:1rem;">
+            {{ include('admin/category/_form.html.twig') }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/search_controller.js') }}"></script>
+    <script src="{{ asset('controllers/admin.js') }}"></script>
+{% endblock %}

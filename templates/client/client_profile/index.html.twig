@@ -1,0 +1,180 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mark & Motion · My Profile{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/client.css')}} ">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/client.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+{% include 'client/_headerclient.html.twig' with { active: 'profile' } %}
+
+<main class="client-main client-profile" style="max-width: 1120px; margin: 100px auto; margin-bottom: 0; padding: 0 16px;">
+    <section class="client-profile__header" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center;">
+        <div class="client-profile__avatar" style="position: relative; width: 84px; height: 84px; display: inline-block;">
+            <div style="width: 84px; height: 84px; border-radius: 50%; overflow: hidden; background: #f3f4f6; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 28px;">
+                {% if app.user and app.user.profilePicture %}
+                    <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}" alt="{{ app.user.firstName }} {{ app.user.lastName }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                    {{ app.user ? app.user.firstName|first|upper ~ app.user.lastName|first|upper : 'C' }}
+                {% endif %}
+            </div>
+            <span title="Online" style="position: absolute; top: 4px; left: 4px; width: 12px; height: 12px; background: #22c55e; border-radius: 9999px; box-shadow: 0 0 0 2px #ffffff;"></span>
+            <a href="#" id="openEditPhoto" class="avatar-edit-btn" title="Edit photo" aria-label="Edit photo" style="position: absolute; right: -4px; bottom: -4px; width: 26px; height: 26px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <i class="bi bi-pencil" style="font-size: 12px;"></i>
+            </a>
+        </div>
+        <div class="client-profile__title" style="display: grid; gap: 6px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap: wrap;">
+                <h1 style="font-size: 32px; line-height: 1.2; margin: 0; font-weight: 400;">{{ app.user ? app.user.firstName ~ ' ' ~ app.user.lastName : 'Client' }}</h1>
+                {% set userRole = app.user ? (app.user.role ? app.user.role|capitalize : (app.user.userType ? app.user.userType|capitalize : 'User')) : 'User' %}
+                <span style="padding: 2px 8px; border: 1px solid #e5e7eb; border-radius: 9999px; font-size: 12px; color:#374151;">{{ userRole }}</span>
+                {% if app.user and app.user.verified %}
+                <span title="Verified" style="display:inline-flex; align-items:center; justify-content:center; width: 24px; height: 24px; border-radius: 9999px; background:#e5fbe6; color:#16a34a; font-size:14px;">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                </span>
+                {% else %}
+                <span title="Not Verified" style="display:inline-flex; align-items:center; justify-content:center; width: 24px; height: 24px; border-radius: 9999px; background:#fef3c7; color:#d97706; font-size:14px;">
+                    <i class="bi bi-exclamation-circle-fill" aria-hidden="true"></i>
+                </span>
+                <a href="#" style="color: inherit; text-decoration: underline; font-size: 16px;">Verify your identity</a>
+                {% endif %}
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; color:#374151; font-size:16px;">
+                <span style="display:inline-flex; align-items:center; gap:6px;">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                    <span>—</span>
+                </span>
+                <span>— {{ "now"|date('g:i a') }} local time</span>
+            </div>
+        </div>
+        <div class="client-profile__actions" style="display:flex; gap:12px;">
+            <a href="#" class="icon-btn" title="Profile settings" aria-label="Profile settings">
+                <i class="bi bi-gear"></i>
+            </a>
+        </div>
+    </section>
+
+    <section class="client-profile__body" style="display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; align-content: start;">
+        <aside class="client-profile__left" style="display: grid; gap: 16px;">
+            <div class="client-profile__card" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;">
+                <h3 style="margin: 0 0 8px; font-size: 16px;">Contact</h3>
+                <p style="margin: 0; color: #374151;">{{ app.user and app.user.email ? app.user.email : '—' }}</p>
+                {% if app.user and app.user.createdAt %}
+                    <p style="margin: 8px 0 0; color: #6b7280;">Member since {{ app.user.createdAt|date('M Y') }}</p>
+                {% endif %}
+            </div>
+        </aside>
+
+        <section class="client-profile__right" style="display: grid; gap: 16px; align-items: start; align-content: start; grid-auto-rows: min-content;">
+            <div class="client-profile__card bio-card-wrapper" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; position: relative; overflow: hidden;">
+                <a href="#" id="openEditBio" class="bio-edit-btn" title="Edit bio" aria-label="Edit bio" style="position: absolute; top: 12px; right: 12px; width: 26px; height: 26px; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; border: 2px solid var(--color-primary); color: var(--color-primary); background: #ffffff; transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease; z-index: 1;">
+                    <i class="bi bi-pencil" style="font-size: 12px;"></i>
+                </a>
+                <div style="padding-right: 40px;">
+                    <h3 style="margin: 0 0 12px; padding: 0;">Bio</h3>
+                    {% if app.user and app.user.bio and app.user.bio|trim %}
+                        <p id="bioContent" style="color: #374151; line-height: 1.7; margin: 0; padding: 0; text-align: left; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">{{ app.user.bio }}</p>
+                    {% else %}
+                        <p id="bioContent" style="color: #6b7280; line-height: 1.7; margin: 0; padding: 0; text-align: left; word-wrap: break-word; overflow-wrap: break-word; white-space: normal;">Add your bio.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="client-profile__card" style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px;">
+                <h3 style="margin: 0 0 12px;">Account</h3>
+                <ul style="list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; color: #374151;">
+                    <li><strong>Email:</strong> {{ app.user and app.user.email ? app.user.email : '—' }}</li>
+                    <li><strong>Type:</strong> {{ app.user and app.user.userType ? app.user.userType : '—' }}</li>
+                    <li><strong>Status:</strong> {{ app.user and app.user.isActive ? 'Active' : 'Inactive' }}</li>
+                    <li><strong>Verified:</strong> {{ app.user and app.user.verified ? 'Yes' : 'No' }}</li>
+                    <li><strong>Last login:</strong> {{ app.user and app.user.lastLogin ? app.user.lastLogin|date('Y-m-d H:i') : '—' }}</li>
+                </ul>
+            </div>
+        </section>
+    </section>
+ </main>
+ 
+ <!-- Edit Photo Modal placed inside body so it's rendered on this page -->
+ <div id="editPhotoModal" class="client-photo-modal hidden" aria-hidden="true">
+    <div class="client-photo-modal__backdrop"></div>
+    <div class="client-photo-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="editPhotoTitle">
+        <button type="button" class="client-photo-modal__close" id="closeEditPhoto" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <h2 id="editPhotoTitle" class="client-photo-modal__title">Edit photo</h2>
+        <div class="client-photo-modal__content">
+            <div class="client-photo-modal__preview">
+                <div class="client-photo-cropper {% if not (app.user and app.user.profilePicture) %}client-photo-cropper--empty{% endif %}">
+                    {% if app.user and app.user.profilePicture %}
+                        <img id="editPhotoPreview" src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}" alt="Profile preview">
+                        <div class="client-photo-move-badge"><i class="bi bi-arrows-move"></i>Move</div>
+                    {% else %}
+                        <img id="editPhotoPreview" src="" alt="Profile preview" style="display:none;">
+                        <div class="client-photo-drop-hint">
+                            <div class="client-photo-drop-text">Attach or Drop<br>photo here</div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div id="editPhotoControls" class="client-photo-modal__controls {% if not (app.user and app.user.profilePicture) %}hidden{% endif %}">
+                    <div class="client-photo-zoom">
+                        <span class="zoom-label">Zoom</span>
+                        <div class="zoom-slider-wrapper">
+                            <input id="editPhotoZoom" type="range" min="0" max="20" step="1" value="0">
+                            <span id="editPhotoZoomValue" class="zoom-value">0</span>
+                        </div>
+                    </div>
+                    <button type="button" id="editPhotoRotate" class="rotate-btn"><i class="bi bi-arrow-clockwise"></i> Rotate</button>
+                </div>
+            </div>
+            <div class="client-photo-modal__sidebar">
+                <h3 class="client-photo-sidebar__title">Show them the best version of yourself</h3>
+                <div class="client-photo-thumbs">
+                    <div class="client-photo-thumb client-photo-thumb--lg">
+                        <img src="{{ app.user and app.user.profilePicture ? asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}">
+                    </div>
+                    <div class="client-photo-thumb client-photo-thumb--md">
+                        <img src="{{ app.user and app.user.profilePicture ? asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}">
+                    </div>
+                    <div class="client-photo-thumb client-photo-thumb--sm">
+                        <img src="{{ app.user and app.user.profilePicture ? asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}">
+                    </div>
+                    <div class="client-photo-thumb client-photo-thumb--xs">
+                        <img src="{{ app.user and app.user.profilePicture ? asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}">
+                    </div>
+                </div>
+                <p class="client-photo-guidelines">
+                    Must be an actual photo of you. Logos, clip‑art, group photos, and digitally‑altered images are not allowed.
+                </p>
+            </div>
+        </div>
+        <div class="client-photo-modal__footer">
+            <input id="editPhotoFile" type="file" accept="image/*" hidden>
+            <button type="button" id="editPhotoChange" class="link-btn-green {% if not (app.user and app.user.profilePicture) %}hidden{% endif %}">Change image</button>
+            <button type="button" id="editPhotoSave" class="btn btn-primary btn-save">Save photo</button>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Edit Bio Modal -->
+<div id="editBioModal" class="client-bio-modal hidden" aria-hidden="true">
+    <div class="client-bio-modal__backdrop"></div>
+    <div class="client-bio-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="editBioTitle">
+        <button type="button" class="client-bio-modal__close" id="closeEditBio" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <h2 id="editBioTitle" class="client-bio-modal__title">Edit bio</h2>
+        <div class="client-bio-modal__content">
+            <textarea id="editBioTextarea" class="client-bio-textarea" rows="8" placeholder="Tell designers what you're looking for and what success looks like for you. Add details about your style preferences, project types, and timelines.">{{ app.user and app.user.bio ? app.user.bio : '' }}</textarea>
+        </div>
+        <div class="client-bio-modal__footer">
+            <button type="button" id="editBioSave" class="btn btn-primary btn-save">Save bio</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

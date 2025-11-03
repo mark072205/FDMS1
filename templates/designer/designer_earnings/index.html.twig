@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mark & Motion · Earnings{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/designer.css')}} ">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/designer.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+{% include 'designer/_headerdesigner.html.twig' with { active: 'earnings' } %}
+
+<main class="designer-main">
+    <div class="example-wrapper">
+        <h1>Earnings</h1>
+        <p>This page is under development.</p>
+    </div>
+</main>
+{% endblock %}

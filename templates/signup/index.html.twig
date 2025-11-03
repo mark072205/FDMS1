@@ -1,0 +1,161 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign Up - Mark & Motion{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{asset('styles/signup.css')}} ">
+{% endblock %}
+
+{% block body %}
+
+<div class="header">
+    <div class="header-left">
+        <a href="{{ path('app_landing_page') }}" class="logo-link">
+            <img src="{{ asset('img/Logo2.png') }}" alt="Mark & Motion">
+        </a>
+    </div>
+    <div class="header-right {% if role %}visible{% endif %}" id="headerRight">
+        <span class="header-text">
+            {% if role == 'designer' %}
+                Here to hire designer?
+            {% elseif role == 'client' %}
+                Here to find work?
+            {% else %}
+                Already have an account?
+            {% endif %}
+        </span>
+        {% if role == 'designer' %}
+            <a href="/signup/as-client" class="header-link">Join as a Client</a>
+        {% elseif role == 'client' %}
+            <a href="/signup/as-designer" class="header-link">Join as a Designer</a>
+        {% else %}
+            <a href="/login" class="header-link">Log In</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="signup-container">
+    <!-- Step 1: Role Selection -->
+    <div id="step1" class="signup-step {% if role %}hidden{% else %}active{% endif %}">
+        <h1>Join as a client or designer</h1>
+
+        <div class="option-cards">
+            <label class="option-card" data-role="client">
+                <span class="text">I'm a client,<br>hiring for a project</span>
+                <input type="radio" name="role" value="client" required>
+            </label>
+
+            <label class="option-card" data-role="designer">
+                <span class="text">I'm a designer,<br>looking for work</span>
+                <input type="radio" name="role" value="designer" required>
+            </label>
+        </div>
+
+        <button type="button" class="create-btn" disabled id="continueBtn">Create Account</button>
+
+        <div class="login-link">
+            Already have an account? <a href="/login">Log In</a>
+        </div>
+    </div>
+
+    <!-- Step 2: Signup Form -->
+    <div id="step2" class="signup-step {% if role %}active{% endif %}">
+        <h1>
+            {% if role == 'designer' %}
+                Sign up to find work you love
+            {% elseif role == 'client' %}
+                Sign up to hire talent
+            {% else %}
+                Sign up to get started
+            {% endif %}
+        </h1>
+
+        <form method="post" id="signupForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="firstName">First name</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastName">Last name</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required 
+                       minlength="3" 
+                       pattern="[a-zA-Z0-9_]+"
+                       title="Username can only contain letters, numbers, and underscores (minimum 3 characters)">
+            </div>
+
+            <div class="form-group full-width">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" title="Please enter a valid email address (e.g., user@example.com)">
+            </div>
+
+            <div class="form-group full-width">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" 
+                           placeholder="Password (8+ chars)" 
+                           required 
+                           minlength="8"
+                           pattern="^[A-Za-z\d@$!%*?&_]{8,}$"
+                           title="Password must be at least 8 characters and contain at least one of: uppercase letter, lowercase letter, number, or special character (@$!%*?&_)">
+                    <button type="button" class="toggle-password" id="togglePassword">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="confirmPassword">Confirm Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="confirmPassword" name="confirmPassword" 
+                           placeholder="Repeat your password" 
+                           required 
+                           minlength="8">
+                    <button type="button" class="toggle-password" id="toggleConfirmPassword">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group full-width checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="terms" name="terms" required>
+                    <span>Yes, I understand and agree to the <a href="#" class="terms-link">Mark & Motion Terms of Service</a>, including the <a href="#" class="terms-link">User Agreement</a> and <a href="#" class="terms-link">Privacy Policy</a>.</span>
+                </label>
+            </div>
+
+            <input type="hidden" name="role" id="selectedRole" value="{{ role ?? '' }}">
+
+            <button type="submit" class="create-btn submit-btn" disabled>Create my account</button>
+
+            <div class="login-link">
+                Already have an account? <a href="/login">Log In</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+    {% if role %}
+    <script>
+        // Set the selected role when page loads
+        window.preselectedRole = '{{ role }}';
+    </script>
+    {% endif %}
+    <script src=" {{asset('controllers/signup.js')}} "></script>
+{% endblock %}

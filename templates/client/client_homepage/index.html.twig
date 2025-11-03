@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mark & Motion · Client{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/client.css')}} ">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/client.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+{% include 'client/_headerclient.html.twig' with { active: 'home' } %}
+
+<main class="client-main workspace-main">
+    <!-- Feed Header -->
+    <section class="workspace-feed-header">
+        <div class="workspace-header-text">
+            <h1 class="feed-title">Hey, {{ app.user ? app.user.firstName : 'there' }}!</h1>
+            <p class="feed-subtitle">Here's what's happening with your projects</p>
+        </div>
+        <div class="workspace-quick-stats">
+            <div class="quick-stat-item">
+                <span class="stat-value">3</span>
+                <span class="stat-label">Active</span>
+            </div>
+            <div class="quick-stat-item">
+                <span class="stat-value">1</span>
+                <span class="stat-label">Pending</span>
+            </div>
+            <div class="quick-stat-item">
+                <span class="stat-value">5</span>
+                <span class="stat-label">Total</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="workspace-content-layout">
+        <!-- Main Content Column -->
+        <div class="workspace-main-column">
+            <!-- Recent Activity Feed -->
+            <section class="workspace-activity-section">
+                <h2 class="workspace-section-heading">Recent Activity</h2>
+                <div class="activity-feed">
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <div class="author-avatar">JD</div>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <span class="activity-name">John Doe</span>
+                                <span class="activity-action">uploaded a new logo draft</span>
+                                <span class="activity-project">for Coffee Shop Branding</span>
+                            </div>
+                            <span class="activity-time">3 hours ago</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="bi bi-check-circle-fill activity-icon-success"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <span class="activity-action">Payment confirmed</span>
+                                <span class="activity-project">for Poster Design project</span>
+                            </div>
+                            <span class="activity-time">1 day ago</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <div class="author-avatar">JS</div>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <span class="activity-name">Jane Smith</span>
+                                <span class="activity-action">sent a message</span>
+                                <span class="activity-project">about Vintage T-Shirt Line</span>
+                            </div>
+                            <span class="activity-time">2 days ago</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <i class="bi bi-check-circle-fill activity-icon-success"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <span class="activity-action">Project completed</span>
+                                <span class="activity-project">Vintage T-Shirt Line</span>
+                            </div>
+                            <span class="activity-time">2 days ago</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Active Projects Grid -->
+            <section class="workspace-projects-section">
+                <div class="workspace-section-header">
+                    <h2 class="workspace-section-heading">Active Projects</h2>
+                    <a href="{{ path('app_client_projects') }}" class="workspace-view-all">View all projects</a>
+                </div>
+                <div class="workspace-projects">
+                    <div class="projects-grid">
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3>Coffee Shop Branding</h3>
+                                <span class="status-badge status-active">In Progress</span>
+                            </div>
+                            <div class="project-meta">
+                                <div class="project-designer-meta">
+                                    <div class="author-avatar">JD</div>
+                                    <span class="author-name">John Doe</span>
+                                </div>
+                                <span class="project-date">Updated 3h ago</span>
+                            </div>
+                            <p class="project-description">Complete brand identity package including logo, color palette, and typography guidelines for a modern coffee shop.</p>
+                            <div class="project-progress-inline">
+                                <div class="progress-bar-small">
+                                    <div class="progress-fill-small" style="width: 65%"></div>
+                                </div>
+                                <span class="progress-percentage">65%</span>
+                            </div>
+                            <div class="project-actions">
+                                <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                            </div>
+                        </div>
+
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3>Vintage T-Shirt Line</h3>
+                                <span class="status-badge status-pending">Revision</span>
+                            </div>
+                            <div class="project-meta">
+                                <div class="project-designer-meta">
+                                    <div class="author-avatar">JS</div>
+                                    <span class="author-name">Jane Smith</span>
+                                </div>
+                                <span class="project-date">Updated 1 day ago</span>
+                            </div>
+                            <p class="project-description">Retro-inspired t-shirt designs with vintage typography and classic color schemes.</p>
+                            <div class="project-progress-inline">
+                                <div class="progress-bar-small">
+                                    <div class="progress-fill-small" style="width: 80%"></div>
+                                </div>
+                                <span class="progress-percentage">80%</span>
+                            </div>
+                            <div class="project-actions">
+                                <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                            </div>
+                        </div>
+
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3>Poster Design</h3>
+                                <span class="status-badge status-completed">Completed</span>
+                            </div>
+                            <div class="project-meta">
+                                <div class="project-designer-meta">
+                                    <div class="author-avatar">AB</div>
+                                    <span class="author-name">Alex Brown</span>
+                                </div>
+                                <span class="project-date">Completed 2 days ago</span>
+                            </div>
+                            <p class="project-description">Modern poster design for music festival with bold typography and vibrant colors.</p>
+                            <div class="project-progress-inline">
+                                <div class="progress-bar-small">
+                                    <div class="progress-fill-small" style="width: 100%"></div>
+                                </div>
+                                <span class="progress-percentage">100%</span>
+                            </div>
+                            <div class="project-actions">
+                                <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state hidden" id="emptyProjectsState">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-folder-plus"></i>
+                        </div>
+                        <h3>You don't have any active projects yet.</h3>
+                        <p>Start collaborating with talented designers by posting your first project.</p>
+                        <a href="{{ path('app_client_projects') }}" class="btn btn-primary" id="postProjectEmptyBtn">
+                            <i class="bi bi-plus-lg"></i>
+                            Create New Project
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Sidebar Column -->
+        <aside class="workspace-sidebar-column">
+            <!-- Working With Designers -->
+            <section class="workspace-collaborators-section">
+                <div class="workspace-section-header">
+                    <h2 class="workspace-section-heading">Working With</h2>
+                    <a href="#" class="workspace-view-all">View all</a>
+                </div>
+                <div class="collaborators-list">
+                    <div class="collaborator-item">
+                        <div class="author-avatar">JD</div>
+                        <div class="collaborator-info">
+                            <span class="collaborator-name">John Doe</span>
+                            <span class="collaborator-role">Brand Identity Designer</span>
+                        </div>
+                        <a href="#" class="btn-collaborator-link">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <div class="collaborator-item">
+                        <div class="author-avatar">JS</div>
+                        <div class="collaborator-info">
+                            <span class="collaborator-name">Jane Smith</span>
+                            <span class="collaborator-role">Print Design Specialist</span>
+                        </div>
+                        <a href="#" class="btn-collaborator-link">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+
+                    <div class="collaborator-item">
+                        <div class="author-avatar">AB</div>
+                        <div class="collaborator-info">
+                            <span class="collaborator-name">Alex Brown</span>
+                            <span class="collaborator-role">Visual Designer</span>
+                        </div>
+                        <a href="#" class="btn-collaborator-link">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+</main>
+{% endblock %}
