@@ -343,39 +343,6 @@ class UserController extends AbstractController
         return new JsonResponse(['success' => true, 'message' => 'Activity updated successfully.']);
     }
 
-    #[Route('/{id}/toggle-verification', name: 'app_user_toggle_verification', methods: ['POST'])]
-    public function toggleVerification(Users $user, Request $request): JsonResponse
-    {
-        // Prevent staff users from toggling verification - only admins can do this
-        $currentUser = $this->getUser();
-        if ($currentUser instanceof Users && ($currentUser->getRole() === 'staff' || $currentUser->getUserType() === 'staff')) {
-            return new JsonResponse(['success' => false, 'message' => 'You do not have permission to change user verification status. Only administrators can manage users.'], 403);
-        }
-
-        // Prevent toggling verification for admin and staff users
-        if ($user->getUserType() === 'admin' || $user->getUserType() === 'staff') {
-            return new JsonResponse(['success' => false, 'message' => 'Cannot change verification status for admin or staff users.'], 400);
-        }
-
-        $user->setVerified(!$user->isVerified());
-        $user->setUpdatedAt(new \DateTime());
-        $this->entityManager->flush();
-
-        // Notify admins about user verification change
-        try {
-            $admin = $this->getUser();
-            $changedBy = $admin instanceof Users ? $admin->getUsername() : 'System';
-            $changeType = $user->isVerified() ? 'verified' : 'unverified';
-            $this->notificationService->notifyUserStatusChange($user, $changeType, $changedBy);
-        } catch (\Exception $e) {
-            // Log error but don't fail verification change
-            error_log('Failed to send notification for user verification change: ' . $e->getMessage());
-        }
-
-        $status = $user->isVerified() ? 'verified' : 'unverified';
-        return new JsonResponse(['success' => true, 'message' => "User {$status} successfully.", 'isVerified' => $user->isVerified()]);
-    }
-
     #[Route('/{id}/promote', name: 'app_user_promote', methods: ['POST'])]
     public function promote(Users $user, Request $request): JsonResponse
     {
@@ -401,9 +368,11 @@ class UserController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Invalid role. Users can only be promoted to staff.'], 400);
         }
 
-        // Update both role and userType to staff
+        // Update both role and userType to staff; mark verified so they can log in (staff are not required to verify email)
         $user->setRole('staff');
         $user->setUserType('staff');
+        $user->setVerified(true);
+        $user->setVerificationToken(null);
         $user->setUpdatedAt(new \DateTime());
 
         // Clear bio when promoting to staff (staff users don't have bios)

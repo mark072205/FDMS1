@@ -39,3 +39,15 @@ services:
     App\EventSubscriber\ActivityLogSubscriber:
         tags:
             - { name: 'doctrine.event_subscriber' }
+
+    # Email verification (from address/name for verification emails)
+    App\Service\EmailVerificationService:
+        arguments:
+            $fromAddress: '%env(MAILER_FROM_ADDRESS)%'
+            $fromName: '%env(MAILER_FROM_NAME)%'
+
+    # Test email command (same from address/name)
+    App\Command\TestEmailCommand:
+        arguments:
+            $fromAddress: '%env(MAILER_FROM_ADDRESS)%'
+            $fromName: '%env(MAILER_FROM_NAME)%'

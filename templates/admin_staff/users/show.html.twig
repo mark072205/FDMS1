@@ -113,15 +113,6 @@
                         <i class="bi bi-{{ user.isActive ? 'person-x' : 'person-check' }}"></i>
                     </button>
                 {% endif %}
-                {# Verify/Unverify button - available for client and designer users only #}
-                {% if user.userType != 'admin' and user.userType != 'staff' %}
-                    <button class="btn-icon toggle-verification {{ user.verified ? 'btn-warning' : 'btn-success' }}" 
-                            data-user-id="{{ user.id }}" 
-                            data-current-verified="{{ user.verified ? 'verified' : 'unverified' }}"
-                            title="{{ user.verified ? 'Unverify User' : 'Verify User' }}">
-                        <i class="bi bi-{{ user.verified ? 'shield-x' : 'shield-check' }}"></i>
-                    </button>
-                {% endif %}
                 {# Delete button - available for all non-admin users (including client and designer) #}
                 {% if user.userType != 'admin' and user.role != 'admin' %}
                     {% set currentUserRole = attribute(app.user, 'role')|default(null) %}
@@ -198,10 +189,10 @@
                             </td>
                         </tr>
                         <tr class="admin-row">
-                            <td><strong>Verified</strong></td>
+                            <td><strong>Email verified</strong></td>
                             <td>
                                 {% if user.userType == 'admin' or user.userType == 'staff' %}
-                                    <span class="badge-status" style="color: #6b7280;">N/A (Admin/Staff users are always verified)</span>
+                                    <span class="badge-status" style="color: #6b7280;">N/A (Admin/Staff do not require email verification)</span>
                                 {% else %}
                                 {% set verifiedClass = user.verified ? 'is-active' : 'is-pending' %}
                                 <span class="badge-status {{ verifiedClass }}" id="verified-status-{{ user.id }}">{{ user.verified ? 'Verified' : 'Unverified' }}</span>

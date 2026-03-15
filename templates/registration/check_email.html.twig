@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Check Your Email - Mark & Motion{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/header.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles/register.css') }}">
+{% endblock %}
+
+{% block body %}
+{% include 'registration/_headerregister.html.twig' %}
+
+<div class="signup-container">
+    <div class="signup-step active">
+        {% for message in app.flashes('error') %}
+            <p style="margin: 0 0 1rem; padding: 0.75rem 1rem; background-color: #fef2f2; color: #b91c1c; border-radius: 8px; font-size: 0.9375rem;">
+                {{ message }}
+            </p>
+        {% endfor %}
+        <div style="width: 100px; height: 100px; margin: 0 auto 1.25rem; background: transparent; border: 3px solid #1e3a8a; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-envelope-check" style="font-size: 2.75rem; color: #1e3a8a;"></i>
+        </div>
+        <h1>Check your email</h1>
+        <p style="margin: 1rem 0; font-size: 1rem; color: #4b5563;">
+            We've sent you a verification link. Please click the link in the email to verify your account before logging in.
+        </p>
+        <p style="margin: 1rem 0; font-size: 0.9rem; color: #6b7280;">
+            If you don't see the email, check your spam folder.
+        </p>
+        {# {% if verificationUrl|default(null) %}
+            <p style="margin: 1rem 0; font-size: 0.9rem; color: #059669; background: #ecfdf5; padding: 0.75rem 1rem; border-radius: 8px;">
+                <strong>Development:</strong> Email may not be sent in dev. Use the link below to verify your account.
+            </p>
+            <p style="margin: 0.5rem 0 1rem;">
+                <a href="{{ verificationUrl }}" class="create-btn" style="display: inline-block; text-decoration: none; padding: 0.75rem 1.5rem; color: #fff;">Verify my email now</a>
+            </p>
+        {% endif %} #}
+        <div class="login-link" style="margin-top: 1.5rem;">
+            <a href="{{ path('app_login') }}" class="create-btn" style="display: inline-block; text-decoration: none; padding: 0.75rem 1.5rem; color: #fff;">Go to Log In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

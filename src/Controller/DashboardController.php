@@ -119,11 +119,14 @@ final class DashboardController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult();
 
+        // Designer and client users who have not yet verified their email
         $pendingVerifications = (int) $usersRepository
             ->createQueryBuilder('u')
             ->select('COUNT(u.id)')
             ->where('u.verified = :false')
+            ->andWhere('u.userType IN (:types)')
             ->setParameter('false', false)
+            ->setParameter('types', ['designer', 'client'])
             ->getQuery()
             ->getSingleScalarResult();
 

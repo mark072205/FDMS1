@@ -133,5 +133,29 @@
         window.preselectedRole = '{{ role }}';
     </script>
     {% endif %}
-    <script src=" {{asset('controllers/register.js')}} "></script>
+    {# Prevent any alert() popups on this page (handles cached or old JS) #}
+    <script>
+        (function() {
+            window.alert = function(msg) {
+                if (!msg) return;
+                // Don't show the "Please fix the following errors:" summary – errors are already shown under each field
+                if (String(msg).indexOf('Please fix the following errors') !== -1) return;
+                var container = document.querySelector('.signup-container');
+                if (container) {
+                    var el = document.getElementById('signup-form-error-placeholder') || (function() {
+                        var d = document.createElement('div');
+                        d.id = 'signup-form-error-placeholder';
+                        d.className = 'form-error-general';
+                        d.setAttribute('role', 'alert');
+                        var btn = document.querySelector('.submit-btn');
+                        if (btn && btn.parentNode) { btn.parentNode.insertBefore(d, btn); }
+                        return d;
+                    })();
+                    el.textContent = msg;
+                    el.style.display = 'block';
+                }
+            };
+        })();
+    </script>
+    <script src="{{ asset('controllers/register.js') }}?v=3"></script>
 {% endblock %}

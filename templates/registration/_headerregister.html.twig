@@ -1,4 +1,5 @@
-{# Signup page header partial #}
+{# Signup page header partial - role is optional (e.g. not set on check-email page) #}
+{% set role = role|default(null) %}
 <div class="header">
     <div class="header-left">
         <a href="{{ path('app_landing_page') }}" class="logo-link">

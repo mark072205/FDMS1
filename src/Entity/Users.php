@@ -132,6 +132,9 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?bool $verified = null;
 
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $verificationToken = null;
+
     #[ORM\Column(nullable: true)]
     private ?\DateTime $updatedAt = null;
 
@@ -386,6 +389,18 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function setVerified(bool $verified): static
     {
         $this->verified = $verified;
+
+        return $this;
+    }
+
+    public function getVerificationToken(): ?string
+    {
+        return $this->verificationToken;
+    }
+
+    public function setVerificationToken(?string $verificationToken): static
+    {
+        $this->verificationToken = $verificationToken;
 
         return $this;
     }

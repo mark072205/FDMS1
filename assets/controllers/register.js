@@ -317,7 +317,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Redirect to appropriate homepage based on role
                     window.location.href = result.redirectUrl || '/login';
                 } else {
-                    // Show validation errors
+                    // Show validation errors (inline only; no popup)
+                    const formErrorArea = signupForm.querySelector('.form-error-general');
+                    if (formErrorArea) {
+                        formErrorArea.textContent = '';
+                        formErrorArea.style.display = 'none';
+                    }
                     if (result.errors) {
                         // Display inline errors for specific fields
                         for (const [field, message] of Object.entries(result.errors)) {
@@ -327,6 +332,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 inputElement = usernameInput;
                             } else if (field === 'email') {
                                 inputElement = emailInput;
+                            } else if (field === 'lastName') {
+                                inputElement = lastNameInput;
                             }
                             
                             if (inputElement) {
@@ -336,22 +343,24 @@ document.addEventListener('DOMContentLoaded', function () {
                                     existingError.remove();
                                 }
                                 
-                                // Add new error message
+                                // Add new error message (inline only; no popup)
                                 const errorMsg = document.createElement('div');
                                 errorMsg.className = 'error-message';
                                 errorMsg.textContent = message;
                                 inputElement.parentElement.appendChild(errorMsg);
                             }
                         }
-                        
-                        // Also show alert with all errors
-                        let errorMessage = 'Please fix the following errors:\n';
-                        for (const [field, message] of Object.entries(result.errors)) {
-                            errorMessage += `\n- ${message}`;
-                        }
-                        alert(errorMessage);
                     } else {
-                        alert(result.message || 'An error occurred. Please try again.');
+                        // No field-specific errors: show message inline near submit button if possible
+                        const formErrorArea = signupForm.querySelector('.form-error-general') || (function() {
+                            const div = document.createElement('div');
+                            div.className = 'form-error-general';
+                            div.setAttribute('role', 'alert');
+                            submitBtn.parentElement.insertBefore(div, submitBtn);
+                            return div;
+                        })();
+                        formErrorArea.textContent = result.message || 'An error occurred. Please try again.';
+                        formErrorArea.style.display = 'block';
                     }
                     
                     // Re-enable button
@@ -360,9 +369,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred while creating your account. Please try again.');
-                
-                // Re-enable button
+                // Show inline instead of popup
+                const formErrorArea = signupForm.querySelector('.form-error-general') || (function() {
+                    const div = document.createElement('div');
+                    div.className = 'form-error-general';
+                    div.setAttribute('role', 'alert');
+                    if (submitBtn && submitBtn.parentElement) {
+                        submitBtn.parentElement.insertBefore(div, submitBtn);
+                    }
+                    return div;
+                })();
+                if (formErrorArea) {
+                    formErrorArea.textContent = 'An error occurred while creating your account. Please try again.';
+                    formErrorArea.style.display = 'block';
+                }
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Create my account';
             }

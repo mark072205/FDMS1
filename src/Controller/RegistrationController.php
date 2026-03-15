@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Users;
 use App\Repository\UsersRepository;
+use App\Service\EmailVerificationService;
 use App\Service\NotificationService;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -45,15 +47,32 @@ final class RegistrationController extends AbstractController
         ]);
     }
 
+    #[Route('/signup/check-email', name: 'app_signup_check_email')]
+    public function checkEmail(Request $request, UrlGeneratorInterface $urlGenerator): Response
+    {
+        $verificationUrl = null;
+        if ($this->getParameter('kernel.environment') === 'dev') {
+            $token = $request->getSession()->remove('dev_verification_token');
+            if ($token) {
+                $verificationUrl = $urlGenerator->generate('app_verify_email', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+            }
+        }
+        return $this->render('registration/check_email.html.twig', [
+            'verificationUrl' => $verificationUrl,
+        ]);
+    }
+
     #[Route('/signup/register', name: 'app_signup_register', methods: ['POST'])]
     public function register(
-        Request $request, 
+        Request $request,
         ValidatorInterface $validator,
         EntityManagerInterface $entityManager,
         UsersRepository $usersRepository,
         UserPasswordHasherInterface $passwordHasher,
         TokenStorageInterface $tokenStorage,
-        NotificationService $notificationService
+        NotificationService $notificationService,
+        EmailVerificationService $emailVerificationService,
+        UrlGeneratorInterface $urlGenerator
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -142,6 +161,26 @@ final class RegistrationController extends AbstractController
         $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
         $user->setPassword($hashedPassword);
 
+        // Designer and client must verify email before login: set token and send verification email
+        $requiresEmailVerification = in_array($role, ['designer', 'client'], true);
+        if ($requiresEmailVerification) {
+            $token = $emailVerificationService->generateVerificationToken();
+            $user->setVerificationToken($token);
+            $verificationUrl = $urlGenerator->generate('app_verify_email', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+            $logoUrl = $request->getSchemeAndHttpHost() . '/img/logomain.png';
+            try {
+                $emailVerificationService->sendVerificationEmail($user, $verificationUrl, $logoUrl);
+            } catch (\Throwable $e) {
+                error_log('[Registration] Verification email failed: ' . $e->getMessage());
+                error_log('[Registration] Trace: ' . $e->getTraceAsString());
+                return new JsonResponse([
+                    'success' => false,
+                    'message' => 'We could not send the verification email. Please check your email address is correct and try again, or contact support.',
+                    'errors' => ['email' => 'Email delivery failed. Check MAILER_DSN and Brevo SMTP settings. See var/log/dev.log for details.']
+                ], Response::HTTP_SERVICE_UNAVAILABLE);
+            }
+        }
+
         // Save the user
         try {
             $entityManager->persist($user);
@@ -155,25 +194,33 @@ final class RegistrationController extends AbstractController
                 error_log('Failed to send notification for new user: ' . $e->getMessage());
             }
 
-            // Automatically log in the user after registration
-            try {
-                $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
-                $tokenStorage->setToken($token);
-                
-                // Save the token in the session
-                $session = $request->getSession();
-                $session->set('_security_main', serialize($token));
-            } catch (\Exception $e) {
-                // If auto-login fails, just log the error but still return success
-                error_log('Auto-login failed: ' . $e->getMessage());
+            // Do not auto-login: designer and client must verify email first
+            if (!$requiresEmailVerification) {
+                try {
+                    $token = new UsernamePasswordToken($user, 'main', $user->getRoles());
+                    $tokenStorage->setToken($token);
+                    $session = $request->getSession();
+                    $session->set('_security_main', serialize($token));
+                } catch (\Exception $e) {
+                    error_log('Auto-login failed: ' . $e->getMessage());
+                }
             }
 
-            // Determine redirect URL based on role
-            $redirectUrl = $role === 'client' ? $this->generateUrl('app_client_homepage') : $this->generateUrl('app_designer_homepage');
+            if ($requiresEmailVerification) {
+                $redirectUrl = $this->generateUrl('app_signup_check_email');
+                $message = 'Account created! Please check your email to verify your account before logging in.';
+                // In dev: pass token in session so check-email page can show a verification link (email may not be sent)
+                if ($this->getParameter('kernel.environment') === 'dev') {
+                    $request->getSession()->set('dev_verification_token', $token);
+                }
+            } else {
+                $redirectUrl = $role === 'client' ? $this->generateUrl('app_client_homepage') : $this->generateUrl('app_designer_homepage');
+                $message = 'Account created successfully!';
+            }
 
             return new JsonResponse([
                 'success' => true,
-                'message' => 'Account created successfully!',
+                'message' => $message,
                 'userId' => $user->getId(),
                 'role' => $role,
                 'redirectUrl' => $redirectUrl

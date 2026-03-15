@@ -33,6 +33,7 @@ security:
         check_path: app_login
         username_parameter: _identifier
         success_handler: App\Security\LoginAuthenticator
+        failure_handler: App\Security\LoginAuthenticationFailureHandler
         enable_csrf: true
       logout:
         path: app_logout
@@ -42,6 +43,9 @@ security:
 
     - { path: ^/api/login, roles: PUBLIC_ACCESS }
     - { path: ^/api, roles: IS_AUTHENTICATED }
+
+    - { path: ^/verify-email, roles: PUBLIC_ACCESS }
+    - { path: ^/signup, roles: PUBLIC_ACCESS }
 
     - path: ^/dashboard
       roles: [ROLE_ADMIN, ROLE_STAFF]

@@ -53,6 +53,12 @@ class LoginAuthenticator implements UserProviderInterface, AuthenticationSuccess
             throw new CustomUserMessageAuthenticationException('Your account has been disabled. Please contact an administrator.');
         }
 
+        // Designer and client must have verified email (e.g. invalidate old sessions)
+        $userType = $refreshedUser->getUserType();
+        if (in_array($userType, ['designer', 'client'], true) && !$refreshedUser->isVerified()) {
+            throw new CustomUserMessageAuthenticationException('Please verify your email address before logging in. Check your inbox for the verification link.');
+        }
+
         return $refreshedUser;
     }
 
@@ -77,6 +83,12 @@ class LoginAuthenticator implements UserProviderInterface, AuthenticationSuccess
 
         if (!$user->isActive()) {
             throw new CustomUserMessageAuthenticationException('Your account has been disabled. Please contact an administrator.');
+        }
+
+        // Designer and client must have verified their email before they can log in
+        $userType = $user->getUserType();
+        if (in_array($userType, ['designer', 'client'], true) && !$user->isVerified()) {
+            throw new CustomUserMessageAuthenticationException('Please verify your email address before logging in. Check your inbox for the verification link.');
         }
 
         return $user;

@@ -9,7 +9,6 @@ class AdminManager {
         this.setupConfirmationModal();
         this.setupStatusToggles();
         this.setupDropdowns();
-		this.setupVerificationToggles();
     }
 
     getCsrfToken() {
@@ -177,77 +176,6 @@ class AdminManager {
         } catch (error) {
             console.error('Error toggling user status:', error);
             this.showAlert('error', 'An error occurred while updating user status');
-        }
-    }
-
-    setupVerificationToggles() {
-        // Delegate to document to survive Turbo navigation; bind only once
-        if (this.verificationDelegationBound) return;
-        this.verificationDelegationBound = true;
-
-        document.addEventListener('click', (event) => {
-            const button = event.target.closest('.toggle-verification');
-            if (!button) return;
-            event.preventDefault();
-
-            const userId = button.dataset.userId;
-            const currentVerified = button.dataset.currentVerified;
-            const newStatus = currentVerified === 'verified' ? 'unverified' : 'verified';
-            const action = newStatus === 'verified' ? 'verify' : 'unverify';
-            const buttonType = newStatus === 'verified' ? 'success' : 'warning';
-
-            this.showConfirmationModal(
-                `Are you sure you want to ${action} this user?`,
-                () => {
-                    this.toggleUserVerification(userId, newStatus, button);
-                },
-                buttonType,
-                `${action.charAt(0).toUpperCase() + action.slice(1)} User`
-            );
-        });
-    }
-
-    async toggleUserVerification(userId, newStatus, buttonElement) {
-        try {
-            const response = await fetch(`/admin/users/${userId}/toggle-verification`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({
-                    _token: this.csrfToken
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            
-            if (data.success) {
-                // Update button state - maintain icon styling
-                buttonElement.dataset.currentVerified = newStatus;
-                buttonElement.className = `btn-icon toggle-verification ${newStatus === 'verified' ? 'btn-warning' : 'btn-success'}`;
-                buttonElement.innerHTML = `<i class="bi bi-${newStatus === 'verified' ? 'shield-x' : 'shield-check'}"></i>`;
-                buttonElement.title = newStatus === 'verified' ? 'Unverify User' : 'Verify User';
-                
-                // Update verification badge
-                const verifiedBadge = document.getElementById(`verified-status-${userId}`);
-                if (verifiedBadge) {
-                    verifiedBadge.textContent = newStatus === 'verified' ? 'Verified' : 'Unverified';
-                    verifiedBadge.className = `badge-status ${newStatus === 'verified' ? 'is-active' : 'is-pending'}`;
-                }
-                
-                // Show success message
-                this.showAlert('success', data.message || `User ${newStatus === 'verified' ? 'verified' : 'unverified'} successfully`);
-            } else {
-                this.showAlert('error', data.message || 'An error occurred');
-            }
-        } catch (error) {
-            console.error('Error toggling user verification:', error);
-            this.showAlert('error', 'An error occurred while updating user verification');
         }
     }
 
