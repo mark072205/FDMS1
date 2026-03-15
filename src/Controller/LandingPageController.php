@@ -25,6 +25,12 @@ final class LandingPageController extends AbstractController
         return $this->render('landing_page/about.html.twig');
     }
 
+    #[Route('/contact', name: 'app_contact')]
+    public function contact(): Response
+    {
+        return $this->render('landing_page/contact.html.twig');
+    }
+
     #[Route('/category/{id}', name: 'app_category_view')]
     public function viewCategory(Category $category): Response
     {

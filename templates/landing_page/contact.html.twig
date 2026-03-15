@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact Us | Mark & Motion{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/header.css') }}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{{ asset('styles/landing.css') }}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{{ asset('styles/footer.css') }}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{{ asset('styles/contact.css') }}" data-turbo-track="reload">
+{% endblock %}
+
+{% block body %}
+<div class="contact-page">
+    <header class="header" id="mainNav">
+        <div class="header-left">
+            <a href="{{ path('app_landing_page') }}" class="logo-link">
+                <img src="{{ asset('img/logomain.png') }}" alt="Mark & Motion">
+            </a>
+
+            <nav class="admin-nav" aria-label="Main navigation">
+                <a href="{{ path('app_landing_page') }}#home" class="nav-item">Home</a>
+                <a href="{{ path('app_landing_page') }}#categories" class="nav-item">Explore</a>
+                <a href="{{ path('app_landing_page') }}#reviews" class="nav-item">Reviews</a>
+                <a href="{{ path('app_landing_page') }}#how-it-works" class="nav-item">How It Works</a>
+                <a href="{{ path('app_about') }}" class="nav-item">About</a>
+                <a href="{{ path('app_contact') }}" class="nav-item active">Contact</a>
+            </nav>
+        </div>
+
+        <div class="header-right">
+            <a href="{{ path('app_login') }}" class="btn btn-outline">Log In</a>
+            <a href="{{ path('app_signup') }}" class="btn btn-primary">Sign Up</a>
+        </div>
+    </header>
+
+    <main class="contact-main" style="padding-top: 82px;">
+        <div class="contact-container">
+            <header class="contact-header">
+                <h1 class="contact-title">Contact us</h1>
+                <p class="contact-intro">Get in touch with our team. We're here to help with support, partnerships, and press.</p>
+            </header>
+
+            <section class="contact-section" aria-labelledby="reach-out-title">
+                <h2 id="reach-out-title" class="contact-section-title">Reach out anytime</h2>
+                <div class="contact-cards">
+                    <article class="contact-card">
+                        <div class="contact-card-icon" aria-hidden="true">
+                            <i class="bi bi-headset"></i>
+                        </div>
+                        <h3 class="contact-card-heading">Customer Support</h3>
+                        <p class="contact-card-desc">Find answers and get help with your account or projects.</p>
+                        <a href="javascript:void(0)" class="contact-card-link">Visit Help Center</a>
+                    </article>
+                    <article class="contact-card">
+                        <div class="contact-card-icon" aria-hidden="true">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h3 class="contact-card-heading">Enterprise & Partnerships</h3>
+                        <p class="contact-card-desc">For larger teams and partnership opportunities.</p>
+                        <a href="javascript:void(0)" class="contact-card-link">Contact Us</a>
+                    </article>
+                    <article class="contact-card">
+                        <div class="contact-card-icon" aria-hidden="true">
+                            <i class="bi bi-send"></i>
+                        </div>
+                        <h3 class="contact-card-heading">Press Inquiries</h3>
+                        <p class="contact-card-desc">Media and press-related questions.</p>
+                        <a href="mailto:press@markandmotion.com" class="contact-card-link">press@markandmotion.com</a>
+                    </article>
+                </div>
+            </section>
+
+            <section class="contact-section" aria-labelledby="offices-title">
+                <h2 id="offices-title" class="contact-section-title">Our Offices</h2>
+                <div class="contact-cards contact-cards-offices">
+                    <article class="contact-card contact-card-office">
+                        <div class="contact-card-map" aria-hidden="true">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <h3 class="contact-card-heading">Global HQ</h3>
+                        <address class="contact-card-address">
+                            530 Lytton Ave<br>Suite 301<br>Palo Alto, CA 94301
+                        </address>
+                    </article>
+                    <article class="contact-card contact-card-office">
+                        <div class="contact-card-map" aria-hidden="true">
+                            <i class="bi bi-geo-alt-fill"></i>
+                        </div>
+                        <h3 class="contact-card-heading">Mailing Address</h3>
+                        <address class="contact-card-address">
+                            3490 S 4400 W #70008<br>West Valley City, UT 84120
+                        </address>
+                    </article>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    {% include 'landing_page/_footerlanding.html.twig' %}
+</div>
+{% endblock %}

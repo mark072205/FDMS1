@@ -30,6 +30,12 @@
    6. CTA ("Start your journey" section):
       --about-cta-max-width: 1400px;
       → Width of the CTA block. Smaller (e.g. 1200px) = narrower; larger (e.g. 1600px) = wider.
+
+   7. LEADER AVATARS (circular photos in Our Leaders):
+      --about-leader-image-scale: 1;
+      → Zoom: 1 = normal, 1.2 = zoom in, 0.9 = zoom out (see more of photo in circle).
+      --about-leader-image-position-y: 50%;
+      → Crop up/down: 50% = center, 20% = show more of top (e.g. face), 80% = show more of bottom.
    ───────────────────────────────────────────────────────────────────────────── */
 
 .about-page {
@@ -39,11 +45,13 @@
     --about-content-max-width: 1400px;
     --about-hero-max-width: 1200px;
     --about-hero-min-height: 520px;
-    --about-hero-bg: #e4e4e4;
+    --about-hero-bg: #efefef;
     --about-hero-image-scale: 1;
     --about-hero-image-position-y: 30%;
     --about-narrative-max-width: 1200px;
     --about-cta-max-width: 1210px;
+    --about-leader-image-scale: 1;
+    --about-leader-image-position-y: 30%;
 }
 
 .about-main {
@@ -220,7 +228,7 @@
    grid (header left, list right). Each leader is a separate white card with rounded corners
    and subtle shadow, with spacing between cards. Eyebrow + "Read more" in primary blue. */
 .about-page .about-leaders {
-    background: #f3f4f6;
+    background: #efefef;
     padding: 48px 24px 56px;
     margin: 0 24px 48px;
     border-radius: 24px;
@@ -293,6 +301,9 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center var(--about-leader-image-position-y);
+    transform: scale(var(--about-leader-image-scale));
+    transform-origin: center var(--about-leader-image-position-y);
     display: block;
 }
 
@@ -366,20 +377,24 @@
     display: flex;
     gap: 16px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
-.btn-cta-solid {
+.about-page .btn-cta-solid,
+.about-page .btn-cta-outline {
+    box-sizing: border-box;
+    min-height: 48px;
     padding: 14px 28px;
     font-size: 16px;
     font-weight: 600;
-    border-radius: 8px;
+    border-radius: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-cta-outline {
-    padding: 14px 28px;
-    font-size: 16px;
-    font-weight: 600;
-    border-radius: 8px;
+.about-page .btn-cta-outline {
+    border: 2px solid var(--primary-blue, #1e3a8a);
 }
 
 .about-cta-right {
