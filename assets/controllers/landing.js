@@ -154,7 +154,7 @@ export default class extends Controller {
             const handler = (e) => {
                 const href = link.getAttribute('href');
                 // Handle specific anchor links including Learn More button
-                if (href === '#how-it-works' || href === '#about' || href === '#categories' || href === '#home') {
+                if (href === '#how-it-works' || href === '#about' || href === '#categories' || href === '#home' || href === '#marketplace-snapshot') {
                     e.preventDefault();
                     const targetId = href.substring(1);
                     const targetElement = document.getElementById(targetId);

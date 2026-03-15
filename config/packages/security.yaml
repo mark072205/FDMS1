@@ -1,69 +1,95 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
-    password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-        App\Entity\Users:
-            algorithm: auto
-    
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
-    providers:
-        # In-memory admin user
-        admin_provider:
-            memory:
-                users:
-                    admin:
-                        password: '$2y$13$PK3/kBcJ39kChIU0XB1wde.PgYp6Ig3JrTD1KV6LmxKTqQVVhviM2' # password: adminuser
-                        roles: ['ROLE_ADMIN']
-                    "admin@login.com":
-                        password: '$2y$13$PK3/kBcJ39kChIU0XB1wde.PgYp6Ig3JrTD1KV6LmxKTqQVVhviM2' # password: adminuser
-                        roles: ['ROLE_ADMIN']
-        
-        # Database users (clients and designers)
-        app_user_provider:
-            id: App\Security\ActiveUserProvider
-        
-        # Chain provider - checks admin first, then database users
-        chain_provider:
-            chain:
-                providers: ['admin_provider', 'app_user_provider']
-    
-    firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-        
-        # Main firewall for all users including admin
-        main:
-            lazy: true
-            provider: chain_provider
-            form_login:
-                login_path: app_login
-                check_path: app_login
-                username_parameter: _identifier
-                success_handler: App\Security\LoginSuccessHandler
-                enable_csrf: true
-            logout:
-                path: app_logout
-                target: app_login
+  password_hashers:
+    Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: auto
+    App\Entity\Users:
+      algorithm: auto
 
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
-    access_control:
-        - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/dashboard, roles: [ROLE_ADMIN, ROLE_CLIENT, ROLE_DESIGNER] }
-        - { path: ^/category, roles: ROLE_ADMIN }
-        - { path: ^/client, roles: ROLE_CLIENT }
-        - { path: ^/designer, roles: ROLE_DESIGNER }
+  providers:
+    app_user_provider:
+      id: App\Security\LoginAuthenticator
+
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+
+    api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            json_login:
+                check_path: /api/login
+                username_path: username
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            jwt: ~
+
+    main:
+      lazy: true
+      provider: app_user_provider
+      form_login:
+        login_path: app_login
+        check_path: app_login
+        username_parameter: _identifier
+        success_handler: App\Security\LoginAuthenticator
+        enable_csrf: true
+      logout:
+        path: app_logout
+        target: app_login
+
+  access_control:
+
+    - { path: ^/api/login, roles: PUBLIC_ACCESS }
+    - { path: ^/api, roles: IS_AUTHENTICATED }
+
+    - path: ^/dashboard
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/category
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/projects
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/proposals
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/users
+      roles: ROLE_ADMIN
+
+    - path: ^/files
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/settings
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/notifications
+      roles: ROLE_ADMIN
+
+    - path: ^/search
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/bulk-operations
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/analytics
+      roles: [ROLE_ADMIN, ROLE_STAFF]
+
+    - path: ^/activity-logs
+      roles: ROLE_ADMIN
+
+    - path: ^/client
+      roles: ROLE_CLIENT
+
+    - path: ^/designer
+      roles: ROLE_DESIGNER
 
 when@test:
-    security:
-        password_hashers:
-            # By default, password hashers are resource intensive and take time. This is
-            # important to generate secure password hashes. In tests however, secure hashes
-            # are not important, waste resources and increase test times. The following
-            # reduces the work factor to the lowest possible values.
-            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
-                algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+  security:
+    password_hashers:
+      Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+        algorithm: auto
+        cost: 4
+        time_cost: 3
+        memory_cost: 10

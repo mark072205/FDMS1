@@ -901,6 +901,909 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Projects Page - Project Detail Modal
+document.addEventListener('DOMContentLoaded', function() {
+    initProjectDetailModal();
+});
+
+function initProjectDetailModal() {
+    const projectModal = document.getElementById('projectDetailModal');
+    const closeBtn = document.getElementById('closeProjectDetail');
+    const backdrop = projectModal ? projectModal.querySelector('.project-modal__backdrop') : null;
+    const contentDiv = document.getElementById('projectDetailContent');
+    const viewProjectBtns = document.querySelectorAll('.view-project-btn');
+
+    if (!projectModal || !contentDiv) return;
+
+    function openProjectModal(projectId) {
+        if (!projectId) return;
+        
+        // Show loading state immediately
+        contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 1rem; font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 14px;">Loading project details...</p></div>';
+        
+        // Show modal immediately - remove hidden class and ensure it's visible
+        projectModal.classList.remove('hidden');
+        projectModal.classList.remove('closing');
+        projectModal.setAttribute('aria-hidden', 'false');
+        
+        // Prevent body scroll
+        document.body.style.overflow = 'hidden';
+        
+        // Force display (in case CSS is causing issues)
+        projectModal.style.display = 'flex';
+        
+        // Fetch project details
+        fetch(`/designer/projects/${projectId}?modal=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load project details');
+            }
+            return response.text();
+        })
+        .then(html => {
+            contentDiv.innerHTML = html;
+            
+            // Re-attach event listeners for buttons inside modal
+            const submitProposalBtn = document.getElementById('submitProposalBtn');
+            if (submitProposalBtn) {
+                submitProposalBtn.addEventListener('click', function() {
+                    const projectId = this.getAttribute('data-project-id');
+                    if (projectId) {
+                        openSubmitProposalModal(projectId);
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading project:', error);
+            contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;"><i class="bi bi-exclamation-triangle"></i></div><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #ef4444; font-size: 14px; margin-bottom: 0.5rem;">Failed to load project details.</p><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 13px;">Please try again.</p></div>';
+        });
+    }
+
+    function closeProjectModal() {
+        if (projectModal && !projectModal.classList.contains('closing')) {
+            projectModal.classList.add('closing');
+            projectModal.setAttribute('aria-hidden', 'true');
+            
+            // Restore body scroll
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (projectModal) {
+                    projectModal.classList.add('hidden');
+                    projectModal.classList.remove('closing');
+                    projectModal.style.display = '';
+                    contentDiv.innerHTML = '';
+                }
+            }, 250);
+        }
+    }
+
+    // Attach event listeners to view buttons
+    viewProjectBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const projectId = this.getAttribute('data-project-id');
+            if (projectId) {
+                openProjectModal(projectId);
+            }
+        });
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeProjectModal);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeProjectModal);
+    }
+
+    // Handle Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && projectModal && !projectModal.classList.contains('hidden')) {
+            closeProjectModal();
+        }
+    });
+}
+
+// Submit Proposal Modal
+function initSubmitProposalModal() {
+    const proposalModal = document.getElementById('submitProposalModal');
+    const closeBtn = document.getElementById('closeSubmitProposal');
+    const cancelBtn = document.getElementById('cancelSubmitProposal');
+    const backdrop = proposalModal ? proposalModal.querySelector('.project-modal__backdrop') : null;
+    const form = document.getElementById('submitProposalForm');
+    const submitBtn = document.getElementById('submitProposalFormBtn');
+    const projectIdInput = document.getElementById('proposalProjectId');
+
+    if (!proposalModal || !form) return;
+
+    window.openSubmitProposalModal = function(projectId) {
+        if (!projectId) return;
+        
+        // Set project ID in hidden input
+        if (projectIdInput) {
+            projectIdInput.value = projectId;
+        }
+        
+        // Reset form
+        form.reset();
+        if (projectIdInput) {
+            projectIdInput.value = projectId;
+        }
+        
+        // Show modal
+        proposalModal.classList.remove('hidden');
+        proposalModal.classList.remove('closing');
+        proposalModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        proposalModal.style.display = 'flex';
+        
+        // Focus first input
+        const firstInput = form.querySelector('textarea, input[type="number"]');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
+    };
+
+    function closeSubmitProposalModal() {
+        if (proposalModal && !proposalModal.classList.contains('closing')) {
+            proposalModal.classList.add('closing');
+            proposalModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (proposalModal) {
+                    proposalModal.classList.add('hidden');
+                    proposalModal.classList.remove('closing');
+                    proposalModal.style.display = '';
+                    form.reset();
+                }
+            }, 250);
+        }
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeSubmitProposalModal);
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeSubmitProposalModal);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeSubmitProposalModal);
+    }
+
+    // Handle Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && proposalModal && !proposalModal.classList.contains('hidden')) {
+            closeSubmitProposalModal();
+        }
+    });
+
+    // Form submission
+    if (form && submitBtn) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const projectId = projectIdInput ? projectIdInput.value : null;
+            if (!projectId) {
+                alert('Project ID is missing. Please refresh the page and try again.');
+                return;
+            }
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Submitting...</span>';
+
+            // Get form data
+            const coverLetterEl = document.getElementById('coverLetter');
+            const proposalTextEl = document.getElementById('proposalText');
+            const proposedPriceEl = document.getElementById('proposedPrice');
+            const deliveryTimeEl = document.getElementById('deliveryTime');
+            const revisionRoundsEl = document.getElementById('revisionRounds');
+            
+            // Validate required fields
+            if (!proposalTextEl || !proposalTextEl.value.trim()) {
+                alert('Proposal text is required.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                return;
+            }
+            
+            const proposedPrice = parseFloat(proposedPriceEl.value);
+            if (isNaN(proposedPrice) || proposedPrice <= 0) {
+                alert('Proposed price must be a positive number.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                return;
+            }
+            
+            const deliveryTime = parseInt(deliveryTimeEl.value);
+            if (isNaN(deliveryTime) || deliveryTime <= 0) {
+                alert('Delivery time must be a positive number of days.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                return;
+            }
+            
+            const formData = {
+                projectId: projectId,
+                coverLetter: coverLetterEl ? coverLetterEl.value.trim() : '',
+                proposalText: proposalTextEl.value.trim(),
+                proposedPrice: proposedPrice,
+                deliveryTime: deliveryTime,
+                revisionRounds: revisionRoundsEl ? (parseInt(revisionRoundsEl.value) || 1) : 1
+            };
+
+            try {
+                const response = await fetch(`/designer/projects/${projectId}/proposal/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(formData),
+                    credentials: 'same-origin'
+                });
+                
+                // Check if response is ok
+                if (!response.ok) {
+                    // Try to parse error response
+                    let errorMessage = 'Failed to submit proposal. Please try again.';
+                    try {
+                        const errorData = await response.json();
+                        errorMessage = errorData.message || errorMessage;
+                    } catch (e) {
+                        // If not JSON, use status text
+                        errorMessage = `Error ${response.status}: ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                const result = await response.json();
+                
+                // Log for debugging
+                console.log('Proposal submission response:', result);
+
+                if (result.success) {
+                    // Close submit proposal modal
+                    closeSubmitProposalModal();
+                    
+                    // Close project detail modal if open
+                    const projectModal = document.getElementById('projectDetailModal');
+                    if (projectModal && !projectModal.classList.contains('hidden')) {
+                        const closeProjectModal = projectModal.querySelector('#closeProjectDetail');
+                        if (closeProjectModal) {
+                            closeProjectModal.click();
+                        }
+                    }
+                    
+                    // Show success modal - ensure it's available
+                    if (typeof window.showProposalSuccessModal === 'function') {
+                        window.showProposalSuccessModal(result.message || 'Your proposal has been submitted and is now pending review by the client.');
+                    } else {
+                        // Fallback if modal function is not available
+                        alert('Success! ' + (result.message || 'Your proposal has been submitted successfully.'));
+                        window.location.reload();
+                    }
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to submit proposal. Please try again.'));
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('Error submitting proposal:', error);
+                let errorMessage = 'An error occurred while submitting your proposal. Please try again.';
+                
+                // Check if it's a JSON parse error (might be HTML error page)
+                if (error instanceof SyntaxError) {
+                    errorMessage = 'Server error occurred. Please check your connection and try again.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                alert(errorMessage);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
+}
+
+// Success Modal
+function initProposalSuccessModal() {
+    const successModal = document.getElementById('proposalSuccessModal');
+    const closeBtn = document.getElementById('closeSuccessModal');
+    const backdrop = successModal ? successModal.querySelector('.project-modal__backdrop') : null;
+
+    if (!successModal) return;
+
+    window.showProposalSuccessModal = function(customMessage) {
+        // Update message if provided
+        const messageEl = successModal.querySelector('#successModalMessage');
+        if (messageEl) {
+            if (customMessage) {
+                messageEl.textContent = customMessage;
+            } else {
+                messageEl.textContent = 'Your proposal has been submitted and is now pending review by the client.';
+            }
+        }
+        
+        successModal.classList.remove('hidden');
+        successModal.classList.remove('closing');
+        successModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        successModal.style.display = 'flex';
+    };
+
+    function closeSuccessModal(shouldReload = true) {
+        if (successModal && !successModal.classList.contains('closing')) {
+            successModal.classList.add('closing');
+            successModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (successModal) {
+                    successModal.classList.add('hidden');
+                    successModal.classList.remove('closing');
+                    successModal.style.display = '';
+                    
+                    // Reload page if needed (e.g., after submitting new proposal)
+                    if (shouldReload) {
+                        window.location.reload();
+                    }
+                }
+            }, 250);
+        }
+    }
+    
+    window.closeProposalSuccessModal = closeSuccessModal;
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeSuccessModal);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeSuccessModal);
+    }
+
+    // Handle Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && successModal && !successModal.classList.contains('hidden')) {
+            closeSuccessModal();
+        }
+    });
+}
+
+// View Proposal Modal
+function initViewProposalModal() {
+    const viewModal = document.getElementById('viewProposalModal');
+    const closeBtn = document.getElementById('closeViewProposal');
+    const backdrop = viewModal ? viewModal.querySelector('.project-modal__backdrop') : null;
+    const contentDiv = document.getElementById('viewProposalContent');
+    const viewProposalBtns = document.querySelectorAll('.view-proposal-btn');
+
+    if (!viewModal || !contentDiv) return;
+
+    function openViewProposalModal(proposalId) {
+        if (!proposalId) return;
+        
+        // Show loading state
+        contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 1rem; font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 14px;">Loading proposal details...</p></div>';
+        
+        // Show modal
+        viewModal.classList.remove('hidden');
+        viewModal.classList.remove('closing');
+        viewModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        viewModal.style.display = 'flex';
+        
+        // Fetch proposal details
+        fetch(`/designer/proposals/${proposalId}?modal=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load proposal details');
+            }
+            return response.text();
+        })
+        .then(html => {
+            contentDiv.innerHTML = html;
+            
+            // Re-attach event listener for edit button inside modal
+            const editBtn = contentDiv.querySelector('.btn-edit-proposal-modal');
+            if (editBtn) {
+                editBtn.addEventListener('click', function() {
+                    const proposalId = this.getAttribute('data-proposal-id');
+                    if (proposalId) {
+                        closeViewProposalModal();
+                        setTimeout(() => openEditProposalModal(proposalId), 300);
+                    }
+                });
+            }
+            
+            // Re-attach event listener for delete button inside modal
+            const deleteBtn = contentDiv.querySelector('.btn-delete-proposal-modal');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    const proposalId = this.getAttribute('data-proposal-id');
+                    const projectTitle = this.getAttribute('data-proposal-project') || 'this project';
+                    if (proposalId) {
+                        // Close view modal first
+                        closeViewProposalModal();
+                        // Show delete confirmation modal
+                        setTimeout(() => {
+                            if (typeof window.showDeleteProposalConfirmModal === 'function') {
+                                window.showDeleteProposalConfirmModal(proposalId, projectTitle);
+                            } else {
+                                handleDeleteProposal(proposalId, projectTitle);
+                            }
+                        }, 300);
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading proposal:', error);
+            contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;"><i class="bi bi-exclamation-triangle"></i></div><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #ef4444; font-size: 14px; margin-bottom: 0.5rem;">Failed to load proposal details.</p><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 13px;">Please try again.</p></div>';
+        });
+    }
+
+    function closeViewProposalModal() {
+        if (viewModal && !viewModal.classList.contains('closing')) {
+            viewModal.classList.add('closing');
+            viewModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (viewModal) {
+                    viewModal.classList.add('hidden');
+                    viewModal.classList.remove('closing');
+                    viewModal.style.display = '';
+                    contentDiv.innerHTML = '';
+                }
+            }, 250);
+        }
+    }
+
+    // Attach event listeners to view buttons
+    viewProposalBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const proposalId = this.getAttribute('data-proposal-id');
+            if (proposalId) {
+                openViewProposalModal(proposalId);
+            }
+        });
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeViewProposalModal);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeViewProposalModal);
+    }
+
+    // Handle Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && viewModal && !viewModal.classList.contains('hidden')) {
+            closeViewProposalModal();
+        }
+    });
+}
+
+// Edit Proposal Modal
+function initEditProposalModal() {
+    const editModal = document.getElementById('editProposalModal');
+    const closeBtn = document.getElementById('closeEditProposal');
+    const cancelBtn = document.getElementById('cancelEditProposal');
+    const backdrop = editModal ? editModal.querySelector('.project-modal__backdrop') : null;
+    const contentDiv = document.getElementById('editProposalContent');
+    const editProposalBtns = document.querySelectorAll('.edit-proposal-btn');
+    const form = document.getElementById('editProposalForm');
+    const submitBtn = document.getElementById('submitEditProposalBtn');
+
+    if (!editModal || !contentDiv) return;
+
+    window.openEditProposalModal = function(proposalId) {
+        if (!proposalId) return;
+        
+        // Show loading state
+        contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 1rem; font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 14px;">Loading proposal...</p></div>';
+        
+        // Show modal
+        editModal.classList.remove('hidden');
+        editModal.classList.remove('closing');
+        editModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        editModal.style.display = 'flex';
+        
+        // Fetch proposal for editing
+        fetch(`/designer/proposals/${proposalId}/edit?modal=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Failed to load proposal');
+                });
+            }
+            return response.text();
+        })
+        .then(html => {
+            contentDiv.innerHTML = html;
+            
+            // Re-attach form submission handler
+            const editForm = document.getElementById('editProposalForm');
+            const editSubmitBtn = document.getElementById('submitEditProposalBtn');
+            const cancelEditBtn = document.getElementById('cancelEditProposal');
+            
+            if (editForm) {
+                editForm.addEventListener('submit', handleEditProposalSubmit);
+            }
+            
+            // Also attach click handler to submit button (since it's outside the form)
+            if (editSubmitBtn) {
+                editSubmitBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (editForm) {
+                        // Trigger form validation
+                        if (editForm.checkValidity()) {
+                            handleEditProposalSubmit({ preventDefault: () => {}, target: editForm });
+                        } else {
+                            editForm.reportValidity();
+                        }
+                    }
+                });
+            }
+            
+            // Re-attach cancel button handler
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener('click', closeEditProposalModal);
+            }
+            
+            // Focus first input
+            const firstInput = editForm ? editForm.querySelector('textarea, input[type="number"]') : null;
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading proposal:', error);
+            contentDiv.innerHTML = `<div style="text-align: center; padding: 3rem 2rem;"><div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;"><i class="bi bi-exclamation-triangle"></i></div><p style="font-family: 'Montserrat', Arial, sans-serif; color: #ef4444; font-size: 14px; margin-bottom: 0.5rem;">${error.message || 'Failed to load proposal.'}</p><p style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 13px;">Please try again.</p></div>`;
+        });
+    };
+
+    function closeEditProposalModal() {
+        if (editModal && !editModal.classList.contains('closing')) {
+            editModal.classList.add('closing');
+            editModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (editModal) {
+                    editModal.classList.add('hidden');
+                    editModal.classList.remove('closing');
+                    editModal.style.display = '';
+                    contentDiv.innerHTML = '';
+                }
+            }, 250);
+        }
+    }
+
+    function handleEditProposalSubmit(e) {
+        if (e && e.preventDefault) {
+            e.preventDefault();
+        }
+        
+        const form = document.getElementById('editProposalForm');
+        if (!form) {
+            alert('Form not found. Please refresh the page and try again.');
+            return;
+        }
+        
+        const proposalIdInput = form.querySelector('#editProposalId');
+        const proposalId = proposalIdInput ? proposalIdInput.value : null;
+        
+        if (!proposalId) {
+            alert('Proposal ID is missing. Please refresh the page and try again.');
+            return;
+        }
+
+        const submitBtn = document.getElementById('submitEditProposalBtn');
+        if (!submitBtn) {
+            console.error('Submit button not found');
+            return;
+        }
+        
+        // Disable submit button
+        submitBtn.disabled = true;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Updating...</span>';
+
+        // Get form data
+        const formData = {
+            coverLetter: document.getElementById('editCoverLetter').value.trim(),
+            proposalText: document.getElementById('editProposalText').value.trim(),
+            proposedPrice: parseFloat(document.getElementById('editProposedPrice').value),
+            deliveryTime: parseInt(document.getElementById('editDeliveryTime').value),
+            revisionRounds: parseInt(document.getElementById('editRevisionRounds').value) || 1
+        };
+
+        fetch(`/designer/proposals/${proposalId}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // Close edit modal
+                closeEditProposalModal();
+                
+                // Show success message (don't auto-reload, let user close manually)
+                setTimeout(() => {
+                    showProposalSuccessModal('Proposal updated successfully!');
+                    // Override close to reload after showing success
+                    const originalClose = window.closeProposalSuccessModal;
+                    window.closeProposalSuccessModal = function() {
+                        originalClose(false);
+                        window.location.reload();
+                    };
+                }, 300);
+            } else {
+                alert('Error: ' + (result.message || 'Failed to update proposal. Please try again.'));
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('Error updating proposal:', error);
+            alert('An error occurred while updating your proposal. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+    }
+
+    // Attach event listeners to edit buttons
+    editProposalBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const proposalId = this.getAttribute('data-proposal-id');
+            if (proposalId) {
+                openEditProposalModal(proposalId);
+            }
+        });
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeEditProposalModal);
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeEditProposalModal);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeEditProposalModal);
+    }
+
+    // Handle Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && editModal && !editModal.classList.contains('hidden')) {
+            closeEditProposalModal();
+        }
+    });
+}
+
+// Delete Proposal Confirmation Modal
+function initDeleteProposalConfirmModal() {
+    const confirmModal = document.getElementById('deleteProposalConfirmModal');
+    const cancelBtn = document.getElementById('cancelDeleteProposal');
+    const confirmBtn = document.getElementById('confirmDeleteProposal');
+    const backdrop = confirmModal ? confirmModal.querySelector('.project-modal__backdrop') : null;
+    const projectTitleEl = document.getElementById('deleteConfirmProjectTitle');
+
+    if (!confirmModal) return;
+
+    let currentProposalId = null;
+    let currentProjectTitle = null;
+
+    window.showDeleteProposalConfirmModal = function(proposalId, projectTitle) {
+        if (!proposalId) return;
+        
+        currentProposalId = proposalId;
+        currentProjectTitle = projectTitle || 'this project';
+        
+        // Update project title in modal
+        if (projectTitleEl) {
+            projectTitleEl.textContent = currentProjectTitle;
+        }
+        
+        // Show modal
+        confirmModal.classList.remove('hidden');
+        confirmModal.classList.remove('closing');
+        confirmModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        confirmModal.style.display = 'flex';
+    };
+
+    function closeDeleteConfirmModal() {
+        if (confirmModal && !confirmModal.classList.contains('closing')) {
+            confirmModal.classList.add('closing');
+            confirmModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (confirmModal) {
+                    confirmModal.classList.add('hidden');
+                    confirmModal.classList.remove('closing');
+                    confirmModal.style.display = '';
+                    currentProposalId = null;
+                    currentProjectTitle = null;
+                }
+            }, 250);
+        }
+    }
+
+    // Cancel button
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeDeleteConfirmModal);
+    }
+
+    // Confirm button
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (!currentProposalId) return;
+            
+            // Disable buttons
+            confirmBtn.disabled = true;
+            cancelBtn.disabled = true;
+            const originalConfirmText = confirmBtn.innerHTML;
+            confirmBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Deleting...</span>';
+            
+            // Close modal
+            closeDeleteConfirmModal();
+            
+            // Show loading state on delete buttons
+            const deleteBtns = document.querySelectorAll(`.delete-proposal-btn[data-proposal-id="${currentProposalId}"]`);
+            deleteBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.innerHTML = 'Deleting...';
+            });
+            
+            // Delete proposal
+            fetch(`/designer/proposals/${currentProposalId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Failed to delete proposal');
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    // Close view modal if open
+                    const viewModal = document.getElementById('viewProposalModal');
+                    if (viewModal && !viewModal.classList.contains('hidden')) {
+                        const closeBtn = document.getElementById('closeViewProposal');
+                        if (closeBtn) {
+                            closeBtn.click();
+                        }
+                    }
+                    
+                    // Remove proposal card from DOM
+                    const proposalCard = document.querySelector(`[data-proposal-id="${currentProposalId}"]`);
+                    if (proposalCard && proposalCard.closest('.project-card')) {
+                        proposalCard.closest('.project-card').remove();
+                    }
+                    
+                    // Reload page to reflect changes
+                    window.location.reload();
+                } else {
+                    throw new Error(result.message || 'Failed to delete proposal');
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting proposal:', error);
+                alert('Error: ' + (error.message || 'Failed to delete proposal. Please try again.'));
+                
+                // Re-enable buttons
+                confirmBtn.disabled = false;
+                cancelBtn.disabled = false;
+                confirmBtn.innerHTML = originalConfirmText;
+                
+                deleteBtns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Delete';
+                });
+            });
+        });
+    }
+
+    // Backdrop click
+    if (backdrop) {
+        backdrop.addEventListener('click', closeDeleteConfirmModal);
+    }
+
+    // Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && confirmModal && !confirmModal.classList.contains('hidden')) {
+            closeDeleteConfirmModal();
+        }
+    });
+}
+
+// Delete Proposal Handler
+function handleDeleteProposal(proposalId, projectTitle) {
+    if (!proposalId) return;
+    
+    // Show custom confirmation modal
+    if (typeof window.showDeleteProposalConfirmModal === 'function') {
+        window.showDeleteProposalConfirmModal(proposalId, projectTitle);
+    } else {
+        // Fallback to browser confirm
+        const confirmed = confirm(`Are you sure you want to delete your proposal for "${projectTitle}"?\n\nThis action cannot be undone.`);
+        if (confirmed) {
+            // Trigger delete directly (fallback behavior)
+            const deleteBtns = document.querySelectorAll(`.delete-proposal-btn[data-proposal-id="${proposalId}"]`);
+            if (deleteBtns.length > 0) {
+                deleteBtns[0].click();
+            }
+        }
+    }
+}
+
+// Initialize delete proposal buttons
+function initDeleteProposalButtons() {
+    const deleteBtns = document.querySelectorAll('.delete-proposal-btn');
+    deleteBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const proposalId = this.getAttribute('data-proposal-id');
+            const projectTitle = this.getAttribute('data-proposal-project') || 'this project';
+            if (proposalId) {
+                handleDeleteProposal(proposalId, projectTitle);
+            }
+        });
+    });
+}
+
+// Initialize submit proposal modal on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initSubmitProposalModal();
+    initProposalSuccessModal();
+    initViewProposalModal();
+    initEditProposalModal();
+    initDeleteProposalConfirmModal();
+    initDeleteProposalButtons();
+});
+
+// Spin animation is now in designer.css
+
 // Notification bell click handler
 document.addEventListener('DOMContentLoaded', function() {
     const bellButton = document.querySelector('.designer-icon.bell');
@@ -1328,37 +2231,6 @@ function initDesignerStudio() {
         });
     });
     
-    // Creative Journal auto-save
-    const journalTextarea = document.querySelector('.journal-textarea');
-    const journalSavedIndicator = document.querySelector('.journal-saved-indicator');
-    let journalSaveTimeout;
-    
-    if (journalTextarea && journalSavedIndicator) {
-        // Load saved journal content
-        const savedJournal = localStorage.getItem('designerStudioJournal');
-        if (savedJournal) {
-            journalTextarea.value = savedJournal;
-        }
-        
-        journalTextarea.addEventListener('input', function() {
-            // Clear existing timeout
-            clearTimeout(journalSaveTimeout);
-            
-            // Update indicator to show "Saving..."
-            journalSavedIndicator.innerHTML = '<i class="bi bi-hourglass-split"></i><span>Saving...</span>';
-            journalSavedIndicator.style.color = '#6b7280';
-            
-            // Save after 1 second of inactivity
-            journalSaveTimeout = setTimeout(function() {
-                const content = journalTextarea.value;
-                localStorage.setItem('designerStudioJournal', content);
-                
-                // Update indicator to show "Saved"
-                journalSavedIndicator.innerHTML = '<i class="bi bi-check-circle"></i><span>Saved</span>';
-                journalSavedIndicator.style.color = '#22c55e';
-            }, 1000);
-        });
-    }
     
     // Moodboard pin functionality
     const moodboardPinBtns = document.querySelectorAll('.moodboard-pin-btn');
@@ -1401,4 +2273,22 @@ function initDesignerStudio() {
 // Initialize Designer Studio on page load
 document.addEventListener('DOMContentLoaded', function() {
     initDesignerStudio();
+    initHeroPattern();
 });
+
+// Randomly assign one of 5 arrow patterns to hero ambient background
+function initHeroPattern() {
+    const ambientElement = document.getElementById('heroAmbientPattern');
+    if (!ambientElement) return;
+    
+    // Generate random number between 1 and 5
+    const randomPattern = Math.floor(Math.random() * 5) + 1;
+    
+    // Remove any existing pattern classes
+    ambientElement.classList.remove('pattern-1', 'pattern-2', 'pattern-3', 'pattern-4', 'pattern-5');
+    
+    // Add the randomly selected pattern class
+    ambientElement.classList.add(`pattern-${randomPattern}`);
+    
+    console.log(`Hero pattern ${randomPattern} selected`);
+}

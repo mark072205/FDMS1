@@ -1,0 +1,387 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Staff User · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'users' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Create User</h1>
+                <p class="admin-subtitle">Create a new admin or staff user account</p>
+            </div>
+            <div class="admin-toolbar">
+                <a class="btn-secondary" href="{{ path('app_user_index') }}">← Back to Users</a>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="admin-card" style="padding: 1.5rem;">
+            {{ form_start(form, {'attr': {'class': 'staff-user-form'}}) }}
+                <div class="form-grid">
+                    <div class="form-field">
+                        {{ form_label(form.username, 'Username') }}
+                        {{ form_widget(form.username, {'attr': {'class': 'form-input', 'placeholder': 'e.g. johndoe'}}) }}
+                        {% if form_errors(form.username) %}
+                            <div class="form-errors">{{ form_errors(form.username) }}</div>
+                        {% else %}
+                            <small class="form-help-text">Choose a unique username (letters, numbers, and underscores only)</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        {{ form_label(form.email, 'Email Address') }}
+                        {{ form_widget(form.email, {'attr': {'class': 'form-input', 'placeholder': 'e.g. john.doe@example.com'}}) }}
+                        {% if form_errors(form.email) %}
+                            <div class="form-errors">{{ form_errors(form.email) }}</div>
+                        {% else %}
+                            <small class="form-help-text">This will be used for login and notifications</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        {{ form_label(form.firstName, 'First Name') }}
+                        {{ form_widget(form.firstName, {'attr': {'class': 'form-input', 'placeholder': 'Enter first name'}}) }}
+                        {% if form_errors(form.firstName) %}
+                            <div class="form-errors">{{ form_errors(form.firstName) }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        {{ form_label(form.lastName, 'Last Name') }}
+                        {{ form_widget(form.lastName, {'attr': {'class': 'form-input', 'placeholder': 'Enter last name (optional for Admin/Staff)'}}) }}
+                        {% if form_errors(form.lastName) %}
+                            <div class="form-errors">{{ form_errors(form.lastName) }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        {{ form_label(form.password, 'Password') }}
+                        <div class="password-wrapper">
+                            {{ form_widget(form.password, {'attr': {'class': 'form-input', 'placeholder': 'Enter secure password', 'id': 'password'}}) }}
+                            <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        {% if form_errors(form.password) %}
+                            <div class="form-errors">{{ form_errors(form.password) }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field">
+                        {{ form_label(form.confirmPassword, 'Confirm Password') }}
+                        <div class="password-wrapper">
+                            {{ form_widget(form.confirmPassword, {'attr': {'class': 'form-input', 'placeholder': 'Repeat password', 'id': 'confirmPassword'}}) }}
+                            <button type="button" class="toggle-password" id="toggleConfirmPassword" aria-label="Toggle password visibility">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        {% if form_errors(form.confirmPassword) %}
+                            <div class="form-errors">{{ form_errors(form.confirmPassword) }}</div>
+                        {% else %}
+                            <small class="form-help-text">Please re-enter your password to confirm</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-field" style="grid-column: 1 / -1;">
+                        <label style="display: block; font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9rem; color: #374151; margin-bottom: 0.5rem; font-weight: 500;">User Type</label>
+                        <div class="user-type-selection" style="display: grid; grid-template-columns: {% if isInMemoryAdmin|default(false) %}1fr 1fr{% else %}1fr{% endif %}; gap: 1rem; margin-top: 0.5rem;">
+                            {% if isInMemoryAdmin|default(false) %}
+                            <label class="user-type-option" style="cursor: pointer; border: 2px solid #e5e7eb; border-radius: 8px; padding: 1rem; transition: all 0.2s; background: #ffffff;" data-type="admin">
+                                <input type="radio" name="{{ form.userType.vars.full_name }}" value="admin" style="display: none;" {% if form.userType.vars.value == 'admin' %}checked{% endif %}>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                            <span style="font-family: 'Poppins', Arial, sans-serif; font-weight: 500; font-size: 0.95rem; color: #111827;">Admin</span>
+                                            <span class="badge badge-success" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; background: #10b981; color: white; border-radius: 4px;">Full Access</span>
+                                        </div>
+                                        <small class="form-help-text" style="margin: 0; color: #6b7280; font-size: 0.8rem;">
+                                            Full system access and user management. Stored in database.
+                                        </small>
+                                    </div>
+                                </div>
+                            </label>
+                            {% endif %}
+                            <label class="user-type-option" style="cursor: pointer; border: 2px solid #e5e7eb; border-radius: 8px; padding: 1rem; transition: all 0.2s; background: #ffffff;" data-type="staff">
+                                <input type="radio" name="{{ form.userType.vars.full_name }}" value="staff" style="display: none;" {% if form.userType.vars.value == 'staff' or form.userType.vars.value is empty %}checked{% endif %}>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: #dc2626; border-radius: 50%;"></div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                            <span style="font-family: 'Poppins', Arial, sans-serif; font-weight: 500; font-size: 0.95rem; color: #111827;">Staff</span>
+                                            <span class="badge badge-danger" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; background: #dc2626; color: white; border-radius: 4px;">Limited Access</span>
+                                        </div>
+                                        <small class="form-help-text" style="margin: 0; color: #6b7280; font-size: 0.8rem;">
+                                            Limited administrative privileges. Stored in database.
+                                        </small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        {# Hidden select field for form submission - kept for Symfony form handling #}
+                        {{ form_widget(form.userType, {'attr': {'style': 'display: none !important; position: absolute; left: -9999px; opacity: 0; pointer-events: none; width: 0; height: 0;'}}) }}
+                        {{ form_errors(form.userType) }}
+                    </div>
+                </div>
+                {# Render CSRF token and any other hidden fields #}
+                {{ form_widget(form._token) }}
+                <div class="form-actions">
+                    <a href="{{ path('app_user_index') }}" class="btn-secondary">Cancel</a>
+                    <button class="btn-primary" type="submit" id="createUserBtn">{% if isInMemoryAdmin|default(false) %}Create User{% else %}Create Staff User{% endif %}</button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const form = document.querySelector('.staff-user-form');
+            
+            // Password toggle functionality
+            function initPasswordToggles() {
+                const toggleButtons = document.querySelectorAll('.toggle-password');
+                toggleButtons.forEach(button => {
+                    // Check if button already has a listener (prevent duplicates)
+                    if (button.dataset.initialized === 'true') {
+                        return;
+                    }
+                    button.dataset.initialized = 'true';
+                    
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Find the input in the same password-wrapper (most reliable method)
+                        const wrapper = this.closest('.password-wrapper');
+                        if (!wrapper) {
+                            console.warn('Password toggle button not inside a password-wrapper');
+                            return;
+                        }
+                        
+                        const input = wrapper.querySelector('input[type="password"], input[type="text"]');
+                        
+                        if (!input) {
+                            console.warn('Password input not found in wrapper');
+                            return;
+                        }
+                        
+                        // Toggle the input type
+                        const type = input.type === 'password' ? 'text' : 'password';
+                        input.type = type;
+                        
+                        // Update icon (toggle between eye and eye-slash)
+                        if (type === 'text') {
+                            // Show open eye icon (password is visible)
+                            this.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            `;
+                        } else {
+                            // Show closed/crossed eye icon (password is hidden)
+                            this.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            `;
+                        }
+                    });
+                });
+            }
+            
+            // Initialize on page load
+            initPasswordToggles();
+            
+            // Re-initialize on Turbo navigation
+            document.addEventListener('turbo:load', function() {
+                // Reset initialization flags
+                document.querySelectorAll('.toggle-password').forEach(btn => {
+                    btn.dataset.initialized = 'false';
+                });
+                initPasswordToggles();
+                initUserTypeSelection();
+            });
+            
+            // User type selection functionality
+            function initUserTypeSelection() {
+                // Find the hidden select field for form submission
+                const hiddenSelect = document.querySelector('select[name="{{ form.userType.vars.full_name }}"]');
+                const createUserBtn = document.getElementById('createUserBtn');
+                
+                // Hide any visible select fields (in case form_rest rendered them)
+                if (hiddenSelect) {
+                    hiddenSelect.style.display = 'none';
+                    hiddenSelect.style.position = 'absolute';
+                    hiddenSelect.style.left = '-9999px';
+                    hiddenSelect.style.opacity = '0';
+                    hiddenSelect.style.pointerEvents = 'none';
+                    hiddenSelect.style.width = '0';
+                    hiddenSelect.style.height = '0';
+                }
+                
+                // Function to update button text
+                function updateButtonText(selectedValue) {
+                    {% if isInMemoryAdmin|default(false) %}
+                    if (createUserBtn) {
+                        if (selectedValue === 'admin') {
+                            createUserBtn.textContent = 'Create Admin User';
+                        } else {
+                            createUserBtn.textContent = 'Create Staff User';
+                        }
+                    }
+                    {% else %}
+                    if (createUserBtn) {
+                        createUserBtn.textContent = 'Create Staff User';
+                    }
+                    {% endif %}
+                }
+                
+                const userTypeOptions = document.querySelectorAll('.user-type-option');
+                userTypeOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        // Remove active state from all options
+                        userTypeOptions.forEach(opt => {
+                            opt.style.borderColor = '#e5e7eb';
+                            opt.style.background = '#ffffff';
+                        });
+                        
+                        // Set active state for selected option
+                        this.style.borderColor = '#3b82f6';
+                        this.style.background = '#eff6ff';
+                        
+                        // Check the radio button
+                        const radio = this.querySelector('input[type="radio"]');
+                        if (radio) {
+                            radio.checked = true;
+                            
+                            // Trigger change event manually
+                            radio.dispatchEvent(new Event('change', { bubbles: true }));
+                            
+                            // Sync with hidden select field for form submission
+                            if (hiddenSelect) {
+                                hiddenSelect.value = radio.value;
+                            }
+                            
+                            // Update button text immediately
+                            updateButtonText(radio.value);
+                        }
+                    });
+                });
+                
+                // Also listen to radio button change events directly (as backup)
+                const userTypeRadios = document.querySelectorAll('.user-type-option input[type="radio"]');
+                userTypeRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        // Sync with hidden select field
+                        if (hiddenSelect) {
+                            hiddenSelect.value = this.value;
+                        }
+                        // Update button text
+                        updateButtonText(this.value);
+                    });
+                });
+                
+                // Set initial active state and button text
+                const checkedOption = document.querySelector('.user-type-option input[type="radio"]:checked');
+                if (checkedOption) {
+                    const parentOption = checkedOption.closest('.user-type-option');
+                    if (parentOption) {
+                        parentOption.style.borderColor = '#3b82f6';
+                        parentOption.style.background = '#eff6ff';
+                    }
+                    
+                    // Sync with hidden select field
+                    if (hiddenSelect) {
+                        hiddenSelect.value = checkedOption.value;
+                    }
+                    
+                    // Set initial button text
+                    updateButtonText(checkedOption.value);
+                } else {
+                    // Default to staff if nothing is checked
+                    updateButtonText('staff');
+                }
+            }
+            
+            // Initialize user type selection
+            initUserTypeSelection();
+            
+            function validatePasswordMatch() {
+                const password = passwordInput?.value || '';
+                const confirmPassword = confirmPasswordInput?.value || '';
+                
+                // Remove existing error message
+                const existingError = confirmPasswordInput?.parentElement.parentElement.querySelector('.password-match-error');
+                if (existingError) {
+                    existingError.remove();
+                }
+                
+                // Remove error styling
+                if (confirmPasswordInput) {
+                    confirmPasswordInput.style.borderColor = '';
+                }
+                
+                // Check if passwords match (only if both fields have values)
+                if (confirmPassword && password !== confirmPassword) {
+                    // Add error styling
+                    if (confirmPasswordInput) {
+                        confirmPasswordInput.style.borderColor = '#dc2626';
+                    }
+                    
+                    // Add error message
+                    if (confirmPasswordInput && !existingError) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'form-errors password-match-error';
+                        errorDiv.innerHTML = '<ul><li>⚠ Passwords do not match</li></ul>';
+                        confirmPasswordInput.parentElement.parentElement.appendChild(errorDiv);
+                    }
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // Validate on input
+            if (confirmPasswordInput) {
+                confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+            }
+            
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    // Re-validate confirm password when main password changes
+                    if (confirmPasswordInput?.value) {
+                        validatePasswordMatch();
+                    }
+                });
+            }
+            
+            // Validate on form submit
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (!validatePasswordMatch()) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

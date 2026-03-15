@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Proposals · Mark & Motion{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/header.css')}} ">
+    <link rel="stylesheet" href=" {{ asset('styles/designer.css')}} ">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/designer.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+{% include 'designer/_headerdesigner.html.twig' with { active: 'proposals' } %}
+
+<main class="designer-main projects-main">
+    <!-- Feed Header -->
+    <section class="projects-feed-header">
+        <h1 class="feed-title" style="font-family: 'Poppins', Arial, sans-serif;">My Proposals</h1>
+    </section>
+
+    <!-- Search and Filters -->
+    <section class="projects-filters">
+        <form method="GET" action="{{ path('app_designer_proposals') }}" id="proposalsFilterForm" style="display: contents;">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 21l-4.35-4.35" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="11" cy="11" r="6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <input type="search" id="proposalsSearch" name="search" value="{{ searchQuery }}" placeholder="Search proposals by project title or content" aria-label="Search proposals">
+            </div>
+            <div class="filters-wrapper">
+                <select id="statusFilter" name="status" class="filter-select" aria-label="Filter by status">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if statusFilter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="accepted" {% if statusFilter == 'accepted' %}selected{% endif %}>Accepted</option>
+                    <option value="rejected" {% if statusFilter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+                <select id="projectFilter" name="project" class="filter-select" aria-label="Filter by project">
+                    <option value="">All Projects</option>
+                    {% for project in projects %}
+                        <option value="{{ project.id }}" {% if projectFilter == (project.id ~ '') %}selected{% endif %}>{{ project.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <!-- Proposals Content -->
+    <section class="projects-content">
+        {% if proposals|length > 0 %}
+            <div class="projects-grid" id="proposalsGrid">
+                {% for proposal in proposals %}
+                    <div class="project-card explore-card" data-proposal-id="{{ proposal.id }}">
+                        <div class="project-header">
+                            <div class="project-author">
+                                {% set initials = (proposal.project.client.firstName|first|upper) ~ (proposal.project.client.lastName|first|upper) %}
+                                <div class="author-avatar">{{ initials }}</div>
+                                <span class="author-name">{{ proposal.project.client.firstName }} {{ proposal.project.client.lastName }}</span>
+                            </div>
+                            <div class="project-actions-icons">
+                                {% set statusClass = proposal.status == 'accepted' ? 'status-completed' : (proposal.status == 'rejected' ? 'status-cancelled' : 'status-pending') %}
+                                <span class="status-badge {{ statusClass }}" style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 12px;">{{ proposal.status|capitalize }}</span>
+                            </div>
+                        </div>
+                        <h3>{{ proposal.project.title }}</h3>
+                        <div class="project-meta" style="display: flex; gap: 1rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: #6b7280; font-family: 'Montserrat', Arial, sans-serif;">
+                            {% if proposal.project.category %}
+                                <span class="project-category">{{ proposal.project.category.name }}</span>
+                            {% endif %}
+                            <span class="project-date">Submitted {{ proposal.createdAt|date('M d, Y') }}</span>
+                        </div>
+                        <p class="project-description" style="font-family: 'Montserrat', Arial, sans-serif; color: #374151; line-height: 1.6; margin-bottom: 1rem;">
+                            {{ proposal.proposalText|length > 150 ? proposal.proposalText|slice(0, 150) ~ '...' : proposal.proposalText }}
+                        </p>
+                        <div class="project-budget" style="margin-bottom: 1rem; font-family: 'Montserrat', Arial, sans-serif;">
+                            <strong style="font-family: 'Poppins', Arial, sans-serif;">Proposed Price:</strong> ${{ proposal.proposedPrice|number_format(2, '.', ',') }}
+                            {% if proposal.deliveryTime %}
+                                <span style="margin-left: 1rem; color: #6b7280;">• Delivery: {{ proposal.deliveryTime }} day{{ proposal.deliveryTime != 1 ? 's' : '' }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="project-actions">
+                            <button type="button" class="btn btn-sm btn-primary view-proposal-btn" data-proposal-id="{{ proposal.id }}">View Details</button>
+                            {% if proposal.status == 'pending' %}
+                                <button type="button" class="btn btn-sm btn-secondary edit-proposal-btn" data-proposal-id="{{ proposal.id }}">Edit</button>
+                            {% endif %}
+                            <button type="button" class="btn btn-sm btn-danger delete-proposal-btn" data-proposal-id="{{ proposal.id }}" data-proposal-project="{{ proposal.project.title }}" style="background: #ef4444; color: white; border: none; font-family: 'Poppins', Arial, sans-serif;">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyProposals">
+                <div class="empty-state-icon">
+                    <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <h3>No proposals found.</h3>
+                <p>You haven't submitted any proposals yet. Start by browsing available projects.</p>
+                <a href="{{ path('app_designer_projects') }}" class="btn btn-primary" style="font-family: 'Poppins', Arial, sans-serif; margin-top: 1rem;">Browse Projects</a>
+            </div>
+        {% endif %}
+    </section>
+</main>
+
+<!-- View Proposal Modal -->
+<div id="viewProposalModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="viewProposalTitle">
+        <button type="button" class="project-modal__close" id="closeViewProposal" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div id="viewProposalContent">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Edit Proposal Modal -->
+<div id="editProposalModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="editProposalTitle">
+        <button type="button" class="project-modal__close" id="closeEditProposal" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div id="editProposalContent">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+</div>
+
+{% include 'designer/designer_projects/success_modal.html.twig' %}
+{% include 'designer/designer_proposals/delete_confirm_modal.html.twig' %}
+{% endblock %}

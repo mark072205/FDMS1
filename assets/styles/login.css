@@ -1,3 +1,10 @@
+html {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 body {
     background: #fff;
     margin: 0;
@@ -7,41 +14,12 @@ body {
     align-items: center;    
     flex-direction: column;
     min-height: 100vh;
-}
-
-.header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 16px 24px;
-    background: #ffffff;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-}
-
-.header a {
-    display: inline-block;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.header img {
-    height: 30px;
-    display: block;
-}
-
-.logo-link img {
-    height: 30px;
-    width: auto;
-    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    position: relative;
 }
 
 .login-container {
@@ -49,6 +27,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    min-width: 0;
 }
 
 .login-box {
@@ -56,10 +39,13 @@ body {
     border-radius: 8px;
     padding: 2rem;
     margin-top: 5rem;
-    width: 400px;
+    width: 450px;
+    max-width: 450px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     background: #fff;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .login-box h1 {
@@ -68,6 +54,14 @@ body {
     margin-bottom: 1.5rem;
     font-family: Poppins, Arial, sans-serif;
     font-weight: 500;
+}
+
+.login-box .alert {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
+    word-break: break-word;
 }
 
 .input-field,
@@ -232,79 +226,4 @@ body {
     background: #14a800;
     color: #fff;
     box-shadow: 0 2px 8px rgba(20, 168, 0, 0.25);
-}
-
-/* Footer - Unified design for all pages */
-.footer-landing,
-.footer-login,
-.footer-designer {
-    background: #000000;
-    color: rgba(255, 255, 255, 0.5);
-    padding: 60px 24px 24px;
-    font-size: 14px;
-    font-family: 'Montserrat', Arial, sans-serif;
-    border-radius: 16px;
-    margin: 2rem auto 1rem;
-    max-width: 1304px;
-    /* Use consistent width calculation that works regardless of parent container */
-    width: min(1304px, calc(100% - 32px));
-    box-sizing: border-box;
-    overflow: hidden;
-    box-shadow: 0 8px 28px rgba(0,0,0,0.25);
-    /* Ensure consistent positioning regardless of parent layout */
-    display: block;
-    position: relative;
-}
-
-/* Landing footer - left-align content in grid, center footer-bottom */
-.footer-landing {
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Login and Designer footers - center their content */
-.footer-login,
-.footer-designer {
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-}
-
-/* Ensure login footer width in flex context and content centered */
-.footer-login {
-    /* Override body flex alignment for this element */
-    align-self: auto;
-    /* Match landing footer width - use responsive calculation */
-    width: min(1304px, calc(100vw - 32px)) !important;
-    max-width: 1304px !important;
-    /* Center the footer container in the flex parent */
-    margin-left: auto !important;
-    margin-right: auto !important;
-    /* Override asymmetric padding for vertical centering */
-    padding-top: 24px !important;
-    padding-bottom: 24px !important;
-    /* Center content both horizontally and vertically using flexbox */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    text-align: center !important;
-}
-
-@media (max-width: 1336px) {
-    /* On smaller screens, use responsive width */
-    .footer-login {
-        width: calc(100vw - 32px) !important;
-        max-width: calc(100vw - 32px) !important;
-    }
-}
-
-@media (max-width: 768px) {
-    .footer-landing,
-    .footer-login,
-    .footer-designer {
-        margin: 2rem 16px 1rem;
-        padding: 48px 16px 24px;
-        width: calc(100% - 32px) !important;
-        max-width: calc(100% - 32px) !important;
-    }
 }

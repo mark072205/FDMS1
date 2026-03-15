@@ -1,0 +1,356 @@
+/* ============================================
+   FOOTER - Unified Design System
+   ============================================ */
+
+/* Base Footer Styles - All Pages */
+.footer-landing,
+.footer-login,
+.footer-designer {
+    /* Visual appearance */
+    background: #000000;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    font-family: 'Montserrat', Arial, sans-serif;
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+    
+    /* Unified positioning - centered horizontally */
+    margin: 2rem auto 1rem;
+    margin-left: auto;
+    margin-right: auto;
+    
+    /* Layout */
+    display: block;
+    position: relative;
+    overflow: hidden;
+    
+    /* Padding - unified base */
+    padding: 60px 24px 24px;
+    scroll-margin-top: 82px; /* Header height + spacing for scroll alignment */
+}
+
+/* ============================================
+   INDIVIDUAL FOOTER WIDTHS - Adjust here
+   ============================================ */
+
+/* Landing Footer - Full grid layout */
+.footer-landing {
+    text-align: left;
+    /* Adjust landing footer width here */
+    width: 1500px;
+    max-width: 1500px;
+}
+
+/* Login Footer - Simple centered text */
+.footer-login {
+    text-align: center;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    /* Adjust login footer width here - FIXED WIDTH */
+    width: 1263px !important;
+    max-width: 1263px !important;
+    min-width: 1263px !important;
+    /* Center using margin auto - more stable than transform for flex children */
+    margin-left: auto !important;
+    margin-right: auto !important;
+    /* Force break out of flex container */
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    align-self: center !important;
+    position: relative !important;
+    box-sizing: border-box !important;
+    /* Prevent overflow to maintain fixed width */
+    overflow: hidden !important;
+    /* Ensure footer width is locked regardless of parent */
+    contain: layout size style !important;
+}
+
+/* Designer Footer - Centered tagline */
+.footer-designer {
+    text-align: center;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Adjust designer footer width here */
+    width: min(1304px, calc(100vw - 32px)) !important;
+    max-width: 1304px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Footer Container - Base */
+.footer-container {
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Footer Container Widths - Match each footer's width */
+.footer-landing .footer-container {
+    max-width: 1500px;
+}
+
+.footer-login .footer-container {
+    /* Match login footer width - change if you adjust footer width */
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.footer-login .footer-simple {
+    justify-content: space-between !important;
+    gap: 1rem !important;
+    max-width: 100% !important;
+}
+
+.footer-designer .footer-container {
+    /* Match designer footer width - change if you adjust footer width */
+    max-width: 1304px !important;
+    width: 100% !important;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Footer Grid (landing page only) */
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 48px;
+    margin-bottom: 48px;
+    justify-items: start;
+    align-items: start;
+}
+
+.footer-column {
+    text-align: left;
+}
+
+.footer-column h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.footer-column p {
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.footer-column ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.footer-column ul li {
+    margin-bottom: 12px;
+}
+
+.footer-column ul li a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-column ul li a:hover {
+    color: var(--primary-blue);
+}
+
+/* Social Links */
+.social-links {
+    display: flex;
+    gap: 16px;
+}
+
+.social-links a {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.social-links a:hover {
+    background: var(--primary-blue);
+    transform: translateY(-2px);
+}
+
+/* Footer Bottom (landing page only) */
+.footer-bottom {
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    background: #000000;
+    padding: 24px;
+    margin-top: 24px;
+    border-radius: 12px;
+    text-align: left;
+}
+
+/* Footer Simple Content (for login and designer) */
+.footer-simple {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 45rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.footer-tagline,
+.footer-copyright {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+    display: inline-block;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+/* Footer Links Container */
+.footer-links {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    max-width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.footer-links span {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Footer Links */
+.footer-link {
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    margin: 0;
+    transition: color 0.2s;
+}
+
+.footer-link:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Legacy support for old class names */
+.studio-footer-content {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.studio-footer-tagline {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+    padding: 0;
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS - Adjust if you change widths
+   Formula: Breakpoint = Footer Width + 32px
+   ============================================ */
+
+/* Landing Footer Responsive - Only on very small screens */
+/* Footer will use fixed width until screen is smaller */
+@media (max-width: 1532px) {
+    .footer-landing {
+        width: calc(100vw - 32px);
+        max-width: calc(100vw - 32px);
+    }
+}
+
+/* Login Footer Responsive - Only on very small screens */
+/* Current: 2000px footer = 2032px breakpoint */
+/* TEMPORARILY DISABLED FOR TESTING - Re-enable when done */
+/*
+@media (max-width: 2032px) {
+    .footer-login {
+        width: calc(100vw - 32px) !important;
+        max-width: calc(100vw - 32px) !important;
+    }
+}
+*/
+
+/* Designer Footer Responsive - Only on very small screens */
+@media (max-width: 1000px) {
+    .footer-designer {
+        width: calc(100vw - 32px) !important;
+        max-width: calc(100vw - 32px) !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-landing,
+    .footer-designer {
+        margin: 2rem 16px 1rem;
+        padding: 48px 16px 24px;
+        width: calc(100% - 32px);
+        max-width: calc(100% - 32px);
+    }
+    
+    /* Login footer - keep fixed width even on mobile */
+    .footer-login {
+        margin: 2rem 16px 1rem !important;
+        padding: 48px 16px 24px !important;
+        width: 1263px !important;
+        max-width: 1263px !important;
+        min-width: 1263px !important;
+    }
+    
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+}

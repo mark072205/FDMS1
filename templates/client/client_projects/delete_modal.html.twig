@@ -1,0 +1,24 @@
+<!-- Delete Project Confirmation Modal Content -->
+<div class="project-modal-content">
+    <div style="text-align: center; padding: 1rem 0 2rem;">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-exclamation-triangle-fill" style="font-size: 2.5rem; color: #dc2626;"></i>
+        </div>
+        <h2 class="project-modal__title" style="margin-bottom: 0.75rem; color: #111827;">Delete Project</h2>
+        <p style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.9375rem; line-height: 1.6; max-width: 400px; margin: 0 auto;">
+            Are you sure you want to delete <strong style="color: #111827;">"{{ project.title }}"</strong>? This action cannot be undone and all associated proposals will also be removed.
+        </p>
+    </div>
+
+    <div class="project-modal__footer" style="justify-content: center; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary btn-cancel-delete" id="cancelDeleteProject" style="min-width: 100px;">
+            <span>Cancel</span>
+        </button>
+        <button type="button" class="btn btn-danger btn-confirm-delete" id="confirmDeleteProject" data-project-id="{{ project.id }}" style="min-width: 120px; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="bi bi-trash-fill"></i>
+            <span>Delete Project</span>
+        </button>
+    </div>
+</div>
+
+

@@ -19,6 +19,12 @@ final class LandingPageController extends AbstractController
         ]);
     }
 
+    #[Route('/about', name: 'app_about')]
+    public function about(): Response
+    {
+        return $this->render('landing_page/about.html.twig');
+    }
+
     #[Route('/category/{id}', name: 'app_category_view')]
     public function viewCategory(Category $category): Response
     {

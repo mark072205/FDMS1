@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Projects · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'projects' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Projects</h1>
+                <p class="admin-subtitle">Manage all marketplace projects</p>
+            </div>
+            <div class="admin-toolbar">
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <!-- Filters -->
+        <div class="admin-card" style="padding: 1.1rem 1.25rem; margin-bottom: 1.5rem;">
+            <form method="GET" action="{{ path('app_admin_project_index') }}" class="admin-filters">
+                <div style="display: flex; gap: 1rem; align-items: end;">
+                    <div style="flex: 1;">
+                        <label for="statusFilter" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Status</label>
+                        <select id="statusFilter" name="status" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All Status</option>
+                            <option value="pending" {% if statusFilter == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="active" {% if statusFilter == 'active' %}selected{% endif %}>Active</option>
+                            <option value="ongoing" {% if statusFilter == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                            <option value="completed" {% if statusFilter == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if statusFilter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="categoryFilter" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Category</label>
+                        <select id="categoryFilter" name="category" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if categoryFilter == (category.id ~ '') %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="submit" class="btn-primary" style="padding: 0.5rem 1rem; font-family: 'Poppins', Arial, sans-serif;">Filter</button>
+                        <a href="{{ path('app_admin_project_index') }}" class="btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block; font-family: 'Poppins', Arial, sans-serif;">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="admin-projects-table-card">
+            <h2 class="admin-projects-table-title">Admin Projects Table</h2>
+            <div class="admin-table-wrapper">
+                <table class="admin-table table-balanced table-colored admin-projects-table">
+                    <thead>
+                        <tr>
+                            <th class="col-id admin-projects-table-header">ID</th>
+                            <th class="col-title admin-projects-table-header">Title</th>
+                            <th class="col-category admin-projects-table-header">Category</th>
+                            <th class="col-category admin-projects-table-header">Client</th>
+                            <th class="col-status admin-projects-table-header">Status</th>
+                            <th class="col-status admin-projects-table-header">Budget</th>
+                            <th class="col-status admin-projects-table-header">Proposals</th>
+                            <th class="col-date admin-projects-table-header">Created</th>
+                            <th class="col-actions admin-projects-table-header admin-projects-table-header-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for project in projects %}
+                        <tr class="admin-row" data-project-id="{{ project.id }}">
+                            <td class="admin-projects-table-cell">{{ project.id }}</td>
+                            <td class="admin-projects-table-cell">
+                                <span class="truncate" title="{{ project.title }}">{{ project.title }}</span>
+                            </td>
+                            <td class="admin-projects-table-cell">
+                                {{ project.category ? project.category.name : '—' }}
+                            </td>
+                            <td class="admin-projects-table-cell">
+                                {{ project.client ? project.client.username : '—' }}
+                            </td>
+                            <td class="admin-projects-table-cell-status">
+                                {% set status = project.status|lower %}
+                                {% set statusClass =
+                                    status == 'completed' ? 'is-completed' :
+                                    (status == 'ongoing' ? 'is-ongoing' :
+                                    (status == 'pending' ? 'is-pending' : 'is-cancelled'))
+                                %}
+                                <span class="badge-status {{ statusClass }}" id="status-{{ project.id }}">{{ project.status|capitalize }}</span>
+                            </td>
+                            <td class="admin-projects-table-cell">${{ project.budget|number_format(2, '.', ',') }}</td>
+                            <td class="admin-projects-table-cell">{{ project.proposals ? project.proposals|length : 0 }}</td>
+                            <td class="admin-projects-table-cell">{{ project.createdAt|date('Y-m-d') }}</td>
+                            <td class="admin-projects-table-cell-actions">
+                                <a class="btn-link admin-projects-table-view-link" href="{{ path('app_admin_project_show', {'id': project.id}) }}">View</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="admin-projects-table-empty">No projects found.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+{% endblock %}
+

@@ -1,0 +1,74 @@
+{% set statusClass = project.status == 'completed' ? 'status-completed' : (project.status == 'ongoing' ? 'status-active' : 'status-pending') %}
+<div class="project-modal-content">
+    <h2 class="project-modal__title">{{ project.title }}</h2>
+    
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+        <span class="status-badge {{ statusClass }}" style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.875rem; padding: 0.375rem 0.75rem; border-radius: 12px;">{{ project.status|capitalize }}</span>
+        <span style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem;">Posted {{ project.createdAt|date('M d, Y') }}</span>
+        {% if project.category %}
+            <span style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem;">• {{ project.category.name }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Project Description -->
+    <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1rem; margin: 0 0 0.75rem 0; color: #111827; font-weight: 600;">Project Description</h3>
+        <div style="font-family: 'Montserrat', Arial, sans-serif; color: #374151; line-height: 1.8; white-space: pre-wrap;">{{ project.description }}</div>
+    </div>
+
+    <!-- Client Information -->
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+        <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1rem; margin: 0 0 0.75rem 0; color: #111827; font-weight: 600;">Client Information</h3>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            {% set initials = (project.client.firstName|first|upper) ~ (project.client.lastName|first|upper) %}
+            <div class="author-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; font-family: 'Poppins', Arial, sans-serif;">{{ initials }}</div>
+            <div>
+                <div style="font-family: 'Poppins', Arial, sans-serif; font-weight: 600; color: #111827; font-size: 0.9375rem;">{{ project.client.firstName }} {{ project.client.lastName }}</div>
+                <div style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.8125rem;">@{{ project.client.username }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Details -->
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Budget</div>
+            <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 1.25rem; font-weight: 600; color: #111827;">${{ project.budget|number_format(2, '.', ',') }}</div>
+        </div>
+        {% if project.category %}
+        <div>
+            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Category</div>
+            <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9375rem; color: #111827;">{{ project.category.name }}</div>
+        </div>
+        {% endif %}
+        <div>
+            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Proposals</div>
+            <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9375rem; color: #111827;">{{ proposalsCount }} proposal{{ proposalsCount != 1 ? 's' : '' }}</div>
+        </div>
+        <div>
+            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Posted</div>
+            <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9375rem; color: #111827;">{{ project.createdAt|date('M d, Y') }}</div>
+        </div>
+    </div>
+
+    <!-- Action Button -->
+    <div class="project-modal__footer">
+        {% if existingProposal %}
+            <div class="proposal-status-info">
+                <div class="proposal-status-label">Your Proposal Status</div>
+                {% set proposalStatusClass = existingProposal.status == 'accepted' ? 'status-completed' : (existingProposal.status == 'rejected' ? 'status-cancelled' : 'status-pending') %}
+                <span class="status-badge {{ proposalStatusClass }}">{{ existingProposal.status|capitalize }}</span>
+            </div>
+            <a href="#" class="btn btn-primary btn-view-proposal">
+                <i class="bi bi-eye"></i>
+                <span>View My Proposal</span>
+            </a>
+        {% else %}
+            <button type="button" class="btn btn-primary btn-submit-proposal" id="submitProposalBtn" data-project-id="{{ project.id }}">
+                <i class="bi bi-send-fill"></i>
+                <span>Submit Proposal</span>
+            </button>
+        {% endif %}
+    </div>
+</div>
+

@@ -16,28 +16,29 @@ class UsersRepository extends ServiceEntityRepository
         parent::__construct($registry, Users::class);
     }
 
-//    /**
-//     * @return Users[] Returns an array of Users objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('u.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Users
-//    {
-//        return $this->createQueryBuilder('u')
-//            ->andWhere('u.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    /**
+     * Find users by role
+     * 
+     * @return Users[]
+     */
+    public function findByRole(string $role): array
+    {
+        // Map Symfony role to database role field
+        $roleMap = [
+            'ROLE_ADMIN' => 'admin',
+            'ROLE_DESIGNER' => 'designer',
+            'ROLE_CLIENT' => 'client',
+            'staff' => 'staff',
+        ];
+        
+        $dbRole = $roleMap[$role] ?? $role;
+        
+        return $this->createQueryBuilder('u')
+            ->where('u.role = :role')
+            ->setParameter('role', $dbRole)
+            ->andWhere('u.isActive = :active')
+            ->setParameter('active', true)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -2,12 +2,13 @@
 <header class="header-designer-no-avatar">
     <div class="header-designer-left">
         <a href="{{ path('app_designer_homepage') }}" class="designer-logo-link">
-            <img src="{{ asset('img/Logo2.png') }}" alt="Mark & Motion">
+            <img src="{{ asset('img/logomain.png') }}" alt="Mark & Motion">
         </a>
 
         <nav class="designer-nav" aria-label="Main navigation">
             <a href="{{ path('app_designer_homepage') }}" class="designer-nav-item {{ active is defined and active == 'home' ? 'active' : '' }}">Design Studio</a>
             <a href="{{ path('app_designer_projects') }}" class="designer-nav-item {{ active is defined and active == 'projects' ? 'active' : '' }}">Projects</a>
+            <a href="{{ path('app_designer_proposals') }}" class="designer-nav-item {{ active is defined and active == 'proposals' ? 'active' : '' }}">Proposals</a>
             <a href="{{ path('app_designer_messages') }}" class="designer-nav-item {{ active is defined and active == 'messages' ? 'active' : '' }}">Messages</a>
             <a href="{{ path('app_designer_earnings') }}" class="designer-nav-item {{ active is defined and active == 'earnings' ? 'active' : '' }}">Earnings</a>
         </nav>
@@ -30,29 +31,31 @@
 
         <div class="designer-badge" onclick="toggleDropdown()" title="Account">
             <div class="designer-profile-avatar">
-                {% if app.user and app.user.profilePicture %}
-                    <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}" alt="{{ app.user.firstName }} {{ app.user.lastName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-                {% else %}
+                {% if app.user and app.user.profilePicture and app.user.profilePicture|trim != '' %}
+                    <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}?v={{ 'now'|date('U') }}" alt="{{ app.user.firstName }} {{ app.user.lastName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;" onerror="this.style.display='none'; this.nextElementSibling.style.zIndex='1';">
+                {% endif %}
+                <span style="display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: {% if app.user and app.user.profilePicture and app.user.profilePicture|trim != '' %}0{% else %}1{% endif %}; font-size: inherit; color: inherit; font-weight: inherit;">
                     {% if app.user %}
                         {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
                     {% else %}
                         D
                     {% endif %}
-                {% endif %}
+                </span>
             </div>
             <div class="designer-dropdown" id="designerDropdown">
                 <div class="designer-profile-section">
                     <div class="designer-profile-info">
                         <div class="designer-profile-avatar">
-                            {% if app.user and app.user.profilePicture %}
-                                <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}" alt="{{ app.user.firstName }} {{ app.user.lastName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-                            {% else %}
+                            {% if app.user and app.user.profilePicture and app.user.profilePicture|trim != '' %}
+                                <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}?v={{ 'now'|date('U') }}" alt="{{ app.user.firstName }} {{ app.user.lastName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;" onerror="this.style.display='none'; this.nextElementSibling.style.zIndex='1';">
+                            {% endif %}
+                            <span style="display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: {% if app.user and app.user.profilePicture and app.user.profilePicture|trim != '' %}0{% else %}1{% endif %}; font-size: inherit; color: inherit; font-weight: inherit;">
                                 {% if app.user %}
                                     {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
                                 {% else %}
                                     D
                                 {% endif %}
-                            {% endif %}
+                            </span>
                         </div>
                         <a href="{{ path('app_designer_profile') }}" class="designer-profile-details" style="text-decoration: none; color: inherit;">
                             <h3>{{ app.user ? app.user.firstName ~ ' ' ~ app.user.lastName : 'Designer' }}</h3>

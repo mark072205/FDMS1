@@ -1,0 +1,309 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analytics & Reports · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'analytics' } %}
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Analytics & Reports</h1>
+                <p class="admin-subtitle">Comprehensive insights into your marketplace performance</p>
+            </div>
+            <div class="admin-toolbar">
+                <button type="button" class="btn-secondary" id="exportReportBtn">
+                    <i class="bi bi-download" style="margin-right: 0.5rem;"></i>
+                    Export Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="admin-card" style="padding: 1.1rem 1.25rem; margin-bottom: 1.5rem;">
+            <form method="GET" action="{{ path('app_admin_analytics_index') }}" id="dateRangeForm" style="display: flex; gap: 1.5rem; align-items: end;">
+                <div style="flex: 1;">
+                    <label for="start_date" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Montserrat', Arial, sans-serif;">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ startDate.format('Y-m-d') }}" 
+                           style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                </div>
+                <div style="flex: 1;">
+                    <label for="end_date" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Montserrat', Arial, sans-serif;">End Date</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ endDate.format('Y-m-d') }}" 
+                           style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: flex-end;">
+                    <button type="submit" class="btn-primary" style="padding: 0.5rem 1rem; font-family: 'Montserrat', Arial, sans-serif;">Apply</button>
+                    <button type="button" class="btn-secondary" id="resetDateRange" style="padding: 0.5rem 1rem; font-family: 'Montserrat', Arial, sans-serif;">Reset</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Key Metrics Overview -->
+        <div class="dashboard-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            {% if is_granted('ROLE_ADMIN') %}
+            <!-- Revenue Card -->
+            <div class="admin-card stat-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                    <div class="stat-icon blue"><i class="bi bi-currency-dollar"></i></div>
+                    <div style="text-align: right;">
+                        <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">${{ analytics.revenue.totalRevenue|number_format(2, '.', ',') }}</p>
+                        <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Total Revenue</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                    <span style="color: {{ analytics.revenue.revenueChange >= 0 ? '#10b981' : '#ef4444' }};">
+                        <i class="bi bi-arrow-{{ analytics.revenue.revenueChange >= 0 ? 'up' : 'down' }}"></i>
+                        {{ analytics.revenue.revenueChange|abs }}%
+                    </span>
+                    <span>vs previous period</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if is_granted('ROLE_ADMIN') %}
+            <!-- User Growth Card -->
+            <div class="admin-card stat-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                    <div class="stat-icon teal"><i class="bi bi-people-fill"></i></div>
+                    <div style="text-align: right;">
+                        <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">{{ analytics.userGrowth.newRegistrations }}</p>
+                        <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">New Users</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                    <span style="color: {{ analytics.userGrowth.growthChange >= 0 ? '#10b981' : '#ef4444' }};">
+                        <i class="bi bi-arrow-{{ analytics.userGrowth.growthChange >= 0 ? 'up' : 'down' }}"></i>
+                        {{ analytics.userGrowth.growthChange|abs }}%
+                    </span>
+                    <span>growth rate</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Projects Card -->
+            <div class="admin-card stat-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                    <div class="stat-icon orange"><i class="bi bi-folder-fill"></i></div>
+                    <div style="text-align: right;">
+                        <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">{{ analytics.projectMetrics.totalProjects }}</p>
+                        <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Total Projects</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                    <span>{{ analytics.projectMetrics.completionRate|number_format(1) }}% completion rate</span>
+                </div>
+            </div>
+
+            <!-- Average Budget Card -->
+            <div class="admin-card stat-card">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                    <div class="stat-icon pink"><i class="bi bi-cash-stack"></i></div>
+                    <div style="text-align: right;">
+                        <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">${{ analytics.projectMetrics.averageBudget|number_format(2, '.', ',') }}</p>
+                        <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Avg Budget</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="analytics-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            {% if is_granted('ROLE_ADMIN') %}
+            <!-- Revenue Trend Chart -->
+            <div class="admin-card" style="padding: 1.5rem;">
+                <h3 class="section-title" style="margin-bottom: 1.5rem;">
+                    <i class="bi bi-graph-up"></i>
+                    Revenue Trend
+                </h3>
+                <div class="chart-wrapper">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- User Growth Chart -->
+            <div class="admin-card" style="padding: 1.5rem;">
+                <h3 class="section-title" style="margin-bottom: 1.5rem;">
+                    <i class="bi bi-people"></i>
+                    User Growth
+                </h3>
+                <div class="chart-wrapper">
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Project & Proposal Activity Charts -->
+        <div class="analytics-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Project Activity Chart -->
+            <div class="admin-card" style="padding: 1.5rem;">
+                <h3 class="section-title" style="margin-bottom: 1.5rem;">
+                    <i class="bi bi-bar-chart"></i>
+                    Project Activity
+                </h3>
+                <div class="chart-wrapper">
+                    <canvas id="projectActivityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Proposal Activity Chart -->
+            <div class="admin-card" style="padding: 1.5rem;">
+                <h3 class="section-title" style="margin-bottom: 1.5rem;">
+                    <i class="bi bi-file-earmark-text"></i>
+                    Proposal Activity
+                </h3>
+                <div class="chart-wrapper">
+                    <canvas id="proposalActivityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Analytics Sections -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Top Designers -->
+            <div class="admin-card" style="padding: 1.5rem;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-trophy"></i>
+                        Top Designers
+                    </h3>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="padding: 0.75rem;">Designer</th>
+                                <th style="padding: 0.75rem;">Proposals</th>
+                                <th style="padding: 0.75rem;">Acceptance</th>
+                                <th style="padding: 0.75rem;">Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for designer in analytics.designerPerformance.topPerformers|slice(0, 5) %}
+                                <tr>
+                                    <td style="padding: 0.75rem;">{{ designer.name }}</td>
+                                    <td style="padding: 0.75rem;">{{ designer.totalProposals }}</td>
+                                    <td style="padding: 0.75rem;">{{ designer.acceptanceRate }}%</td>
+                                    <td style="padding: 0.75rem;">${{ designer.totalRevenue|number_format(2, '.', ',') }}</td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" style="padding: 0.75rem; text-align: center; color: #6b7280;">No data available</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Clients -->
+            <div class="admin-card" style="padding: 1.5rem;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-wallet2"></i>
+                        Top Clients
+                    </h3>
+                </div>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th style="padding: 0.75rem;">Client</th>
+                                <th style="padding: 0.75rem;">Projects</th>
+                                <th style="padding: 0.75rem;">Total Spent</th>
+                                <th style="padding: 0.75rem;">Avg/Project</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for client in analytics.clientBehavior.topSpenders|slice(0, 5) %}
+                                <tr>
+                                    <td style="padding: 0.75rem;">{{ client.name }}</td>
+                                    <td style="padding: 0.75rem;">{{ client.projectCount }}</td>
+                                    <td style="padding: 0.75rem;">${{ client.totalSpent|number_format(2, '.', ',') }}</td>
+                                    <td style="padding: 0.75rem;">${{ client.averageSpent|number_format(2, '.', ',') }}</td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" style="padding: 0.75rem; text-align: center; color: #6b7280;">No data available</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Performance -->
+        <div class="admin-card" style="padding: 1.5rem; margin-bottom: 2rem;">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="bi bi-tags"></i>
+                    Category Performance
+                </h3>
+            </div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table table-balanced table-colored">
+                    <thead>
+                        <tr>
+                            <th style="padding: 0.75rem;">Category</th>
+                            <th style="padding: 0.75rem;">Total Projects</th>
+                            <th style="padding: 0.75rem;">Completed</th>
+                            <th style="padding: 0.75rem;">Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in analytics.categoryPerformance %}
+                            <tr>
+                                <td style="padding: 0.75rem;">{{ category.name }}</td>
+                                <td style="padding: 0.75rem;">{{ category.projectCount }}</td>
+                                <td style="padding: 0.75rem;">{{ category.completedCount }}</td>
+                                <td style="padding: 0.75rem;">${{ category.totalRevenue|number_format(2, '.', ',') }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" style="padding: 0.75rem; text-align: center; color: #6b7280;">No data available</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pass analytics data to JavaScript
+        {% set analyticsData = {
+            'projectMetrics': analytics.projectMetrics,
+        } %}
+        {% if is_granted('ROLE_ADMIN') %}
+            {% set analyticsData = analyticsData|merge({
+                'timeSeries': analytics.timeSeries,
+                'revenue': analytics.revenue,
+                'userGrowth': analytics.userGrowth
+            }) %}
+        {% else %}
+            {# For staff users, include timeSeries but only with project and proposal data #}
+            {% set staffTimeSeries = {
+                'labels': analytics.timeSeries.labels,
+                'projects': analytics.timeSeries.projects,
+                'proposals': analytics.timeSeries.proposals,
+                'interval': analytics.timeSeries.interval
+            } %}
+            {% set analyticsData = analyticsData|merge({
+                'timeSeries': staffTimeSeries
+            }) %}
+        {% endif %}
+        window.analyticsData = {{ analyticsData|json_encode|raw }};
+    </script>
+{% endblock %}
+

@@ -1,0 +1,480 @@
+/* About Us page – layout and sections
+   All selectors are scoped to .about-page so only this page is affected.
+
+   ─── HOW TO ADJUST THE ABOUT HERO YOURSELF ─────────────────────────────────────
+   In the .about-page block below, change these variables:
+
+   1. WIDTH (hero only):
+      --about-hero-max-width: 1400px;
+      → Use a smaller value (e.g. 1200px) for narrower, or larger (e.g. 1600px) for wider.
+
+   2. HEIGHT (hero only):
+      --about-hero-min-height: 480px;
+      → Use a smaller value (e.g. 360px) for shorter, or larger (e.g. 560px) for taller.
+
+   3. COLOR (hero left side / background):
+      --about-hero-bg: #f3f4f6;
+      → Use any CSS color, e.g. #e5e7eb (lighter gray), #1e3a8a (blue), #ffffff (white),
+        or a name like lavender, aliceblue, etc.
+
+   4. HERO IMAGE (right side – zoom & crop up/down):
+      --about-hero-image-scale: 1;
+      → Zoom: 1 = normal, 1.2 = zoom in 20%, 0.85 = zoom out (see more of image).
+      --about-hero-image-position-y: 50%;
+      → Move crop up/down: 50% = center, 20% = show more of top (crop shifted up), 80% = show more of bottom (crop shifted down).
+
+   5. NARRATIVE (text block + signature):
+      --about-narrative-max-width: 800px;
+      → Width of the text column. Smaller (e.g. 600px) = narrower column; larger (e.g. 960px) = wider.
+
+   6. CTA ("Start your journey" section):
+      --about-cta-max-width: 1400px;
+      → Width of the CTA block. Smaller (e.g. 1200px) = narrower; larger (e.g. 1600px) = wider.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.about-page {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text-dark, #0b1020);
+    background: var(--bg-white, #ffffff);
+    --about-content-max-width: 1400px;
+    --about-hero-max-width: 1200px;
+    --about-hero-min-height: 520px;
+    --about-hero-bg: #e4e4e4;
+    --about-hero-image-scale: 1;
+    --about-hero-image-position-y: 30%;
+    --about-narrative-max-width: 1200px;
+    --about-cta-max-width: 1210px;
+}
+
+.about-main {
+    min-height: 100vh;
+}
+
+/* Ensure header-right is visible on about page only (same as landing) */
+.about-page .header-right {
+    display: flex;
+}
+
+/* ========== Hero banner (two columns) ========== */
+.about-page .about-hero {
+    background: var(--about-hero-bg);
+    border-radius: 20px;
+    margin: 24px;
+    overflow: hidden;
+    max-width: var(--about-hero-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.about-page .about-hero-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: var(--about-hero-min-height);
+}
+
+.about-page .about-hero-left {
+    padding: 56px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.about-page .about-hero-title {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--text-dark, #0b1020);
+    margin: 0 0 12px 0;
+    line-height: 1.2;
+}
+
+.about-page .about-hero-subtitle {
+    font-size: 18px;
+    color: var(--text-secondary, #4b5563);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.about-page .about-hero-right {
+    position: relative;
+    min-height: var(--about-hero-min-height);
+    overflow: hidden;
+}
+
+.about-page .about-hero-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center var(--about-hero-image-position-y);
+    transform: scale(var(--about-hero-image-scale));
+    transform-origin: center var(--about-hero-image-position-y);
+    display: block;
+}
+
+.about-page .about-hero-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px 32px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.about-page .about-hero-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    display: block;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.about-page .about-hero-role {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ========== Narrative section (left-aligned, white bg, signature block) ========== */
+.about-page .about-narrative {
+    padding: 64px 24px;
+    max-width: var(--about-content-max-width);
+    margin: 0 auto;
+    padding-left: 24px;
+    padding-right: 24px;
+    background: #ffffff;
+    text-align: left;
+}
+
+.about-page .about-narrative-inner {
+    max-width: var(--about-narrative-max-width);
+    margin: 0 auto;
+}
+
+.about-page .about-narrative-inner p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #1f2937;
+    margin-bottom: 1.2em;
+    text-align: left;
+}
+
+.about-page .about-narrative-inner p:last-of-type {
+    margin-bottom: 1.2em;
+}
+
+.about-page .about-narrative-close {
+    font-size: 17px;
+    font-weight: 400;
+    color: #1f2937;
+    line-height: 1.8;
+    margin-bottom: 0;
+    text-align: left;
+}
+
+.about-page .about-signature-block {
+    margin-top: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+.about-page .about-signature-handwritten {
+    display: block;
+    font-family: 'Brush Script MT', 'Segoe Script', 'Lucida Handwriting', cursive;
+    font-size: 2.25rem;
+    font-weight: 400;
+    color: #1f2937;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+
+.about-page .about-signature-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.about-page .about-signature-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+/* If you use an image for the signature, add img.signature.png and use this class */
+.about-page .about-signature-block .about-signature-img {
+    display: block;
+    height: auto;
+    max-width: 280px;
+    margin-bottom: 0.25rem;
+}
+
+/* ========== Our Leaders section ==========
+   Design: Section has light grey bg + rounded top corners. Content is a centered two-column
+   grid (header left, list right). Each leader is a separate white card with rounded corners
+   and subtle shadow, with spacing between cards. Eyebrow + "Read more" in primary blue. */
+.about-page .about-leaders {
+    background: #f3f4f6;
+    padding: 48px 24px 56px;
+    margin: 0 24px 48px;
+    border-radius: 24px;
+}
+
+.about-page .about-leaders-inner {
+    max-width: var(--about-content-max-width);
+    margin: 0 auto;
+    padding: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 56px;
+    align-items: start;
+}
+
+.about-page .about-leaders-header {
+    text-align: left;
+}
+
+.about-page .about-leaders-eyebrow {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-blue, #1e3a8a);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 0 0 8px 0;
+    text-align: left;
+}
+
+.about-page .about-leaders-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333333;
+    margin: 0;
+    text-align: left;
+}
+
+.about-page .about-leaders-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Each leader is a white card: rounded corners, shadow, padding */
+.about-page .about-leader-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 24px;
+    padding: 24px;
+    align-items: flex-start;
+    text-align: left;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.about-page .about-leader-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.about-page .about-leader-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.about-page .about-leader-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333333;
+    margin: 0 0 4px 0;
+}
+
+.about-page .about-leader-title {
+    font-size: 0.9rem;
+    color: #666666;
+    margin: 0 0 8px 0;
+}
+
+.about-page .about-leader-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #666666;
+    margin: 0 0 8px 0;
+}
+
+.about-page .about-leader-readmore {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-blue, #1e3a8a);
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.about-page .about-leader-readmore:hover {
+    color: var(--primary-blue-dark, #162c5a);
+    text-decoration: underline;
+}
+
+/* ========== CTA section ========== */
+.about-page .about-cta {
+    border-radius: 20px;
+    margin: 0 24px 48px;
+    overflow: hidden;
+    max-width: var(--about-cta-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    background: var(--bg-white, #ffffff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.about-cta-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 320px;
+}
+
+.about-cta-left {
+    padding: 56px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.about-cta-title {
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--text-dark, #0b1020);
+    margin: 0 0 28px 0;
+}
+
+.about-cta-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.btn-cta-solid {
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.btn-cta-outline {
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+.about-cta-right {
+    min-height: 280px;
+}
+
+.about-cta-image {
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* ========== Responsive (scoped to .about-page so other pages are unaffected) ========== */
+@media (max-width: 1024px) {
+    .about-page .about-hero-inner,
+    .about-page .about-cta-inner {
+        grid-template-columns: 1fr;
+    }
+
+    .about-page .about-hero-right {
+        min-height: 320px;
+    }
+
+    .about-page .about-cta-right {
+        min-height: 240px;
+    }
+
+    .about-page .about-cta-image {
+        min-height: 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-page .about-hero,
+    .about-page .about-leaders,
+    .about-page .about-cta {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+
+    .about-page .about-hero-left,
+    .about-page .about-cta-left {
+        padding: 40px 24px;
+    }
+
+    .about-page .about-hero-title {
+        font-size: 32px;
+    }
+
+    .about-page .about-hero-subtitle {
+        font-size: 16px;
+    }
+
+    .about-page .about-leaders {
+        padding: 24px 16px;
+    }
+
+    .about-page .about-leaders-inner {
+        grid-template-columns: 1fr;
+        padding: 32px 24px;
+    }
+
+    .about-page .about-leaders-title {
+        font-size: 1.5rem;
+    }
+
+    .about-page .about-leader-item {
+        grid-template-columns: 64px 1fr;
+        gap: 16px;
+        padding: 20px 0;
+    }
+
+    .about-page .about-leader-avatar {
+        width: 64px;
+        height: 64px;
+    }
+
+    .about-page .about-leader-name {
+        font-size: 1.1rem;
+    }
+
+    .about-page .about-cta-title {
+        font-size: 28px;
+    }
+
+    .about-page .about-cta-buttons {
+        flex-direction: column;
+    }
+
+    .about-page .btn-cta-solid,
+    .about-page .btn-cta-outline {
+        width: 100%;
+        text-align: center;
+    }
+}

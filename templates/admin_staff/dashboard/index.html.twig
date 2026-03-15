@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token('authenticate') }}">
+    <title>Dashboard Overview · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+</head>
+<body>
+<script>
+// Toggle the admin dropdown and chevron (if present)
+function toggleDropdown() {
+    const dropdown = document.getElementById('adminDropdown');
+    const chevronIcon = document.getElementById('chevronIcon');
+
+    if (!dropdown) {
+        console.log('Dropdown not found');
+        return;
+    }
+
+    console.log('Toggling dropdown');
+    dropdown.classList.toggle('show');
+
+    if (chevronIcon) {
+        chevronIcon.className = dropdown.classList.contains('show') ? 'bi bi-chevron-up chevron-icon' : 'bi bi-chevron-down chevron-icon';
+    }
+}
+
+// Make toggleDropdown globally accessible
+window.toggleDropdown = toggleDropdown;
+
+// Close dropdown when clicking outside the badge
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('adminDropdown');
+    const badge = document.querySelector('.admin-badge');
+    const chevronIcon = document.getElementById('chevronIcon');
+
+    if (!badge || !dropdown) {
+        console.log('Badge or dropdown not found:', { badge: !!badge, dropdown: !!dropdown });
+        return;
+    }
+
+    if (!badge.contains(event.target)) {
+        dropdown.classList.remove('show');
+        if (chevronIcon) chevronIcon.className = 'bi bi-chevron-down chevron-icon';
+    }
+});
+
+// Debug: Check if elements exist on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdown = document.getElementById('adminDropdown');
+    const badge = document.querySelector('.admin-badge');
+    console.log('Admin dropdown elements:', { dropdown: !!dropdown, badge: !!badge });
+    
+    if (dropdown) {
+        console.log('Dropdown classes:', dropdown.className);
+    }
+});
+
+function showDeleteModal() {
+    document.getElementById('deleteModal').classList.add('show');
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+}
+
+function confirmDelete() {
+    document.getElementById('deleteForm').submit();
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        hideDeleteModal();
+    }
+});
+
+document.querySelectorAll('.admin-table td.desc-col').forEach(cell => {
+if (cell.scrollHeight > cell.clientHeight + 2) {
+    cell.classList.add('multiline');
+}
+});
+
+function adjustRowAlignment() {
+    document.querySelectorAll(".admin-table tbody tr").forEach(row => {
+        const idCell   = row.querySelector("td:nth-child(1)");
+        const nameCell = row.querySelector("td:nth-child(2)");
+        const descCell = row.querySelector("td:nth-child(3)");
+        if (!idCell || !nameCell || !descCell) return;
+
+        function getLineCount(cell) {
+            const cs = window.getComputedStyle(cell);
+            let lineHeight = parseFloat(cs.lineHeight);
+            if (isNaN(lineHeight) || cs.lineHeight === "normal") {
+                lineHeight = parseFloat(cs.fontSize) * 1.2;
+            }
+            const paddingTop = parseFloat(cs.paddingTop) || 0;
+            const paddingBottom = parseFloat(cs.paddingBottom) || 0;
+            const contentHeight = cell.scrollHeight - paddingTop - paddingBottom;
+            return Math.round(contentHeight / lineHeight);
+        }
+
+        const idLines   = getLineCount(idCell);
+        const nameLines = getLineCount(nameCell);
+        const descLines = getLineCount(descCell);
+
+        // reset first
+        [idCell, nameCell, descCell].forEach(c => c.classList.remove("va-top"));
+
+        // if ANY of them is multiline → top align all
+        if (idLines > 1 || nameLines > 1 || descLines > 1) {
+            [idCell, nameCell, descCell].forEach(c => c.classList.add("va-top"));
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", adjustRowAlignment);
+window.addEventListener("resize", adjustRowAlignment);
+
+// Prevent back button after logout
+function preventBackButton() {
+    window.history.forward();
+}
+
+// Initialize back button prevention
+preventBackButton();
+window.onload = preventBackButton;
+window.onpageshow = function(evt) { 
+    if (evt.persisted) preventBackButton(); 
+}
+</script>
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'dashboard' } %}
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title" style="font-family:'Poppins', Arial, sans-serif; font-weight: bold;">
+                    {% if is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
+                        {% set userFirstName = attribute(app.user, 'firstName')|default(null) %}
+                        Welcome Staff, {% if userFirstName %} {{ userFirstName }}{% endif %}!
+                    {% else %}
+                        Welcome, Admin!
+                    {% endif %}
+                </h1>
+                <p class="admin-subtitle">Dashboard Overview</p>
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="dashboard-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            {% if is_granted('ROLE_ADMIN') %}
+                <!-- Admin Quick Stats -->
+                <a href="{{ path('app_admin_project_index') }}" class="admin-card stat-card stat-card-link" style="text-decoration: none; color: inherit;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                        <div class="stat-icon orange"><i class="bi bi-folder-fill"></i></div>
+                        <div style="text-align: right;">
+                            <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">{{ totalProjects|default(0) }}</p>
+                            <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Total Projects</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                        <span>View all</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <a href="{{ path('app_user_index') }}" class="admin-card stat-card stat-card-link" style="text-decoration: none; color: inherit;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                        <div class="stat-icon teal"><i class="bi bi-people-fill"></i></div>
+                        <div style="text-align: right;">
+                            <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">{{ totalUsers|default(0) }}</p>
+                            <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Total Users</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                        <span>Manage users</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <a href="{{ path('app_category_index') }}" class="admin-card stat-card stat-card-link" style="text-decoration: none; color: inherit;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                        <div class="stat-icon blue"><i class="bi bi-tags-fill"></i></div>
+                        <div style="text-align: right;">
+                            <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">{{ totalCategories|default(0) }}</p>
+                            <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Categories</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                        <span>Manage</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <div class="admin-card stat-card" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #a7f3d0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                        <div class="stat-icon pink" style="background: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            <i class="bi bi-check-circle-fill" style="color: #ffffff;"></i>
+                        </div>
+                        <div style="text-align: right;">
+                            <p class="stat-value" style="margin: 0; font-size: 2rem; color: #065f46; font-weight: 400;">{{ completedProjects|default(0) }}</p>
+                            <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #047857;">Completed Projects</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: #047857; font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                        <span>{{ totalProjects > 0 ? ((completedProjects / totalProjects) * 100)|round(1) : 0 }}% completion rate</span>
+                    </div>
+                </div>
+            {% elseif is_granted('ROLE_STAFF') %}
+                <!-- Staff Quick Stats -->
+                <a href="{{ path('app_admin_project_index') }}" class="admin-card stat-card stat-card-link" style="text-decoration: none; color: inherit;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                        <div class="stat-icon orange"><i class="bi bi-folder-fill"></i></div>
+                        <div style="text-align: right;">
+                            <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">{{ totalProjects|default(0) }}</p>
+                            <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Total Projects</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                        <span>View all</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <a href="{{ path('app_category_index') }}" class="admin-card stat-card stat-card-link" style="text-decoration: none; color: inherit;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                        <div class="stat-icon blue"><i class="bi bi-tags-fill"></i></div>
+                        <div style="text-align: right;">
+                            <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">{{ totalCategories|default(0) }}</p>
+                            <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Categories</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                        <span>Manage</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <a href="{{ path('app_admin_proposal_index') }}" class="admin-card stat-card stat-card-link" style="text-decoration: none; color: inherit;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                        <div class="stat-icon purple"><i class="bi bi-file-earmark-text-fill"></i></div>
+                        <div style="text-align: right;">
+                            <p class="stat-value" style="margin: 0; font-size: 2rem; font-weight: 400;">{{ totalProposals|default(0) }}</p>
+                            <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #6b7280;">Total Proposals</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--color-primary); font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                        <span>View all</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </a>
+                
+                <div class="admin-card stat-card" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #a7f3d0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 1rem;">
+                        <div class="stat-icon pink" style="background: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                            <i class="bi bi-check-circle-fill" style="color: #ffffff;"></i>
+                        </div>
+                        <div style="text-align: right;">
+                            <p class="stat-value" style="margin: 0; font-size: 2rem; color: #065f46; font-weight: 400;">{{ completedProjects|default(0) }}</p>
+                            <div class="stat-label" style="margin-top: 0.25rem; font-size: 0.875rem; color: #047857;">Completed Projects</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: #047857; font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif; font-weight: 400;">
+                        <span>{{ totalProjects > 0 ? ((completedProjects / totalProjects) * 100)|round(1) : 0 }}% completion rate</span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if is_granted('ROLE_ADMIN') %}
+        <!-- Admin Analytics Overview -->
+        <div class="admin-card user-activity-summary" style="margin-bottom: 2rem;">
+            <div class="activity-header">
+                <h2 class="activity-title">
+                    <i class="bi bi-graph-up"></i>
+                    Analytics Overview
+                </h2>
+                <a href="{{ path('app_admin_analytics_index') }}" class="view-all-link">
+                    View Full Analytics
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Key Analytics Metrics -->
+            <div class="user-stats-grid" style="margin-bottom: 2rem;">
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon blue">
+                        <i class="bi bi-currency-dollar"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">${{ analytics.revenue.totalRevenue|number_format(2, '.', ',') }}</p>
+                            <div class="metric-trend {{ analytics.revenue.revenueChange >= 0 ? 'positive' : 'negative' }}">
+                                <i class="bi bi-arrow-{{ analytics.revenue.revenueChange >= 0 ? 'up' : 'down' }}"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Total Revenue</div>
+                        <div class="metric-subtitle">
+                            <span class="analytics-comparison {{ analytics.revenue.revenueChange >= 0 ? 'positive' : 'negative' }}">
+                                {{ analytics.revenue.revenueChange >= 0 ? '+' : '' }}{{ analytics.revenue.revenueChange }}% vs previous period
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon teal">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ analytics.userGrowth.newRegistrations }}</p>
+                            <div class="metric-trend {{ analytics.userGrowth.growthChange >= 0 ? 'positive' : 'negative' }}">
+                                <i class="bi bi-arrow-{{ analytics.userGrowth.growthChange >= 0 ? 'up' : 'down' }}"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">New Users (30 days)</div>
+                        <div class="metric-subtitle">
+                            <span class="analytics-comparison {{ analytics.userGrowth.growthChange >= 0 ? 'positive' : 'negative' }}">
+                                {{ analytics.userGrowth.growthChange >= 0 ? '+' : '' }}{{ analytics.userGrowth.growthChange }}% growth
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon orange">
+                        <i class="bi bi-folder-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ analytics.projectMetrics.totalProjects }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">New Projects (30 days)</div>
+                        <div class="metric-subtitle">{{ analytics.projectMetrics.completionRate|round(1) }}% completion rate</div>
+                    </div>
+                </div>
+
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon purple">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">${{ analytics.projectMetrics.averageBudget|number_format(0, '.', ',') }}</p>
+                            <div class="metric-trend neutral">
+                                <i class="bi bi-dash"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Avg. Budget</div>
+                        <div class="metric-subtitle">Per project</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="analytics-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <!-- Revenue Trend Chart -->
+                <div class="admin-card" style="padding: 1.5rem;">
+                    <h3 class="section-title" style="margin-bottom: 1.5rem;">
+                        <i class="bi bi-graph-up"></i>
+                        Revenue Trend
+                    </h3>
+                    <div class="chart-wrapper">
+                        <canvas id="dashboardRevenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- User Growth Chart -->
+                <div class="admin-card" style="padding: 1.5rem;">
+                    <h3 class="section-title" style="margin-bottom: 1.5rem;">
+                        <i class="bi bi-people"></i>
+                        User Growth
+                    </h3>
+                    <div class="chart-wrapper">
+                        <canvas id="dashboardUserGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% elseif is_granted('ROLE_STAFF') %}
+        <!-- Staff Project Overview -->
+        <div class="admin-card user-activity-summary" style="margin-bottom: 2rem;">
+            <div class="activity-header">
+                <h2 class="activity-title">
+                    <i class="bi bi-graph-up"></i>
+                    Project Overview
+                </h2>
+            </div>
+
+            <!-- Key Project Metrics -->
+            <div class="user-stats-grid" style="margin-bottom: 2rem; grid-template-columns: repeat(2, 1fr);">
+                <div class="user-metric enhanced-metric" style="min-width: 300px;">
+                    <div class="metric-icon orange">
+                        <i class="bi bi-folder-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ analytics.projectMetrics.totalProjects }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">New Projects (30 days)</div>
+                        <div class="metric-subtitle">{{ analytics.projectMetrics.completionRate|round(1) }}% completion rate</div>
+                    </div>
+                </div>
+
+                <div class="user-metric enhanced-metric" style="min-width: 300px;">
+                    <div class="metric-icon purple">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">${{ analytics.projectMetrics.averageBudget|number_format(0, '.', ',') }}</p>
+                            <div class="metric-trend neutral">
+                                <i class="bi bi-dash"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Avg. Budget</div>
+                        <div class="metric-subtitle">Per project</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Projects Summary -->
+        <div class="admin-card user-activity-summary" style="margin-bottom: 2rem;">
+            <div class="activity-header">
+                <h2 class="activity-title">
+                    <i class="bi bi-folder-fill"></i>
+                    Projects Summary
+                </h2>
+                <a href="{{ path('app_admin_project_index') }}" class="view-all-link">
+                    View All Projects
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            
+            <!-- Projects Stats Grid -->
+            <div class="user-stats-grid">
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon blue">
+                        <i class="bi bi-folder-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ totalProjects }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Total Projects</div>
+                        <div class="metric-subtitle">All time</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon orange">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ pendingProjects|default(0) }}</p>
+                            <div class="metric-trend neutral">
+                                <i class="bi bi-dash"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Pending</div>
+                        <div class="metric-subtitle">Awaiting action</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon green">
+                        <i class="bi bi-play-circle-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ ongoingProjects|default(0) }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Ongoing</div>
+                        <div class="metric-subtitle">In progress</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon purple">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ completedProjects|default(0) }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Completed</div>
+                        <div class="metric-subtitle">Finished</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Projects -->
+            <div class="recent-logins-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Projects
+                    </h3>
+                    <a href="{{ path('app_admin_project_index') }}" class="view-all-link">
+                        View All Projects
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="recent-logins-container">
+                    {% if recentProjects|length > 0 %}
+                        <div class="logins-list">
+                            {% for project in recentProjects %}
+                                <div class="login-item">
+                                    <div class="user-avatar is-client" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #ffffff; font-weight: 400; font-family: 'Montserrat', Arial, sans-serif; background: var(--color-primary);">
+                                        <i class="bi bi-folder-fill"></i>
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-name">{{ project.title }}</div>
+                                        <div class="user-role">{{ project.category ? project.category.name : 'No Category' }} • {{ project.client ? project.client.username : 'No Client' }}</div>
+                                    </div>
+                                    <div class="login-info">
+                                        <div class="login-time">{{ project.createdAt|date('M d, Y') }}</div>
+                                        <div class="login-status">
+                                            {% set status = project.status|lower %}
+                                            {% set statusClass =
+                                                status == 'completed' ? 'is-completed' :
+                                                (status == 'ongoing' ? 'is-ongoing' :
+                                                (status == 'pending' ? 'is-pending' : 'is-cancelled'))
+                                            %}
+                                            <span class="badge-status {{ statusClass }}">{{ project.status|capitalize }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-folder-x"></i>
+                            <p>No recent projects found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Proposals Summary -->
+        <div class="admin-card user-activity-summary" style="margin-bottom: 2rem;">
+            <div class="activity-header">
+                <h2 class="activity-title">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                    Proposals Summary
+                </h2>
+                <a href="{{ path('app_admin_proposal_index') }}" class="view-all-link">
+                    View All Proposals
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            
+            <!-- Proposals Stats Grid -->
+            <div class="user-stats-grid">
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon blue">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ totalProposals|default(0) }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Total Proposals</div>
+                        <div class="metric-subtitle">All time</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon orange">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ pendingProposals|default(0) }}</p>
+                            <div class="metric-trend neutral">
+                                <i class="bi bi-dash"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Pending</div>
+                        <div class="metric-subtitle">Awaiting review</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon green">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ acceptedProposals|default(0) }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Accepted</div>
+                        <div class="metric-subtitle">Approved</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon purple">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ rejectedProposals|default(0) }}</p>
+                            <div class="metric-trend negative">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Rejected</div>
+                        <div class="metric-subtitle">Declined</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Proposals -->
+            <div class="recent-logins-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Proposals
+                    </h3>
+                    <a href="{{ path('app_admin_proposal_index') }}" class="view-all-link">
+                        View All Proposals
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="recent-logins-container">
+                    {% if recentProposals|length > 0 %}
+                        <div class="logins-list">
+                            {% for proposal in recentProposals %}
+                                <div class="login-item">
+                                    <div class="user-avatar is-designer" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #ffffff; font-weight: 400; font-family: 'Montserrat', Arial, sans-serif; background: #8b5cf6;">
+                                        <i class="bi bi-file-earmark-text-fill"></i>
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-name">{{ proposal.project ? proposal.project.title : 'No Project' }}</div>
+                                        <div class="user-role">{{ proposal.designer ? proposal.designer.username : 'No Designer' }} • ${{ proposal.proposedPrice|number_format(2, '.', ',') }}</div>
+                                    </div>
+                                    <div class="login-info">
+                                        <div class="login-time">{{ proposal.createdAt|date('M d, Y') }}</div>
+                                        <div class="login-status">
+                                            {% set status = proposal.status|lower %}
+                                            {% set statusClass =
+                                                status == 'accepted' ? 'is-completed' :
+                                                (status == 'rejected' ? 'is-cancelled' : 'is-pending')
+                                            %}
+                                            <span class="badge-status {{ statusClass }}">{{ proposal.status|capitalize }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-file-earmark-x"></i>
+                            <p>No recent proposals found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Files Summary -->
+        <div class="admin-card user-activity-summary" style="margin-bottom: 2rem;">
+            <div class="activity-header">
+                <h2 class="activity-title">
+                    <i class="bi bi-file-earmark-fill"></i>
+                    Files Overview
+                </h2>
+                <a href="{{ path('app_admin_file_index') }}" class="view-all-link">
+                    View All Files
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            
+            <!-- Files Stats Grid -->
+            <div class="user-stats-grid">
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon blue">
+                        <i class="bi bi-file-earmark-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ totalFiles|default(0) }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Total Files</div>
+                        <div class="metric-subtitle">{{ totalFileSizeFormatted|default('0 B') }}</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon green">
+                        <i class="bi bi-image-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ imageFiles|default(0) }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Images</div>
+                        <div class="metric-subtitle">Photo files</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon orange">
+                        <i class="bi bi-file-text-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ documentFiles|default(0) }}</p>
+                            <div class="metric-trend neutral">
+                                <i class="bi bi-dash"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Documents</div>
+                        <div class="metric-subtitle">PDF, DOC, etc.</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon purple">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ filesInUse|default(0) }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">In Use</div>
+                        <div class="metric-subtitle">Referenced</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Files -->
+            <div class="recent-logins-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Files
+                    </h3>
+                    <a href="{{ path('app_admin_file_index') }}" class="view-all-link">
+                        View All Files
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="recent-logins-container">
+                    {% if recentFiles|length > 0 %}
+                        <div class="logins-list">
+                            {% for file in recentFiles %}
+                                <div class="login-item">
+                                    <div class="user-avatar is-client" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #ffffff; font-weight: 400; font-family: 'Montserrat', Arial, sans-serif; background: {% if file.type == 'image' %}#10b981{% elseif file.type == 'document' %}#f59e0b{% else %}#6366f1{% endif %};">
+                                        {% if file.type == 'image' %}
+                                            <i class="bi bi-image-fill"></i>
+                                        {% elseif file.type == 'document' %}
+                                            <i class="bi bi-file-text-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-file-earmark-fill"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-name">{{ file.filename }}</div>
+                                        <div class="user-role">{{ file.type|capitalize }} • {{ file.sizeFormatted }}</div>
+                                    </div>
+                                    <div class="login-info">
+                                        <div class="login-time">{{ file.uploadedAt|date('M d, Y') }}</div>
+                                        <div class="login-status">
+                                            {% if file.usageCount > 0 %}
+                                                <span class="badge-status is-ongoing">In Use</span>
+                                            {% else %}
+                                                <span class="badge-status is-pending">Orphaned</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-file-earmark-x"></i>
+                            <p>No recent files found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- User Activity Summary -->
+        {% if not (is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN')) %}
+        <div class="admin-card user-activity-summary" style="margin-bottom: 2rem;">
+            <div class="activity-header">
+                <h2 class="activity-title">
+                    <i class="bi bi-activity"></i>
+                    User Activity Summary
+                </h2>
+                <div class="activity-period">
+                    <span class="period-label">Last 7 days</span>
+                </div>
+            </div>
+            
+            <!-- Enhanced User Stats Grid -->
+            <div class="user-stats-grid">
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon blue">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ activeUsers }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Active Users</div>
+                        <div class="metric-subtitle">Last 7 days</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon orange">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ pendingVerifications }}</p>
+                            <div class="metric-trend negative">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Pending</div>
+                        <div class="metric-subtitle">Awaiting approval</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon green">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ totalUsers }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Total Users</div>
+                        <div class="metric-subtitle">All time (Admin: {{ totalAdmins|default(0) }}, Staff: {{ totalStaff|default(0) }})</div>
+                    </div>
+                </div>
+                
+                <div class="user-metric enhanced-metric">
+                    <div class="metric-icon purple">
+                        <i class="bi bi-calendar-check-fill"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-value-row">
+                            <p class="metric-value" style="font-weight: 400;">{{ recentLogins|length }}</p>
+                            <div class="metric-trend positive">
+                                <i class="bi bi-arrow-up"></i>
+                            </div>
+                        </div>
+                        <div class="metric-label">Recent Logins</div>
+                        <div class="metric-subtitle">Today</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced User Role Distribution -->
+            <div class="role-distribution-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-diagram-3-fill"></i>
+                        User Role Distribution
+                    </h3>
+                    <div class="role-summary">
+                        <span class="total-roles">{{ usersByRole|length }} roles</span>
+                    </div>
+                </div>
+                <div class="role-distribution-grid">
+                    {% for roleData in usersByRole %}
+                        <div class="role-card">
+                            <div class="role-icon">
+                                {% if roleData.role|lower == 'designer' %}
+                                    <i class="bi bi-palette-fill"></i>
+                                {% elseif roleData.role|lower == 'client' %}
+                                    <i class="bi bi-person-badge-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-person-fill"></i>
+                                {% endif %}
+                            </div>
+                            <div class="role-info">
+                                <span class="role-name">{{ roleData.role|capitalize }}</span>
+                                <span class="role-count">{{ roleData.count }} users</span>
+                            </div>
+                            <div class="role-percentage">
+                                {{ ((roleData.count / totalUsers) * 100)|round(1) }}%
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Enhanced Recent Logins -->
+            <div class="recent-logins-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="bi bi-clock-history"></i>
+                        Recent Activity
+                    </h3>
+                    <a href="{{ path('app_user_index') }}" class="view-all-link">
+                        View All Users
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="recent-logins-container">
+                    {% if recentLogins|length > 0 %}
+                        <div class="logins-list">
+                            {% for user in recentLogins %}
+                                <div class="login-item">
+                                    {% set roleType = (user.userType is defined and user.userType ? user.userType : (user.role is defined ? user.role : 'admin'))|lower %}
+                                    <div class="user-avatar {{ roleType == 'designer' ? 'is-designer' : (roleType == 'client' ? 'is-client' : (roleType == 'staff' ? 'is-staff' : 'is-admin')) }}" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #ffffff; font-weight: 400; font-family: 'Montserrat', Arial, sans-serif;">
+                                        {% if user.profilePicture %}
+                                            <img src="{{ asset('uploads/profile_pictures/' ~ user.profilePicture) }}" alt="{{ user.username }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                                        {% else %}
+                                            <span class="avatar-text">{{ user.firstName|first|upper }}{{ user.lastName|first|upper }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-name">{{ user.username }}</div>
+                                        <div class="user-role">{{ user.role|capitalize }}</div>
+                                    </div>
+                                    <div class="login-info">
+                                        <div class="login-time">{{ user.lastLogin|date('M d, H:i') }}</div>
+                                        <div class="login-status">
+                                            {% if user.userType == 'admin' or user.userType == 'staff' %}
+                                                <span class="status-badge verified">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                    Verified
+                                                </span>
+                                            {% elseif user.verified %}
+                                                <span class="status-badge verified">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                    Verified
+                                                </span>
+                                            {% else %}
+                                                <span class="status-badge pending">
+                                                    <i class="bi bi-clock-fill"></i>
+                                                    Pending
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-person-x"></i>
+                            <p>No recent activity found</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if is_granted('ROLE_ADMIN') %}
+            const timeSeries = {{ analytics.timeSeries|json_encode|raw }};
+
+            // Revenue Trend Chart
+            const revenueCtx = document.getElementById('dashboardRevenueChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: timeSeries.labels,
+                        datasets: [{
+                            label: 'Revenue',
+                            data: timeSeries.revenue,
+                            borderColor: '#1e3a8a',
+                            backgroundColor: 'rgba(30, 58, 138, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // User Growth Chart
+            const userGrowthCtx = document.getElementById('dashboardUserGrowthChart');
+            if (userGrowthCtx) {
+                new Chart(userGrowthCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: timeSeries.labels,
+                        datasets: [{
+                            label: 'New Users',
+                            data: timeSeries.users,
+                            backgroundColor: '#0d9488',
+                            borderColor: '#0d9488',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

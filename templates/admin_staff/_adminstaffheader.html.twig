@@ -1,0 +1,122 @@
+{# Admin top navigation partial. Expects an optional `active` variable (e.g. 'categories') #}
+<header class="header-no-avatar">
+    <div class="header-left">
+        <a href="{{ path('app_dashboard') }}" class="logo-link">
+            <img src="{{ asset('img/logoadmin.png') }}" alt="Mark & Motion">
+        </a>
+
+        <nav class="admin-nav" aria-label="Main navigation">
+            <a href="{{ path('app_dashboard') }}" class="nav-item {{ active is defined and active == 'dashboard' ? 'active' : '' }}">Dashboard</a>
+            <a href="{{ path('app_category_index') }}" class="nav-item {{ active is defined and active == 'categories' ? 'active' : '' }}">Categories</a>
+            <a href="{{ path('app_admin_project_index') }}" class="nav-item {{ active is defined and active == 'projects' ? 'active' : '' }}">Projects</a>
+            <a href="{{ path('app_admin_proposal_index') }}" class="nav-item {{ active is defined and active == 'proposals' ? 'active' : '' }}">Proposals</a>
+            <a href="{{ path('app_user_index') }}" class="nav-item {{ active is defined and active == 'users' ? 'active' : '' }}">Users</a>
+            <a href="{{ path('app_admin_file_index') }}" class="nav-item {{ active is defined and active == 'files' ? 'active' : '' }}">Files</a>
+        </nav>
+    </div>
+
+    <div class="header-right">
+        <div class="search-box" role="search">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M21 21l-4.35-4.35" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="11" cy="11" r="6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input type="search" placeholder="{% if active is defined and active == 'users' and is_granted('ROLE_ADMIN') %}Search users...{% elseif active is defined and active == 'categories' %}Search categories...{% elseif active is defined and active == 'projects' %}Search projects...{% elseif active is defined and active == 'proposals' %}Search proposals...{% elseif active is defined and active == 'files' %}Search files...{% elseif active is defined and active == 'activitylogs' %}Search activity logs...{% elseif active is defined and active == 'analytics' %}Search analytics...{% else %}Search everything...{% endif %}" aria-label="Search" id="adminSearchInput">
+        </div>
+
+        {% if is_granted('ROLE_ADMIN') %}
+        <div class="notification-wrapper">
+            <button class="icon bell" type="button" aria-label="Notifications" id="notificationBell">
+                {# Use bootstrap icon element so markup is consistent with other icons #}
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+            </button>
+            {% include 'admin_staff/notifications/dropdown.html.twig' %}
+        </div>
+        {% endif %}
+
+        <div class="admin-badge" onclick="toggleDropdown()" title="Account">
+            {% set userFirstName = attribute(app.user, 'firstName')|default(null) %}
+            {% set userType = attribute(app.user, 'userType')|default(null) %}
+            {% set userRole = attribute(app.user, 'role')|default(null) %}
+            {% set avatarClass = (userType == 'staff' or userRole == 'staff') ? 'is-staff' : 'is-admin' %}
+            {% if app.user and userFirstName %}
+                {% set userProfilePicture = attribute(app.user, 'profilePicture')|default(null) %}
+                {% if userProfilePicture and userProfilePicture|trim != '' %}
+                    <div class="profile-avatar {{ avatarClass }}" style="background-image: url('{{ asset('uploads/profile_pictures/' ~ userProfilePicture) }}'); background-size: cover; background-position: center;">
+                        <span style="display: none;">{{ userFirstName|first|upper }}{{ attribute(app.user, 'lastName')|default('')|first|upper }}</span>
+                    </div>
+                {% else %}
+                    <div class="profile-avatar {{ avatarClass }}">{{ userFirstName|first|upper }}{{ attribute(app.user, 'lastName')|default('')|first|upper }}</div>
+                {% endif %}
+            {% else %}
+                <div class="profile-avatar {{ avatarClass }}">A</div>
+            {% endif %}
+            <div class="admin-dropdown" id="adminDropdown">
+                <div class="profile-section">
+                    <div class="profile-info">
+                        {% set userFirstName = attribute(app.user, 'firstName')|default(null) %}
+                        {% set userType = attribute(app.user, 'userType')|default(null) %}
+                        {% set userRole = attribute(app.user, 'role')|default(null) %}
+                        {% set avatarClass = (userType == 'staff' or userRole == 'staff') ? 'is-staff' : 'is-admin' %}
+                        {% if app.user and userFirstName %}
+                            {% set userProfilePicture = attribute(app.user, 'profilePicture')|default(null) %}
+                            {% if userProfilePicture and userProfilePicture|trim != '' %}
+                                <div class="profile-avatar {{ avatarClass }}" style="background-image: url('{{ asset('uploads/profile_pictures/' ~ userProfilePicture) }}'); background-size: cover; background-position: center;">
+                                    <span style="display: none;">{{ userFirstName|first|upper }}{{ attribute(app.user, 'lastName')|default('')|first|upper }}</span>
+                                </div>
+                            {% else %}
+                                <div class="profile-avatar {{ avatarClass }}">{{ userFirstName|first|upper }}{{ attribute(app.user, 'lastName')|default('')|first|upper }}</div>
+                            {% endif %}
+                        {% else %}
+                            <div class="profile-avatar {{ avatarClass }}">A</div>
+                        {% endif %}
+                        <div class="profile-details">
+                            {% set userFirstName = attribute(app.user, 'firstName')|default(null) %}
+                            <h3>{% if app.user and userFirstName %}{{ userFirstName }} {{ attribute(app.user, 'lastName')|default('') }}{% else %}Admin User{% endif %}</h3>
+                            <p>
+                                {% set userFirstName = attribute(app.user, 'firstName')|default(null) %}
+                                {% if app.user and userFirstName %}
+                                    {% set userRole = attribute(app.user, 'role')|default(null) %}
+                                    {% set userType = attribute(app.user, 'userType')|default(null) %}
+                                    {% if userRole == 'staff' or userType == 'staff' %}
+                                        Staff
+                                    {% elseif userRole == 'admin' or userType == 'admin' %}
+                                        Administrator
+                                    {% else %}
+                                        Staff
+                                    {% endif %}
+                                {% elseif is_granted('ROLE_ADMIN') %}
+                                    Administrator
+                                {% else %}
+                                    Administrator
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="{{ path('app_activity_log_index') }}" class="menu-item">
+                        <div class="menu-item-icon"><i class="bi bi-journal-text"></i></div>
+                        Activity Logs
+                    </a>
+                    <a href="{{ path('app_admin_analytics_index') }}" class="menu-item">
+                        <div class="menu-item-icon"><i class="bi bi-graph-up"></i></div>
+                        Analytics
+                    </a>
+                    <a href="{{ path('app_admin_settings_index') }}" class="menu-item">
+                        <div class="menu-item-icon"><i class="bi bi-gear"></i></div>
+                        Settings
+                    </a>
+                    <div class="menu-divider"></div>
+                    <a href="{{ path('app_logout') }}" class="menu-item logout-item">
+                        <div class="menu-item-icon"><i class="bi bi-box-arrow-left"></i></div>
+                        Log out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script src="{{ asset('controllers/admin_staff.js') }}" defer></script>

@@ -1,0 +1,25 @@
+<!-- Delete Proposal Confirmation Modal -->
+<div id="deleteProposalConfirmModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" style="max-width: 450px;">
+        <div class="delete-confirm-content">
+            <div style="text-align: center; padding: 1.5rem 0 2rem;">
+                <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem; color: #ef4444;"></i>
+                </div>
+                <h2 id="deleteConfirmTitle" class="delete-confirm-title" style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem; text-align: center;">Delete Proposal?</h2>
+                <p class="delete-confirm-message" id="deleteConfirmMessage" style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.9375rem; line-height: 1.6; text-align: center; margin-bottom: 0;">Are you sure you want to delete your proposal for <strong id="deleteConfirmProjectTitle" style="color: #111827;">this project</strong>?</p>
+                <p style="font-family: 'Montserrat', Arial, sans-serif; color: #ef4444; font-size: 0.875rem; line-height: 1.6; text-align: center; margin-top: 0.75rem; font-weight: 500;">This action cannot be undone.</p>
+            </div>
+            <div class="delete-confirm-footer" style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" id="cancelDeleteProposal" style="font-family: 'Poppins', Arial, sans-serif; font-weight: 500; padding: 0.625rem 1.25rem; border-radius: 6px; min-width: 100px;">
+                    <span>Cancel</span>
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteProposal" style="background: #ef4444; color: white; border: none; font-family: 'Poppins', Arial, sans-serif; font-weight: 500; padding: 0.625rem 1.25rem; border-radius: 6px; min-width: 100px;">
+                    <span>Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+

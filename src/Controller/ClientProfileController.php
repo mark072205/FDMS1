@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\File;
 use App\Entity\Users;
+use App\Repository\FileRepository;
 use App\Repository\UsersRepository;
+use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,11 +28,13 @@ final class ClientProfileController extends AbstractController
     public function uploadPhoto(
         Request $request,
         EntityManagerInterface $entityManager,
-        UsersRepository $usersRepository
+        UsersRepository $usersRepository,
+        FileRepository $fileRepository,
+        NotificationService $notificationService
     ): JsonResponse {
-        // Ensure user is authenticated
+        // Ensure user is authenticated and is a Users entity
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user || !($user instanceof Users)) {
             return new JsonResponse([
                 'success' => false,
                 'message' => 'You must be logged in to upload a profile picture.'
@@ -92,15 +97,68 @@ final class ClientProfileController extends AbstractController
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        // Delete old profile picture if it exists
+        // Handle old profile picture
         $oldPicture = $user->getProfilePicture();
-        if ($oldPicture && file_exists($uploadDir . '/' . $oldPicture)) {
-            @unlink($uploadDir . '/' . $oldPicture);
+        $oldPictureFile = $user->getProfilePictureFile();
+        
+        // Deactivate old profile picture file entity if it exists
+        if ($oldPictureFile) {
+            $oldPictureFile->setIsActive(false);
+            $oldPictureFile->decrementUsageCount();
+        }
+        
+        // Delete old profile picture file from filesystem if it exists
+        // Handle both filename-only format and full path format
+        if ($oldPicture) {
+            // Normalize to just filename
+            $oldFilename = basename($oldPicture);
+            $oldFilename = str_replace('profile_pictures/', '', $oldFilename);
+            $oldFilename = str_replace('profile_pictures\\', '', $oldFilename);
+            
+            $oldFilePath = $uploadDir . '/' . $oldFilename;
+            if (file_exists($oldFilePath)) {
+                @unlink($oldFilePath);
+            }
         }
 
-        // Update user entity
+        // Create File entity for the new profile picture
+        $relativePath = 'profile_pictures/' . $filename;
+        $fileSize = filesize($filepath);
+        $mimeType = mime_content_type($filepath) ?: 'image/' . $type;
+        
+        // Check if file already exists in database (shouldn't happen, but just in case)
+        $existingFile = $fileRepository->findByPath($relativePath);
+        if ($existingFile) {
+            $fileEntity = $existingFile;
+            $fileEntity->setIsActive(true);
+        } else {
+            $fileEntity = new File();
+            $fileEntity->setFilename($filename);
+            $fileEntity->setPath($relativePath);
+            $fileEntity->setSize($fileSize);
+            $fileEntity->setMimeType($mimeType);
+            $fileEntity->setType('image');
+            $fileEntity->setExtension($type);
+            $fileEntity->setUploadedBy($user);
+            $fileEntity->setUploadedAt(new \DateTimeImmutable());
+            $fileEntity->setIsActive(true);
+            $entityManager->persist($fileEntity);
+        }
+        
+        // Link file to user and increment usage count
+        $fileEntity->incrementUsageCount();
         $user->setProfilePicture($filename);
+        $user->setProfilePictureFile($fileEntity);
+        
         $entityManager->flush();
+
+        // Notify admins about profile picture change
+        try {
+            $notificationService->notifyProfilePictureChange($user);
+        } catch (\Exception $e) {
+            // Log error but don't fail profile picture upload
+            error_log('Failed to send notification for profile picture change: ' . $e->getMessage());
+        }
 
         return new JsonResponse([
             'success' => true,
@@ -114,9 +172,9 @@ final class ClientProfileController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager
     ): JsonResponse {
-        // Ensure user is authenticated
+        // Ensure user is authenticated and is a Users entity
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user || !($user instanceof Users)) {
             return new JsonResponse([
                 'success' => false,
                 'message' => 'You must be logged in to update your bio.'

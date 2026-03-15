@@ -1,0 +1,256 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Activity Logs · Admin{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'activitylogs' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Activity Logs</h1>
+                <p class="admin-subtitle">Complete audit trail of all system activities</p>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <!-- Stats Cards -->
+        <div class="activity-logs-stats">
+            <div class="activity-logs-stat-card">
+                <div class="activity-logs-stat-icon blue">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <p class="activity-logs-stat-value">{{ stats.total }}</p>
+                <div class="activity-logs-stat-label">Total Logs</div>
+            </div>
+            
+            <div class="activity-logs-stat-card">
+                <div class="activity-logs-stat-icon teal">
+                    <i class="bi bi-calendar-day"></i>
+                </div>
+                <p class="activity-logs-stat-value">{{ stats.today }}</p>
+                <div class="activity-logs-stat-label">Today</div>
+            </div>
+            
+            <div class="activity-logs-stat-card">
+                <div class="activity-logs-stat-icon purple">
+                    <i class="bi bi-calendar-week"></i>
+                </div>
+                <p class="activity-logs-stat-value">{{ stats.thisWeek }}</p>
+                <div class="activity-logs-stat-label">This Week</div>
+            </div>
+            
+            <div class="activity-logs-stat-card">
+                <div class="activity-logs-stat-icon green">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                </div>
+                <p class="activity-logs-stat-value">{{ stats.logins }}</p>
+                <div class="activity-logs-stat-label">Logins</div>
+            </div>
+            
+            <div class="activity-logs-stat-card">
+                <div class="activity-logs-stat-icon blue">
+                    <i class="bi bi-plus-circle"></i>
+                </div>
+                <p class="activity-logs-stat-value">{{ stats.creates }}</p>
+                <div class="activity-logs-stat-label">Created</div>
+            </div>
+            
+            <div class="activity-logs-stat-card">
+                <div class="activity-logs-stat-icon orange">
+                    <i class="bi bi-pencil"></i>
+                </div>
+                <p class="activity-logs-stat-value">{{ stats.updates }}</p>
+                <div class="activity-logs-stat-label">Updated</div>
+            </div>
+            
+            <div class="activity-logs-stat-card">
+                <div class="activity-logs-stat-icon red">
+                    <i class="bi bi-trash"></i>
+                </div>
+                <p class="activity-logs-stat-value">{{ stats.deletes }}</p>
+                <div class="activity-logs-stat-label">Deleted</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="activity-logs-filters">
+            <form method="GET" action="{{ path('app_activity_log_index') }}" class="activity-logs-filters-form">
+                <div class="activity-logs-filter-group">
+                    <label for="action" class="activity-logs-filter-label">Action</label>
+                    <select name="action" id="action" class="activity-logs-filter-select">
+                        <option value="">All Actions</option>
+                        {% for action in availableActions %}
+                            <option value="{{ action }}" {{ currentAction == action ? 'selected' : '' }}>{{ action }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="activity-logs-filter-group">
+                    <label for="entity_type" class="activity-logs-filter-label">Entity Type</label>
+                    <select name="entity_type" id="entity_type" class="activity-logs-filter-select">
+                        <option value="">All Types</option>
+                        {% for type in availableEntityTypes %}
+                            <option value="{{ type }}" {{ currentEntityType == type ? 'selected' : '' }}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="activity-logs-filter-group">
+                    <label for="username" class="activity-logs-filter-label">User</label>
+                    <select name="username" id="username" class="activity-logs-filter-select">
+                        <option value="">All Users</option>
+                        {% for uname in availableUsernames %}
+                            <option value="{{ uname }}" {{ currentUsername == uname ? 'selected' : '' }}>{{ uname }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="activity-logs-filter-group">
+                    <label for="date_from" class="activity-logs-filter-label">Date From</label>
+                    <input type="date" name="date_from" id="date_from" value="{{ currentDateFrom }}" class="activity-logs-filter-input">
+                </div>
+                <div class="activity-logs-filter-group">
+                    <label for="date_to" class="activity-logs-filter-label">Date To</label>
+                    <input type="date" name="date_to" id="date_to" value="{{ currentDateTo }}" class="activity-logs-filter-input">
+                </div>
+                <div class="activity-logs-filter-actions">
+                    <button type="submit" class="activity-logs-filter-btn activity-logs-filter-btn-primary">
+                        <i class="bi bi-funnel"></i>Filter
+                    </button>
+                    {% if currentAction or currentEntityType or currentUsername or currentDateFrom or currentDateTo %}
+                    <a href="{{ path('app_activity_log_index') }}" class="activity-logs-filter-btn activity-logs-filter-btn-secondary">
+                        Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Activity Logs DataTable -->
+        <div class="activity-logs-table-container">
+            <h2 class="activity-logs-table-title">Activity Logs ({{ totalLogs }} total)</h2>
+            <div class="activity-logs-table-wrapper">
+                <table class="activity-logs-table" id="activityLogsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">ID</th>
+                            <th style="width: 100px;">Action</th>
+                            <th style="width: 120px;">Username</th>
+                            <th style="width: 100px;">Role</th>
+                            <th style="width: 120px;">Entity Type</th>
+                            <th style="width: 60px;">Entity ID</th>
+                            <th style="min-width: 200px;">Details</th>
+                            <th style="width: 140px;">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs|length > 0 %}
+                            {% for log in logs %}
+                                {% set actionConfig = {
+                                    'LOGIN': {color: '#10b981', bg: '#d1fae5', icon: 'bi-box-arrow-in-right'},
+                                    'LOGOUT': {color: '#6b7280', bg: '#f3f4f6', icon: 'bi-box-arrow-right'},
+                                    'CREATE': {color: '#3b82f6', bg: '#dbeafe', icon: 'bi-plus-circle'},
+                                    'UPDATE': {color: '#f59e0b', bg: '#fef3c7', icon: 'bi-pencil'},
+                                    'DELETE': {color: '#ef4444', bg: '#fee2e2', icon: 'bi-trash'}
+                                } %}
+                                {% set action = actionConfig[log.action] ?? {color: '#6b7280', bg: '#f3f4f6', icon: 'bi-circle'} %}
+                                {% set roleColors = {
+                                    'ROLE_ADMIN': {bg: '#e6ecfa', color: '#1e3a8a'},
+                                    'ROLE_STAFF': {bg: '#f0f9ff', color: '#0369a1'},
+                                    'ROLE_DESIGNER': {bg: '#fef3c7', color: '#92400e'},
+                                    'ROLE_CLIENT': {bg: '#fce7f3', color: '#9f1239'}
+                                } %}
+                                {% set roleColor = roleColors[log.role] ?? {bg: '#f3f4f6', color: '#6b7280'} %}
+                                <tr data-log-id="{{ log.id }}">
+                                    <td style="white-space: nowrap;">{{ log.id }}</td>
+                                    <td>
+                                        <span class="activity-logs-action-badge" style="background: {{ action.bg }}; color: {{ action.color }};">
+                                            <i class="bi {{ action.icon }}"></i>
+                                            {{ log.action }}
+                                        </span>
+                                    </td>
+                                    <td style="white-space: nowrap;">
+                                        {% if log.user %}
+                                            {{ log.user.firstName }} {{ log.user.lastName }}
+                                        {% else %}
+                                            {{ log.username }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="activity-logs-role-badge" style="background: {{ roleColor.bg }}; color: {{ roleColor.color }};">
+                                            {{ log.role }}
+                                        </span>
+                                    </td>
+                                    <td style="white-space: nowrap;">{{ log.entityType|default('—') }}</td>
+                                    <td style="white-space: nowrap; text-align: center;">{{ log.entityId|default('—') }}</td>
+                                    <td class="activity-logs-details-cell" title="{{ log.details|default('') }}">
+                                        {{ log.details|default('—') }}
+                                    </td>
+                                    <td style="white-space: nowrap;">{{ log.createdAt|date('Y-m-d H:i:s') }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="activity-logs-empty">
+                                    {% if currentAction or currentEntityType or currentUsername or currentDateFrom or currentDateTo %}
+                                        No logs match your current filters. Try adjusting your search criteria or clear the filters to see all logs.
+                                    {% else %}
+                                        No activity logs found. Activity logs will appear here as users perform actions in the system.
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if totalPages > 1 %}
+                <div class="activity-logs-pagination">
+                    {% if currentPage > 1 %}
+                        <a href="{{ path('app_activity_log_index', {
+                            page: currentPage - 1, 
+                            action: currentAction, 
+                            entity_type: currentEntityType,
+                            username: currentUsername,
+                            date_from: currentDateFrom,
+                            date_to: currentDateTo
+                        }) }}" 
+                           class="activity-logs-pagination-link activity-logs-pagination-link-secondary">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </a>
+                    {% endif %}
+                    
+                    <span class="activity-logs-pagination-info">
+                        Page {{ currentPage }} of {{ totalPages }}
+                    </span>
+                    
+                    {% if currentPage < totalPages %}
+                        <a href="{{ path('app_activity_log_index', {
+                            page: currentPage + 1, 
+                            action: currentAction, 
+                            entity_type: currentEntityType,
+                            username: currentUsername,
+                            date_from: currentDateFrom,
+                            date_to: currentDateTo
+                        }) }}" 
+                           class="activity-logs-pagination-link activity-logs-pagination-link-secondary">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

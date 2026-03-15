@@ -1,0 +1,28 @@
+<form method="post" action="{{ path('app_category_delete', {'id': category.id}) }}" id="deleteForm">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ category.id) }}">
+    <button type="button" class="btn" onclick="showDeleteModal()">Delete</button>
+</form>
+
+<script>
+    // Wait for DOM to be ready and AdminManager to be initialized
+    document.addEventListener('DOMContentLoaded', function() {
+        // Global function for showing delete modal (called from HTML onclick)
+        window.showDeleteModal = function() {
+            if (window.adminManager && typeof window.adminManager.showConfirmationModal === 'function') {
+                window.adminManager.showConfirmationModal(
+                    'Are you sure you want to delete this category? This action cannot be undone.',
+                    function() {
+                        document.getElementById('deleteForm').submit();
+                    },
+                    'danger',
+                    'Delete Category'
+                );
+            } else {
+                // Fallback if AdminManager is not available
+                if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+                    document.getElementById('deleteForm').submit();
+                }
+            }
+        };
+    });
+</script>

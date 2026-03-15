@@ -1,0 +1,241 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Management · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'users' } %}
+    
+    {% set isStaff = is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
+    
+    <div class="admin-container {% if isStaff %}blurred-content{% endif %}">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Users</h1>
+                <p class="admin-subtitle">Manage system users and their permissions</p>
+            </div>
+            <div class="admin-toolbar">
+                {% set userRole = attribute(app.user, 'role')|default(null) %}
+                {% set userType = attribute(app.user, 'userType')|default(null) %}
+                {% if not (app.user and (userRole == 'staff' or userType == 'staff')) %}
+                    <a href="{{ path('app_user_new') }}" class="btn-primary" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block; font-family: 'Montserrat', Arial, sans-serif; margin-right: 1rem;">Create User</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <!-- Filters -->
+        <div class="admin-card" style="padding: 1.1rem 1.25rem; margin-bottom: 1.5rem;">
+            <form method="GET" action="{{ path('app_user_index') }}" class="admin-filters">
+                <div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label for="userTypeFilter" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">User Type</label>
+                        <select id="userTypeFilter" name="userType" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All Types</option>
+                            <option value="admin" {% if userTypeFilter == 'admin' %}selected{% endif %}>Admin</option>
+                            <option value="staff" {% if userTypeFilter == 'staff' %}selected{% endif %}>Staff</option>
+                            <option value="client" {% if userTypeFilter == 'client' %}selected{% endif %}>Client</option>
+                            <option value="designer" {% if userTypeFilter == 'designer' %}selected{% endif %}>Designer</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label for="statusFilter" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Status</label>
+                        <select id="statusFilter" name="status" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All Status</option>
+                            <option value="active" {% if statusFilter == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if statusFilter == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label for="verifiedFilter" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Verification</label>
+                        <select id="verifiedFilter" name="verified" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All</option>
+                            <option value="verified" {% if verifiedFilter == 'verified' %}selected{% endif %}>Verified</option>
+                            <option value="unverified" {% if verifiedFilter == 'unverified' %}selected{% endif %}>Unverified</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: end;">
+                        <button type="submit" class="btn-primary" style="padding: 0.5rem 1rem; font-family: 'Poppins', Arial, sans-serif; white-space: nowrap;">Filter</button>
+                        <a href="{{ path('app_user_index') }}" class="btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block; font-family: 'Poppins', Arial, sans-serif; white-space: nowrap;">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="admin-card" style="padding: 1.1rem 1.25rem;">
+            <h2 style="font-family:'Poppins'; font-size:1.2rem; margin: 0 0 0.9rem 0;">All Users</h2>
+            <div class="admin-table-wrapper-disable">
+                <table class="admin-table table-balanced table-colored" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th class="col-id" style="width: 40px; font-size: 0.75rem; padding: 4px 6px;">ID</th>
+                            <th style="width: 80px; font-size: 0.75rem; text-align: center !important; padding: 4px 6px;">First Name</th>
+                            <th class="col-title" style="width: 80px; font-size: 0.75rem; padding: 4px 6px;">Last Name</th>
+                            <th class="col-title" style="width: 80px; font-size: 0.75rem; padding: 4px 6px;">Username</th>
+                            <th class="col-title" style="width: 140px; font-size: 0.75rem; padding: 4px 6px;">Email</th>
+                            <th class="col-category" style="text-align: center; width: 60px; font-size: 0.75rem; padding: 4px 6px;">Type</th>
+                            <th class="col-status" style="width: 60px; font-size: 0.75rem; padding: 4px 6px;">Status</th>
+                            <th class="col-status" style="width: 60px; font-size: 0.75rem; padding: 4px 6px;">Verified</th>
+                            <th class="col-date" style="width: 80px; font-size: 0.75rem; padding: 4px 6px;">Created</th>
+                            <th style="width: 60px; font-size: 0.75rem; padding: 4px 6px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                            <tr class="admin-row" data-user-id="{{ user.id }}">
+                                <td style="font-size: 0.75rem; white-space: nowrap; padding: 4px 6px;">{{ user.id }}</td>
+                                <td style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center !important; padding: 4px 6px;" title="{{ user.firstName }}">{{ user.firstName }}</td>
+                                <td style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 6px;" title="{{ user.lastName }}">{{ user.lastName }}</td>
+                                <td style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 4px 6px;" title="@{{ user.username }}">@{{ user.username }}</td>
+                                <td style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; padding: 4px 6px;" title="{{ user.email }}">{{ user.email }}</td>
+                                <td style="text-align: center !important; padding: 4px 6px;">
+                                    {% if user.userType == 'admin' %}
+                                        <span class="badge badge-success" style="font-size: 0.6rem; padding: 2px 6px; white-space: nowrap; background: #10b981; color: white;">Admin</span>
+                                    {% elseif user.userType == 'staff' %}
+                                        <span class="badge badge-danger" style="font-size: 0.6rem; padding: 2px 6px; white-space: nowrap;">Staff</span>
+                                    {% elseif user.userType == 'designer' %}
+                                        <span class="badge badge-warning" style="font-size: 0.6rem; padding: 2px 6px; white-space: nowrap;">Designer</span>
+                                    {% elseif user.userType == 'client' %}
+                                        <span class="badge badge-info" style="font-size: 0.6rem; padding: 2px 6px; white-space: nowrap;">Client</span>
+                                    {% else %}
+                                        <span class="badge" style="font-size: 0.6rem; padding: 2px 6px; white-space: nowrap;">{{ user.userType|default('N/A')|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 4px 6px;">
+                                    {% set statusClass = user.isActive ? 'is-active' : 'is-inactive' %}
+                                    <span class="badge-status {{ statusClass }}" id="status-{{ user.id }}" style="font-size: 0.6rem; padding: 2px 6px; white-space: nowrap;">{{ user.isActive ? 'Active' : 'Disabled' }}</span>
+                                </td>
+                                <td style="padding: 4px 6px;">
+                                    {% if user.userType == 'admin' or user.userType == 'staff' %}
+                                        <span class="badge-status" style="font-size: 0.6rem; padding: 2px 6px; white-space: nowrap; color: #6b7280;">N/A</span>
+                                    {% else %}
+                                    {% set verifiedClass = user.verified ? 'is-active' : 'is-pending' %}
+                                    <span class="badge-status {{ verifiedClass }}" id="verified-{{ user.id }}" style="font-size: 0.6rem; padding: 2px 6px; white-space: nowrap;">{{ user.verified ? 'Verified' : 'Unverified' }}</span>
+                                    {% endif %}
+                                </td>
+                                <td style="font-size: 0.75rem; white-space: nowrap; padding: 4px 6px;">{{ user.createdAt|date('Y-m-d') }}</td>
+                                <td style="padding: 4px 6px; text-align: center;">
+                                    <a class="btn-link" href="{{ path('app_user_show', {'id': user.id}) }}" style="font-size: 0.8rem; padding: 3px 6px; margin: 0; display: inline-block; border-radius: 4px;">View</a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="10">No users found.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if isStaff %}
+    <div class="restricted-access-overlay">
+        <div class="restricted-access-modal">
+            <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-shield-x" style="font-size: 2.5rem; color: #dc2626;"></i>
+            </div>
+            <h2 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem; text-align: center;">Restricted Access</h2>
+            <p style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center;">
+                You do not have permission to access the users page. Only administrators can manage users.
+            </p>
+            <a href="{{ path('app_dashboard') }}" class="btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem; text-decoration: none; margin: 0 auto;">
+                Return to Dashboard
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Delete user functionality
+            const deleteButtons = document.querySelectorAll('.btn-delete-user');
+            
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const username = this.getAttribute('data-username');
+                    
+                    if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+                        return;
+                    }
+                    
+                    // Disable button during deletion
+                    this.disabled = true;
+                    this.textContent = 'Deleting...';
+                    
+                    fetch(`/users/${userId}/delete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message
+                            if (window.adminManager && window.adminManager.showAlert) {
+                                window.adminManager.showAlert('success', data.message);
+                            } else {
+                                alert(data.message);
+                            }
+                            
+                            // Remove the row from the table
+                            const row = this.closest('tr');
+                            if (row) {
+                                row.style.transition = 'opacity 0.3s';
+                                row.style.opacity = '0';
+                                setTimeout(() => {
+                                    row.remove();
+                                    
+                                    // Check if table is empty
+                                    const tbody = document.querySelector('#usersTable tbody');
+                                    if (tbody && tbody.children.length === 0) {
+                                        tbody.innerHTML = '<tr><td colspan="11">No users found.</td></tr>';
+                                    }
+                                }, 300);
+                            }
+                        } else {
+                            // Show error message
+                            if (window.adminManager && window.adminManager.showAlert) {
+                                window.adminManager.showAlert('error', data.message);
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                            
+                            // Re-enable button
+                            this.disabled = false;
+                            this.textContent = 'Delete';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (window.adminManager && window.adminManager.showAlert) {
+                            window.adminManager.showAlert('error', 'An error occurred while deleting the user.');
+                        } else {
+                            alert('An error occurred while deleting the user.');
+                        }
+                        
+                        // Re-enable button
+                        this.disabled = false;
+                        this.textContent = 'Delete';
+                    });
+                });
+            });
+        });
+    </script>
+{% endblock %}

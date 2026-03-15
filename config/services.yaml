@@ -19,8 +19,23 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     
-    # Configure LoginSuccessHandler
-    App\Security\LoginSuccessHandler:
+    # Configure LoginAuthenticator
+    App\Security\LoginAuthenticator:
         arguments:
             $router: '@router'
             $entityManager: '@doctrine.orm.entity_manager'
+    
+    # Configure SecurityConfigService
+    App\Service\SecurityConfigService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+    
+    # Explicitly tag fixtures to ensure they're discovered
+    App\DataFixtures\:
+        resource: '../src/DataFixtures'
+        tags: ['doctrine.fixture.orm']
+    
+    # Ensure ActivityLogSubscriber is properly configured as Doctrine event subscriber
+    App\EventSubscriber\ActivityLogSubscriber:
+        tags:
+            - { name: 'doctrine.event_subscriber' }

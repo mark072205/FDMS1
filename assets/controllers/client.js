@@ -1040,32 +1040,96 @@ function initProjectsPage() {
                 // Get form data
                 const formData = new FormData(postProjectForm);
                 const projectData = {
-                    title: formData.get('title'),
-                    category: formData.get('category'),
-                    description: formData.get('description'),
-                    budget: formData.get('budget'),
-                    visibility: formData.get('visibility')
+                    title: formData.get('title') || '',
+                    category: formData.get('category') || '',
+                    description: formData.get('description') || '',
+                    budget: formData.get('budget') || '',
+                    visibility: formData.get('visibility') || 'public'
                 };
 
-                // TODO: Implement actual API call to save project
-                // For now, just simulate success
-                console.log('Project data:', projectData);
-                
-                // Simulate API delay
-                await new Promise(function(resolve) {
-                    setTimeout(resolve, 1000);
+                // Clear previous errors
+                if (postProjectForm) {
+                    clearFormErrors(postProjectForm);
+                }
+
+                // Validate required fields (client-side)
+                let hasErrors = false;
+                if (!projectData.title.trim()) {
+                    showFieldError('title', 'Project title is required.');
+                    hasErrors = true;
+                }
+                if (!projectData.category) {
+                    showFieldError('category', 'Please select a category.');
+                    hasErrors = true;
+                }
+                if (!projectData.description.trim()) {
+                    showFieldError('description', 'Project description is required.');
+                    hasErrors = true;
+                }
+                if (!projectData.budget) {
+                    showFieldError('budget', 'Please select a budget range.');
+                    hasErrors = true;
+                }
+
+                if (hasErrors) {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                    showNotification('error', 'Please fill in all required fields.');
+                    return;
+                }
+
+                // Send API request to create project
+                const response = await fetch('/client/projects/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(projectData)
                 });
 
-                // Show success message (in real implementation, this would come from server)
-                alert('Project posted successfully!');
-                
-                // Close modal and refresh projects list
-                closePostProjectModal();
-                // TODO: Refresh projects list from server
+                const result = await response.json();
+
+                if (result.success) {
+                    // Show success message using a better notification
+                    showNotification('success', 'Project posted successfully!');
+                    
+                    // Close modal
+                    closePostProjectModal();
+                    
+                    // Reset form and clear validation errors
+                    if (postProjectForm) {
+                        postProjectForm.reset();
+                        clearFormErrors(postProjectForm);
+                    }
+                    
+                    // Refresh projects list (reload page for now, can be enhanced later with AJAX)
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    // Handle validation errors
+                    clearFormErrors(postProjectForm);
+                    
+                    if (result.errors && Object.keys(result.errors).length > 0) {
+                        // Display field-specific errors
+                        displayFormErrors(postProjectForm, result.errors);
+                        showNotification('error', 'Please fix the errors in the form.');
+                    } else {
+                        showNotification('error', result.message || 'An error occurred while posting your project.');
+                    }
+                    
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                    }
+                }
                 
             } catch (error) {
                 console.error('Error posting project:', error);
-                alert('An error occurred while posting your project. Please try again.');
+                showNotification('error', 'Network error. Please check your connection and try again.');
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
@@ -1101,7 +1165,95 @@ function initProjectsPage() {
         }
     });
 
-    // Filter Projects Function
+    // Notification System (simple toast-like notifications)
+    function showNotification(type, message) {
+        // Remove existing notifications
+        const existingNotifications = document.querySelectorAll('.client-notification');
+        existingNotifications.forEach(function(notif) {
+            notif.remove();
+        });
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'client-notification client-notification-' + type;
+        notification.innerHTML = '<span>' + message + '</span><button class="notification-close" onclick="this.parentElement.remove()">&times;</button>';
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Show notification
+        setTimeout(function() {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(function() {
+            notification.classList.remove('show');
+            setTimeout(function() {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 5000);
+    }
+
+    // Form Error Display Functions
+    function displayFormErrors(form, errors) {
+        if (!form) return;
+        
+        Object.keys(errors).forEach(function(fieldName) {
+            const field = form.querySelector('[name="' + fieldName + '"]');
+            if (field) {
+                // Add error class
+                field.classList.add('error');
+                
+                // Create or update error message
+                let errorElement = field.parentElement.querySelector('.field-error');
+                if (!errorElement) {
+                    errorElement = document.createElement('div');
+                    errorElement.className = 'field-error';
+                    field.parentElement.appendChild(errorElement);
+                }
+                errorElement.textContent = errors[fieldName];
+            }
+        });
+    }
+
+    function clearFormErrors(form) {
+        if (!form) return;
+        
+        // Remove error classes
+        const errorFields = form.querySelectorAll('.error');
+        errorFields.forEach(function(field) {
+            field.classList.remove('error');
+        });
+        
+        // Remove error messages
+        const errorMessages = form.querySelectorAll('.field-error');
+        errorMessages.forEach(function(msg) {
+            msg.remove();
+        });
+    }
+
+    function showFieldError(fieldName, message) {
+        const form = document.getElementById('postProjectForm');
+        if (!form) return;
+        
+        const field = form.querySelector('[name="' + fieldName + '"]');
+        if (field) {
+            field.classList.add('error');
+            
+            let errorElement = field.parentElement.querySelector('.field-error');
+            if (!errorElement) {
+                errorElement = document.createElement('div');
+                errorElement.className = 'field-error';
+                field.parentElement.appendChild(errorElement);
+            }
+            errorElement.textContent = message;
+        }
+    }
+
+    // Filter Projects Function (client-side filtering - can be enhanced with server-side)
     function filterProjects(searchQuery) {
         const activeTab = document.querySelector('.tab-btn.active');
         if (!activeTab) return;
@@ -1189,28 +1341,14 @@ function initProjectsPage() {
         }
     }
 
-    // Delete Project Functionality
-    const deleteButtons = document.querySelectorAll('.btn-danger');
-    deleteButtons.forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-                // TODO: Implement actual delete API call
-                const projectCard = this.closest('.project-card');
-                if (projectCard) {
-                    projectCard.style.opacity = '0';
-                    projectCard.style.transform = 'scale(0.95)';
-                    setTimeout(function() {
-                        if (projectCard && projectCard.parentNode) {
-                            projectCard.parentNode.removeChild(projectCard);
-                            // Check if we need to show empty state
-                            filterProjects();
-                        }
-                    }, 300);
-                }
-            }
-        });
-    });
+    // Initialize modals after a short delay to ensure DOM is ready
+    setTimeout(function() {
+        initViewProjectModal();
+        initEditProjectModal();
+    }, 100);
+
+    // Delete Project Modal
+    initDeleteProjectModal();
 
     // Save/Share buttons in Explore tab
     const saveButtons = document.querySelectorAll('.icon-btn-small');
@@ -1620,4 +1758,721 @@ function initMessagesPage() {
             }
         }
     }
+}
+
+// View Project Modal
+function initViewProjectModal() {
+    const viewModal = document.getElementById('viewProjectModal');
+    const closeBtn = document.getElementById('closeViewProject');
+    const backdrop = viewModal ? viewModal.querySelector('.project-modal__backdrop') : null;
+    const contentDiv = document.getElementById('viewProjectContent');
+    const viewProjectBtns = document.querySelectorAll('.view-project-btn');
+
+    if (!viewModal || !contentDiv) return;
+
+    function openViewProjectModal(projectId) {
+        if (!projectId) {
+            console.error('Project ID is missing');
+            return;
+        }
+        
+        console.log('Opening view modal for project ID:', projectId);
+        
+        // Show loading state
+        contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 1rem; font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 14px;">Loading project details...</p></div>';
+        
+        // Show modal
+        viewModal.classList.remove('hidden');
+        viewModal.classList.remove('closing');
+        viewModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        viewModal.style.display = 'flex';
+        
+        const url = `/client/projects/${projectId}?modal=1`;
+        console.log('Fetching from URL:', url);
+        
+        // Fetch project details
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status, response.statusText);
+            console.log('Response headers:', response.headers.get('content-type'));
+            
+            if (!response.ok) {
+                // Try to get error message from JSON response
+                return response.json().then(data => {
+                    console.error('Error response:', data);
+                    throw new Error(data.message || 'Failed to load project details');
+                }).catch(() => {
+                    console.error('Failed to parse error response as JSON');
+                    throw new Error('Failed to load project details (Status: ' + response.status + ')');
+                });
+            }
+            // Check if response is JSON (error) or HTML (success)
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json().then(data => {
+                    console.error('Unexpected JSON response:', data);
+                    throw new Error(data.message || 'Failed to load project details');
+                });
+            }
+            return response.text();
+        })
+        .then(html => {
+            console.log('Successfully loaded project details, HTML length:', html.length);
+            contentDiv.innerHTML = html;
+            
+            // Re-attach event listener for edit button inside modal
+            const editBtn = contentDiv.querySelector('.btn-edit-project-modal');
+            if (editBtn) {
+                editBtn.addEventListener('click', function() {
+                    const projectId = this.getAttribute('data-project-id');
+                    if (projectId) {
+                        closeViewProjectModal();
+                        setTimeout(() => openEditProjectModal(projectId), 300);
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading project:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack
+            });
+            contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;"><i class="bi bi-exclamation-triangle"></i></div><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #ef4444; font-size: 14px; margin-bottom: 0.5rem;">' + error.message + '</p><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 13px;">Please check the browser console for more details.</p></div>';
+        });
+    }
+
+    function closeViewProjectModal() {
+        if (viewModal && !viewModal.classList.contains('closing')) {
+            viewModal.classList.add('closing');
+            viewModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (viewModal) {
+                    viewModal.classList.add('hidden');
+                    viewModal.classList.remove('closing');
+                    viewModal.style.display = '';
+                    contentDiv.innerHTML = '';
+                }
+            }, 250);
+        }
+    }
+
+    // Attach event listeners to view buttons
+    viewProjectBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const projectId = this.getAttribute('data-project-id');
+            if (projectId) {
+                openViewProjectModal(projectId);
+            }
+        });
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeViewProjectModal);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeViewProjectModal);
+    }
+
+    // Handle Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && viewModal && !viewModal.classList.contains('hidden')) {
+            closeViewProjectModal();
+        }
+    });
+
+    // Make openViewProjectModal available globally for edit modal
+    window.openViewProjectModal = openViewProjectModal;
+    window.closeViewProjectModal = closeViewProjectModal;
+}
+
+// Edit Project Modal
+function initEditProjectModal() {
+    const editModal = document.getElementById('editProjectModal');
+    const closeBtn = document.getElementById('closeEditProject');
+    const backdrop = editModal ? editModal.querySelector('.project-modal__backdrop') : null;
+    const contentDiv = document.getElementById('editProjectContent');
+    const editProjectBtns = document.querySelectorAll('.edit-project-btn');
+
+    if (!editModal || !contentDiv) return;
+
+    function openEditProjectModal(projectId) {
+        if (!projectId) return;
+        
+        // Show loading state
+        contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 1rem; font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 14px;">Loading project...</p></div>';
+        
+        // Show modal
+        editModal.classList.remove('hidden');
+        editModal.classList.remove('closing');
+        editModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        editModal.style.display = 'flex';
+        
+        // Fetch project for editing
+        fetch(`/client/projects/${projectId}/edit?modal=1`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Try to get error message from JSON response
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Failed to load project');
+                }).catch(() => {
+                    throw new Error('Failed to load project (Status: ' + response.status + ')');
+                });
+            }
+            // Check if response is JSON (error) or HTML (success)
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Failed to load project');
+                });
+            }
+            return response.text();
+        })
+        .then(html => {
+            contentDiv.innerHTML = html;
+            
+            // Re-attach form submission handler
+            const editForm = document.getElementById('editProjectForm');
+            const editSubmitBtn = document.getElementById('submitEditProjectBtn');
+            const cancelEditBtn = document.getElementById('cancelEditProject');
+            
+            if (editForm) {
+                editForm.addEventListener('submit', handleEditProjectSubmit);
+            }
+            
+            // Also attach click handler to submit button (since it's outside the form)
+            if (editSubmitBtn) {
+                editSubmitBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (editForm) {
+                        // Trigger form validation
+                        if (editForm.checkValidity()) {
+                            handleEditProjectSubmit({ preventDefault: () => {}, target: editForm });
+                        } else {
+                            editForm.reportValidity();
+                        }
+                    }
+                });
+            }
+            
+            // Re-attach cancel button handler
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener('click', closeEditProjectModal);
+            }
+            
+            // Focus first input
+            const firstInput = editForm ? editForm.querySelector('input, textarea, select') : null;
+            if (firstInput) {
+                setTimeout(() => firstInput.focus(), 100);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading project:', error);
+            contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;"><i class="bi bi-exclamation-triangle"></i></div><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #ef4444; font-size: 14px; margin-bottom: 0.5rem;">' + error.message + '</p><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 13px;">Please try again.</p></div>';
+        });
+    }
+
+    function closeEditProjectModal() {
+        if (editModal && !editModal.classList.contains('closing')) {
+            editModal.classList.add('closing');
+            editModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (editModal) {
+                    editModal.classList.add('hidden');
+                    editModal.classList.remove('closing');
+                    editModal.style.display = '';
+                    contentDiv.innerHTML = '';
+                }
+            }, 250);
+        }
+    }
+
+    function handleEditProjectSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const submitBtn = document.getElementById('submitEditProjectBtn');
+        const projectId = form.querySelector('#editProjectId') ? form.querySelector('#editProjectId').value : null;
+        
+        if (!projectId) {
+            if (typeof showNotification === 'function') {
+                showNotification('error', 'Project ID is missing.');
+            } else {
+                alert('Project ID is missing.');
+            }
+            return;
+        }
+
+        // Get form data
+        const formData = {
+            title: form.querySelector('#editProjectTitle') ? form.querySelector('#editProjectTitle').value : '',
+            description: form.querySelector('#editProjectDescription') ? form.querySelector('#editProjectDescription').value : '',
+            category: form.querySelector('#editProjectCategory') ? form.querySelector('#editProjectCategory').value : '',
+            budget: form.querySelector('#editProjectBudget') ? form.querySelector('#editProjectBudget').value : ''
+        };
+
+        // Show loading state
+        const originalText = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Saving...</span>';
+        }
+
+        // Submit update
+        fetch(`/client/projects/${projectId}/update`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                closeEditProjectModal();
+                
+                // Show success modal after a short delay
+                setTimeout(function() {
+                    showEditProjectSuccessModal();
+                }, 300);
+                
+                // Refresh projects list after modal closes
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                if (typeof showNotification === 'function') {
+                    showNotification('error', result.message || 'Failed to update project.');
+                } else {
+                    alert(result.message || 'Failed to update project.');
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error updating project:', error);
+            if (typeof showNotification === 'function') {
+                showNotification('error', 'Network error. Please check your connection and try again.');
+            } else {
+                alert('Network error. Please check your connection and try again.');
+            }
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
+
+    // Attach event listeners to edit buttons
+    editProjectBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const projectId = this.getAttribute('data-project-id');
+            if (projectId) {
+                openEditProjectModal(projectId);
+            }
+        });
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeEditProjectModal);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeEditProjectModal);
+    }
+
+    // Handle Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && editModal && !editModal.classList.contains('hidden')) {
+            closeEditProjectModal();
+        }
+    });
+
+    // Make openEditProjectModal available globally
+    window.openEditProjectModal = openEditProjectModal;
+}
+
+// Delete Project Modal
+function initDeleteProjectModal() {
+    const deleteModal = document.getElementById('deleteProjectModal');
+    const closeBtn = document.getElementById('closeDeleteProject');
+    const backdrop = deleteModal ? deleteModal.querySelector('.project-modal__backdrop') : null;
+    const contentDiv = document.getElementById('deleteProjectContent');
+    const deleteButtons = document.querySelectorAll('.btn-danger[data-project-id]');
+
+    if (!deleteModal || !contentDiv) return;
+
+    function openDeleteProjectModal(projectId) {
+        if (!projectId) {
+            console.error('Project ID is missing');
+            return;
+        }
+        
+        console.log('Opening delete modal for project ID:', projectId);
+        
+        // Show loading state
+        contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div><p style="margin-top: 1rem; font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 14px;">Loading...</p></div>';
+        
+        // Show modal
+        deleteModal.classList.remove('hidden');
+        deleteModal.classList.remove('closing');
+        deleteModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        deleteModal.style.display = 'flex';
+        
+        const url = `/client/projects/${projectId}/delete?modal=1`;
+        console.log('Fetching from URL:', url);
+        
+        // Fetch delete confirmation modal
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status, response.statusText);
+            
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Failed to load delete confirmation');
+                }).catch(() => {
+                    throw new Error('Failed to load delete confirmation (Status: ' + response.status + ')');
+                });
+            }
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Failed to load delete confirmation');
+                });
+            }
+            return response.text();
+        })
+        .then(html => {
+            console.log('Successfully loaded delete confirmation');
+            contentDiv.innerHTML = html;
+            
+            // Re-attach event listeners
+            const confirmBtn = contentDiv.querySelector('#confirmDeleteProject');
+            const cancelBtn = contentDiv.querySelector('#cancelDeleteProject');
+            
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    const projectId = this.getAttribute('data-project-id');
+                    if (projectId) {
+                        handleDeleteProject(projectId);
+                    }
+                });
+            }
+            
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', closeDeleteProjectModal);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading delete confirmation:', error);
+            contentDiv.innerHTML = '<div style="text-align: center; padding: 3rem 2rem;"><div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;"><i class="bi bi-exclamation-triangle"></i></div><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #ef4444; font-size: 14px; margin-bottom: 0.5rem;">' + error.message + '</p><p style="font-family: \'Montserrat\', Arial, sans-serif; color: #6b7280; font-size: 13px;">Please try again.</p></div>';
+        });
+    }
+
+    function closeDeleteProjectModal() {
+        if (deleteModal && !deleteModal.classList.contains('closing')) {
+            deleteModal.classList.add('closing');
+            deleteModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            setTimeout(function() {
+                if (deleteModal) {
+                    deleteModal.classList.add('hidden');
+                    deleteModal.classList.remove('closing');
+                    deleteModal.style.display = '';
+                    contentDiv.innerHTML = '';
+                }
+            }, 250);
+        }
+    }
+
+    function handleDeleteProject(projectId) {
+        const confirmBtn = document.getElementById('confirmDeleteProject');
+        const originalText = confirmBtn ? confirmBtn.innerHTML : '';
+        
+        // Show loading state
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Deleting...</span>';
+        }
+        
+        // Delete the project
+        fetch(`/client/projects/${projectId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                closeDeleteProjectModal();
+                
+                // Remove project card with animation first
+                const projectCard = document.querySelector(`.project-card[data-project-id="${projectId}"]`);
+                if (projectCard) {
+                    projectCard.style.opacity = '0';
+                    projectCard.style.transform = 'scale(0.95)';
+                    setTimeout(function() {
+                        if (projectCard && projectCard.parentNode) {
+                            projectCard.parentNode.removeChild(projectCard);
+                            // Check if we need to show empty state
+                            const grid = projectCard.closest('.projects-grid');
+                            if (grid && grid.querySelectorAll('.project-card').length === 0) {
+                                const emptyState = document.getElementById('emptyMyProjects');
+                                if (emptyState) {
+                                    emptyState.classList.remove('hidden');
+                                }
+                            }
+                        }
+                    }, 300);
+                }
+                
+                // Show success modal after a short delay
+                setTimeout(function() {
+                    showDeleteSuccessModal();
+                }, 400);
+            } else {
+                if (typeof showNotification === 'function') {
+                    showNotification('error', result.message || 'Failed to delete project.');
+                } else {
+                    alert(result.message || 'Failed to delete project.');
+                }
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = originalText;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting project:', error);
+            if (typeof showNotification === 'function') {
+                showNotification('error', 'Network error. Please check your connection and try again.');
+            } else {
+                alert('Network error. Please check your connection and try again.');
+            }
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalText;
+            }
+        });
+    }
+
+    // Attach event listeners to delete buttons
+    deleteButtons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const projectId = this.getAttribute('data-project-id');
+            if (projectId) {
+                openDeleteProjectModal(projectId);
+            }
+        });
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeDeleteProjectModal);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeDeleteProjectModal);
+    }
+
+    // Handle Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && deleteModal && !deleteModal.classList.contains('hidden')) {
+            closeDeleteProjectModal();
+        }
+    });
+
+    // Make openDeleteProjectModal available globally
+    window.openDeleteProjectModal = openDeleteProjectModal;
+}
+
+// Edit Project Success Modal
+let editProjectSuccessModalTimeout = null;
+let editProjectSuccessModalEscapeHandler = null;
+
+function showEditProjectSuccessModal() {
+    const successModal = document.getElementById('editProjectSuccessModal');
+    const closeBtn = document.getElementById('closeEditProjectSuccessModal');
+    const backdrop = successModal ? successModal.querySelector('.project-modal__backdrop') : null;
+    
+    if (!successModal) return;
+    
+    // Clear any existing timeout
+    if (editProjectSuccessModalTimeout) {
+        clearTimeout(editProjectSuccessModalTimeout);
+        editProjectSuccessModalTimeout = null;
+    }
+    
+    // Remove existing escape handler
+    if (editProjectSuccessModalEscapeHandler) {
+        document.removeEventListener('keydown', editProjectSuccessModalEscapeHandler);
+        editProjectSuccessModalEscapeHandler = null;
+    }
+    
+    function closeEditProjectSuccessModal() {
+        if (successModal && !successModal.classList.contains('closing')) {
+            successModal.classList.add('closing');
+            successModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            // Clear timeout
+            if (editProjectSuccessModalTimeout) {
+                clearTimeout(editProjectSuccessModalTimeout);
+                editProjectSuccessModalTimeout = null;
+            }
+            
+            // Remove escape handler
+            if (editProjectSuccessModalEscapeHandler) {
+                document.removeEventListener('keydown', editProjectSuccessModalEscapeHandler);
+                editProjectSuccessModalEscapeHandler = null;
+            }
+            
+            setTimeout(function() {
+                if (successModal) {
+                    successModal.classList.add('hidden');
+                    successModal.classList.remove('closing');
+                    successModal.style.display = '';
+                }
+            }, 250);
+        }
+    }
+    
+    // Show modal
+    successModal.classList.remove('hidden');
+    successModal.classList.remove('closing');
+    successModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    successModal.style.display = 'flex';
+    
+    // Close button handler - use onclick to avoid duplicate listeners
+    if (closeBtn) {
+        closeBtn.onclick = closeEditProjectSuccessModal;
+    }
+    
+    if (backdrop) {
+        backdrop.onclick = closeEditProjectSuccessModal;
+    }
+    
+    // Handle Escape key
+    editProjectSuccessModalEscapeHandler = function(e) {
+        if (e.key === 'Escape' && successModal && !successModal.classList.contains('hidden')) {
+            closeEditProjectSuccessModal();
+        }
+    };
+    document.addEventListener('keydown', editProjectSuccessModalEscapeHandler);
+    
+    // Auto-close after 3 seconds
+    editProjectSuccessModalTimeout = setTimeout(function() {
+        closeEditProjectSuccessModal();
+    }, 3000);
+}
+
+// Delete Success Modal
+let deleteSuccessModalTimeout = null;
+let deleteSuccessModalEscapeHandler = null;
+
+function showDeleteSuccessModal() {
+    const successModal = document.getElementById('deleteSuccessModal');
+    const closeBtn = document.getElementById('closeDeleteSuccessModal');
+    const backdrop = successModal ? successModal.querySelector('.project-modal__backdrop') : null;
+    
+    if (!successModal) return;
+    
+    // Clear any existing timeout
+    if (deleteSuccessModalTimeout) {
+        clearTimeout(deleteSuccessModalTimeout);
+        deleteSuccessModalTimeout = null;
+    }
+    
+    // Remove existing escape handler
+    if (deleteSuccessModalEscapeHandler) {
+        document.removeEventListener('keydown', deleteSuccessModalEscapeHandler);
+        deleteSuccessModalEscapeHandler = null;
+    }
+    
+    function closeDeleteSuccessModal() {
+        if (successModal && !successModal.classList.contains('closing')) {
+            successModal.classList.add('closing');
+            successModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            
+            // Clear timeout
+            if (deleteSuccessModalTimeout) {
+                clearTimeout(deleteSuccessModalTimeout);
+                deleteSuccessModalTimeout = null;
+            }
+            
+            // Remove escape handler
+            if (deleteSuccessModalEscapeHandler) {
+                document.removeEventListener('keydown', deleteSuccessModalEscapeHandler);
+                deleteSuccessModalEscapeHandler = null;
+            }
+            
+            setTimeout(function() {
+                if (successModal) {
+                    successModal.classList.add('hidden');
+                    successModal.classList.remove('closing');
+                    successModal.style.display = '';
+                }
+            }, 250);
+        }
+    }
+    
+    // Show modal
+    successModal.classList.remove('hidden');
+    successModal.classList.remove('closing');
+    successModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    successModal.style.display = 'flex';
+    
+    // Close button handler - use onclick to avoid duplicate listeners
+    if (closeBtn) {
+        closeBtn.onclick = closeDeleteSuccessModal;
+    }
+    
+    if (backdrop) {
+        backdrop.onclick = closeDeleteSuccessModal;
+    }
+    
+    // Handle Escape key
+    deleteSuccessModalEscapeHandler = function(e) {
+        if (e.key === 'Escape' && successModal && !successModal.classList.contains('hidden')) {
+            closeDeleteSuccessModal();
+        }
+    };
+    document.addEventListener('keydown', deleteSuccessModalEscapeHandler);
+    
+    // Auto-close after 3 seconds
+    deleteSuccessModalTimeout = setTimeout(function() {
+        closeDeleteSuccessModal();
+    }, 3000);
 }

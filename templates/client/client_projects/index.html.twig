@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
     <link rel="stylesheet" href=" {{ asset('styles/client.css')}} ">
+    <link rel="stylesheet" href=" {{ asset('styles/header.css')}} ">
 {% endblock %}
 
 {% block javascripts %}
@@ -35,17 +36,19 @@
         <div class="filters-wrapper">
             <select id="categoryFilter" class="filter-select" aria-label="Filter by category">
                 <option value="">All Categories</option>
-                <option value="logo">Logo Design</option>
-                <option value="poster">Poster Design</option>
-                <option value="web">Web Design</option>
-                <option value="branding">Branding</option>
-                <option value="print">Print Design</option>
+                {% if categories is defined %}
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if categoryFilter is defined and categoryFilter == (category.id ~ '') %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                {% endif %}
             </select>
             <select id="statusFilter" class="filter-select" aria-label="Filter by status">
                 <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="draft">Draft</option>
+                <option value="pending" {% if statusFilter is defined and statusFilter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="active" {% if statusFilter is defined and statusFilter == 'active' %}selected{% endif %}>Active</option>
+                <option value="ongoing" {% if statusFilter is defined and statusFilter == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                <option value="completed" {% if statusFilter is defined and statusFilter == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="cancelled" {% if statusFilter is defined and statusFilter == 'cancelled' %}selected{% endif %}>Cancelled</option>
             </select>
             <select id="budgetFilter" class="filter-select" aria-label="Filter by budget">
                 <option value="">All Budgets</option>
@@ -70,123 +73,96 @@
     <!-- Projects Content -->
     <section class="projects-content">
         <!-- My Projects Tab -->
-        <div class="tab-content active" id="contentMyProjects">
-            <div class="projects-grid" id="myProjectsGrid">
-                <!-- Sample project cards - will be replaced with dynamic content -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <h3>Brand Identity Package</h3>
-                        <span class="status-badge status-active">Active</span>
-                    </div>
-                    <div class="project-meta">
-                        <span class="project-category">Branding</span>
-                        <span class="project-date">Posted 3 days ago</span>
-                    </div>
-                    <p class="project-description">Looking for a complete brand identity package including logo, color palette, and typography guidelines.</p>
-                    <div class="project-actions">
-                        <a href="#" class="btn btn-sm btn-primary">View</a>
-                        <a href="#" class="btn btn-sm btn-secondary">Edit</a>
-                        <button type="button" class="btn btn-sm btn-danger">Delete</button>
-                    </div>
+        <div class="tab-content {% if currentTab is not defined or currentTab == 'my-projects' %}active{% endif %}" id="contentMyProjects">
+            {% if myProjects is defined and myProjects|length > 0 %}
+                <div class="projects-grid" id="myProjectsGrid">
+                    {% for project in myProjects %}
+                        <div class="project-card" data-project-id="{{ project.id }}">
+                            <div class="project-header">
+                                <h3>{{ project.title }}</h3>
+                                {% set statusClass = project.status == 'completed' ? 'status-completed' : (project.status == 'ongoing' ? 'status-active' : (project.status == 'pending' ? 'status-pending' : 'status-cancelled')) %}
+                                <span class="status-badge {{ statusClass }}">{{ project.status|capitalize }}</span>
+                            </div>
+                            <div class="project-meta">
+                                <span class="project-category">{{ project.category ? project.category.name : 'Uncategorized' }}</span>
+                                <span class="project-date">Posted {{ project.createdAt|date('M d, Y') }}</span>
+                            </div>
+                            <p class="project-description">{{ project.description|length > 150 ? project.description|slice(0, 150) ~ '...' : project.description }}</p>
+                            <div class="project-budget">
+                                <strong>Budget:</strong> ${{ project.budget|number_format(2, '.', ',') }}
+                            </div>
+                            <div class="project-actions">
+                                <button type="button" class="btn btn-sm btn-primary view-project-btn" data-project-id="{{ project.id }}">View</button>
+                                {% if project.status == 'pending' %}
+                                    <button type="button" class="btn btn-sm btn-secondary edit-project-btn" data-project-id="{{ project.id }}">Edit</button>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-danger" data-project-id="{{ project.id }}">Delete</button>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
-
-                <div class="project-card">
-                    <div class="project-header">
-                        <h3>Website Redesign</h3>
-                        <span class="status-badge status-completed">Completed</span>
+            {% else %}
+                <!-- Empty State for My Projects -->
+                <div class="empty-state" id="emptyMyProjects">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-folder-plus"></i>
                     </div>
-                    <div class="project-meta">
-                        <span class="project-category">Web Design</span>
-                        <span class="project-date">Posted 2 weeks ago</span>
-                    </div>
-                    <p class="project-description">Modern, responsive website redesign for our e-commerce platform.</p>
-                    <div class="project-actions">
-                        <a href="#" class="btn btn-sm btn-primary">View</a>
-                        <a href="#" class="btn btn-sm btn-secondary">Edit</a>
-                        <button type="button" class="btn btn-sm btn-danger">Delete</button>
-                    </div>
+                    <h3>You haven't posted any projects yet.</h3>
+                    <p>Get started by posting your first project to connect with talented designers.</p>
+                    <button type="button" class="btn btn-primary" id="postProjectEmptyBtn">
+                        <i class="bi bi-plus-lg"></i>
+                        Post Your First Project
+                    </button>
                 </div>
-            </div>
-
-            <!-- Empty State for My Projects -->
-            <div class="empty-state hidden" id="emptyMyProjects">
-                <div class="empty-state-icon">
-                    <i class="bi bi-folder-plus"></i>
-                </div>
-                <h3>You haven't posted any projects yet.</h3>
-                <p>Get started by posting your first project to connect with talented designers.</p>
-                <button type="button" class="btn btn-primary" id="postProjectEmptyBtn">
-                    <i class="bi bi-plus-lg"></i>
-                    Post Your First Project
-                </button>
-            </div>
+            {% endif %}
         </div>
 
         <!-- Explore Projects Tab -->
-        <div class="tab-content" id="contentExplore">
-            <div class="projects-grid" id="exploreProjectsGrid">
-                <!-- Sample explore project cards -->
-                <div class="project-card explore-card">
-                    <div class="project-header">
-                        <div class="project-author">
-                            <div class="author-avatar">JD</div>
-                            <span class="author-name">John Doe</span>
+        <div class="tab-content {% if currentTab is defined and currentTab == 'explore' %}active{% endif %}" id="contentExplore">
+            {% if exploreProjects is defined and exploreProjects|length > 0 %}
+                <div class="projects-grid" id="exploreProjectsGrid">
+                    {% for project in exploreProjects %}
+                        <div class="project-card explore-card" data-project-id="{{ project.id }}">
+                            <div class="project-header">
+                                <div class="project-author">
+                                    {% set initials = (project.client.firstName|first|upper) ~ (project.client.lastName|first|upper) %}
+                                    <div class="author-avatar">{{ initials }}</div>
+                                    <span class="author-name">{{ project.client.firstName }} {{ project.client.lastName }}</span>
+                                </div>
+                                <div class="project-actions-icons">
+                                    <button type="button" class="icon-btn-small" title="Save project" aria-label="Save project">
+                                        <i class="bi bi-bookmark"></i>
+                                    </button>
+                                    <button type="button" class="icon-btn-small" title="Share project" aria-label="Share project">
+                                        <i class="bi bi-share"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <h3>{{ project.title }}</h3>
+                            <div class="project-meta">
+                                <span class="project-category">{{ project.category ? project.category.name : 'Uncategorized' }}</span>
+                                <span class="project-date">Posted {{ project.createdAt|date('M d, Y') }}</span>
+                            </div>
+                            <p class="project-description">{{ project.description|length > 150 ? project.description|slice(0, 150) ~ '...' : project.description }}</p>
+                            <div class="project-budget">
+                                <strong>Budget:</strong> ${{ project.budget|number_format(2, '.', ',') }}
+                            </div>
+                            <div class="project-actions">
+                                <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                            </div>
                         </div>
-                        <div class="project-actions-icons">
-                            <button type="button" class="icon-btn-small" title="Save project" aria-label="Save project">
-                                <i class="bi bi-bookmark"></i>
-                            </button>
-                            <button type="button" class="icon-btn-small" title="Share project" aria-label="Share project">
-                                <i class="bi bi-share"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <h3>Restaurant Menu Design</h3>
-                    <div class="project-meta">
-                        <span class="project-category">Print Design</span>
-                        <span class="project-date">Posted 5 days ago</span>
-                    </div>
-                    <p class="project-description">Looking for an elegant menu design for a fine dining restaurant. Minimalist aesthetic preferred.</p>
-                    <div class="project-actions">
-                        <a href="#" class="btn btn-sm btn-primary">View Details</a>
-                    </div>
+                    {% endfor %}
                 </div>
-
-                <div class="project-card explore-card">
-                    <div class="project-header">
-                        <div class="project-author">
-                            <div class="author-avatar">JS</div>
-                            <span class="author-name">Jane Smith</span>
-                        </div>
-                        <div class="project-actions-icons">
-                            <button type="button" class="icon-btn-small" title="Save project" aria-label="Save project">
-                                <i class="bi bi-bookmark"></i>
-                            </button>
-                            <button type="button" class="icon-btn-small" title="Share project" aria-label="Share project">
-                                <i class="bi bi-share"></i>
-                            </button>
-                        </div>
+            {% else %}
+                <!-- Empty State for Explore -->
+                <div class="empty-state" id="emptyExplore">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-search"></i>
                     </div>
-                    <h3>Social Media Templates</h3>
-                    <div class="project-meta">
-                        <span class="project-category">Branding</span>
-                        <span class="project-date">Posted 1 week ago</span>
-                    </div>
-                    <p class="project-description">Need cohesive social media templates for Instagram and Facebook. Bold and vibrant style.</p>
-                    <div class="project-actions">
-                        <a href="#" class="btn btn-sm btn-primary">View Details</a>
-                    </div>
+                    <h3>No projects found.</h3>
+                    <p>Try adjusting your search or filters to find more projects.</p>
                 </div>
-            </div>
-
-            <!-- Empty State for Explore -->
-            <div class="empty-state hidden" id="emptyExplore">
-                <div class="empty-state-icon">
-                    <i class="bi bi-search"></i>
-                </div>
-                <h3>No projects found.</h3>
-                <p>Try adjusting your search or filters to find more projects.</p>
-            </div>
+            {% endif %}
         </div>
     </section>
 </main>
@@ -210,12 +186,19 @@
                     <label for="projectCategory">Category <span class="required">*</span></label>
                     <select id="projectCategory" name="category" required>
                         <option value="">Select a category</option>
-                        <option value="logo">Logo Design</option>
-                        <option value="poster">Poster Design</option>
-                        <option value="web">Web Design</option>
-                        <option value="branding">Branding</option>
-                        <option value="print">Print Design</option>
-                        <option value="other">Other</option>
+                        {% if categories is defined %}
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        {% else %}
+                            {# Fallback to hardcoded categories if not loaded from database #}
+                            <option value="logo">Logo Design</option>
+                            <option value="poster">Poster Design</option>
+                            <option value="web">Web Design</option>
+                            <option value="branding">Branding</option>
+                            <option value="print">Print Design</option>
+                            <option value="other">Other</option>
+                        {% endif %}
                     </select>
                 </div>
                 
@@ -226,14 +209,15 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="projectBudget">Budget Range</label>
-                        <select id="projectBudget" name="budget">
-                            <option value="">Not specified</option>
+                        <label for="projectBudget">Budget Range <span class="required">*</span></label>
+                        <select id="projectBudget" name="budget" required>
+                            <option value="">Select budget range</option>
                             <option value="0-500">$0 - $500</option>
                             <option value="500-1000">$500 - $1,000</option>
                             <option value="1000-5000">$1,000 - $5,000</option>
                             <option value="5000+">$5,000+</option>
                         </select>
+                        <small class="form-hint">The backend will convert this range to an average value</small>
                     </div>
                     
                     <div class="form-group">
@@ -242,6 +226,7 @@
                             <option value="public">Public (Explore feed)</option>
                             <option value="private">Private (My Projects only)</option>
                         </select>
+                        <small class="form-hint">Note: Visibility feature will be implemented in future updates</small>
                     </div>
                 </div>
             </form>
@@ -249,6 +234,86 @@
         <div class="project-modal__footer">
             <button type="button" class="btn btn-secondary" id="cancelPostProject">Cancel</button>
             <button type="submit" form="postProjectForm" class="btn btn-primary" id="submitPostProject">Post Project</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Project Modal -->
+<div id="viewProjectModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="viewProjectTitle">
+        <button type="button" class="project-modal__close" id="closeViewProject" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div id="viewProjectContent">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Edit Project Modal -->
+<div id="editProjectModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="editProjectTitle">
+        <button type="button" class="project-modal__close" id="closeEditProject" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div id="editProjectContent">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Delete Project Modal -->
+<div id="deleteProjectModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="deleteProjectTitle" style="max-width: 500px;">
+        <button type="button" class="project-modal__close" id="closeDeleteProject" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div id="deleteProjectContent">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+</div>
+
+<!-- Edit Project Success Modal -->
+<div id="editProjectSuccessModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog success-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="editProjectSuccessTitle" style="max-width: 380px;">
+        <div class="success-modal-content">
+            <div style="text-align: center; padding: 0.75rem 0 1.25rem;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 0.75rem; background: #d1fae5; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-check-circle-fill" style="font-size: 2.25rem; color: #10b981;"></i>
+                </div>
+                <h2 id="editProjectSuccessTitle" class="success-modal-title" style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; text-align: center;">Project Updated Successfully!</h2>
+                <p class="success-modal-message" id="editProjectSuccessMessage" style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem; line-height: 1.5; text-align: center; margin-bottom: 1.25rem;">Your project changes have been saved and are now visible to designers.</p>
+            </div>
+            <div class="success-modal-footer" style="display: flex; justify-content: center;">
+                <button type="button" class="btn btn-primary" id="closeEditProjectSuccessModal" style="min-width: 100px; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                    <span>Got it</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Success Modal -->
+<div id="deleteSuccessModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog success-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteSuccessTitle" style="max-width: 380px;">
+        <div class="success-modal-content">
+            <div style="text-align: center; padding: 0.75rem 0 1.25rem;">
+                <div style="width: 60px; height: 60px; margin: 0 auto 0.75rem; background: #d1fae5; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-check-circle-fill" style="font-size: 2.25rem; color: #10b981;"></i>
+                </div>
+            <h2 id="deleteSuccessTitle" class="success-modal-title" style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; text-align: center;">Project Deleted Successfully!</h2>
+            <p class="success-modal-message" id="deleteSuccessMessage" style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem; line-height: 1.5; text-align: center; margin-bottom: 1.25rem;">The project and all associated proposals have been permanently removed.</p>
+            <div class="success-modal-footer" style="display: flex; justify-content: center;">
+                <button type="button" class="btn btn-primary" id="closeDeleteSuccessModal" style="min-width: 100px; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                    <span>Got it</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>

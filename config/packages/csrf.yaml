@@ -7,5 +7,5 @@ framework:
     csrf_protection:
         stateless_token_ids:
             - submit
-            - authenticate
+            # Removed 'authenticate' to use session-based CSRF for login (better for ngrok)
             - logout

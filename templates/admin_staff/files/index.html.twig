@@ -1,0 +1,346 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Files Management · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'files' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Files</h1>
+                <p class="admin-subtitle">Manage uploaded files</p>
+            </div>
+            <div class="admin-toolbar">
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <!-- Statistics -->
+        <div class="admin-card admin-files-stats-card">
+            <h2 class="admin-files-stats-title">File Statistics</h2>
+            <div class="admin-files-stats-grid">
+                <div class="admin-files-stat-item">
+                    <div class="admin-files-stat-icon blue">
+                        <i class="bi bi-files"></i>
+                    </div>
+                    <div class="admin-files-stat-content">
+                        <div class="admin-files-stat-value">{{ stats.total }}</div>
+                        <div class="admin-files-stat-label">Total Files</div>
+                    </div>
+                </div>
+                <div class="admin-files-stat-item">
+                    <div class="admin-files-stat-icon teal">
+                        <i class="bi bi-hdd"></i>
+                    </div>
+                    <div class="admin-files-stat-content">
+                        <div class="admin-files-stat-value">{{ stats.totalSizeFormatted }}</div>
+                        <div class="admin-files-stat-label">Total Size</div>
+                    </div>
+                </div>
+                <div class="admin-files-stat-item">
+                    <div class="admin-files-stat-icon orange">
+                        <i class="bi bi-image"></i>
+                    </div>
+                    <div class="admin-files-stat-content">
+                        <div class="admin-files-stat-value">{{ stats.byCategory.image|default(0) }}</div>
+                        <div class="admin-files-stat-label">Images</div>
+                    </div>
+                </div>
+                <div class="admin-files-stat-item">
+                    <div class="admin-files-stat-icon purple">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="admin-files-stat-content">
+                        <div class="admin-files-stat-value">{{ stats.byCategory.document|default(0) }}</div>
+                        <div class="admin-files-stat-label">Documents</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="admin-card" style="padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
+            <form method="GET" action="{{ path('app_admin_file_index') }}" class="admin-filters">
+                <div style="display: flex; gap: 2rem; align-items: end;">
+                    <div style="flex: 1;">
+                        <label for="typeFilter" style="display: block; margin-bottom: 0.625rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">File Type</label>
+                        <select id="typeFilter" name="type" style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All Types</option>
+                            <option value="image" {% if typeFilter == 'image' %}selected{% endif %}>Images</option>
+                            <option value="document" {% if typeFilter == 'document' %}selected{% endif %}>Documents</option>
+                            <option value="archive" {% if typeFilter == 'archive' %}selected{% endif %}>Archives</option>
+                            <option value="video" {% if typeFilter == 'video' %}selected{% endif %}>Videos</option>
+                            <option value="audio" {% if typeFilter == 'audio' %}selected{% endif %}>Audio</option>
+                            <option value="other" {% if typeFilter == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="dateFrom" style="display: block; margin-bottom: 0.625rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Date From</label>
+                        <input type="date" id="dateFrom" name="date_from" value="{{ dateFrom }}" style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="dateTo" style="display: block; margin-bottom: 0.625rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Date To</label>
+                        <input type="date" id="dateTo" name="date_to" value="{{ dateTo }}" style="width: 100%; padding: 0.625rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; margin-left: 1.5rem;">
+                        <button type="submit" class="btn-primary" style="padding: 0.625rem 1.25rem; font-family: 'Poppins', Arial, sans-serif;">Filter</button>
+                        <a href="{{ path('app_admin_file_index') }}" class="btn-secondary" style="padding: 0.625rem 1.25rem; text-decoration: none; display: inline-block; font-family: 'Poppins', Arial, sans-serif;">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="admin-card" style="padding: 1.1rem 1.25rem;">
+            <h2 style="font-family:'Poppins'; font-size:1.2rem; margin: 0 0 0.9rem 0;">All Files ({{ totalFiles }})</h2>
+            <div class="admin-table-wrapper">
+                <table class="admin-table table-balanced table-colored" id="filesTable">
+                    <thead>
+                        <tr>
+                            <th style="font-size: 0.75rem; padding: 4px 6px;">Name</th>
+                            <th style="font-size: 0.75rem; padding: 4px 6px;">Type</th>
+                            <th style="font-size: 0.75rem; padding: 4px 6px;">Size</th>
+                            <th style="font-size: 0.75rem; padding: 4px 6px;">Status</th>
+                            <th style="font-size: 0.75rem; padding: 4px 6px;">References</th>
+                            <th style="font-size: 0.75rem; padding: 4px 6px;">Modified</th>
+                            <th style="font-size: 0.75rem; padding: 4px 6px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for file in files %}
+                        <tr class="admin-row" data-file-id="{{ file.id }}">
+                            <td style="font-size: 0.75rem; padding: 4px 6px;">
+                                <span class="truncate" title="{{ file.name }}">{{ file.name }}</span>
+                            </td>
+                            <td style="padding: 4px 6px;">
+                                <span class="badge-status {% if file.type == 'image' %}is-completed{% elseif file.type == 'document' %}is-ongoing{% else %}is-pending{% endif %}" style="text-transform: capitalize; font-size: 0.6rem; padding: 2px 6px; white-space: nowrap;">{{ file.type }}</span>
+                            </td>
+                            <td style="font-size: 0.75rem; padding: 4px 6px;">{{ file.sizeFormatted }}</td>
+                            <td style="padding: 4px 6px;">
+                                {% if file.inUse %}
+                                    <span class="badge-status is-ongoing" style="background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 0.65rem; padding: 3px 8px; white-space: nowrap; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 0.7rem;"></i>In Use
+                                    </span>
+                                {% else %}
+                                    <span class="badge-status is-pending" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 0.65rem; padding: 3px 8px; white-space: nowrap; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;">
+                                        <i class="bi bi-check-circle-fill" style="font-size: 0.7rem;"></i>Orphaned
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size: 0.75rem; padding: 4px 6px;">
+                                {% if file.references|length > 0 %}
+                                    {% for ref in file.references %}
+                                        <div style="margin-bottom: 0.2rem;">
+                                            <span style="color: #6b7280;">{{ ref.type }}:</span>
+                                            <a href="{{ path('app_user_show', {'id': ref.entityId}) }}" style="color: var(--color-primary); text-decoration: none;">{{ ref.entityName }}</a>
+                                        </div>
+                                    {% endfor %}
+                                    {% if file.lastUsed %}
+                                        <div style="color: #9ca3af; font-size: 0.7rem; margin-top: 0.2rem;">
+                                            Used: {{ file.lastUsed|date('Y-m-d') }}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #9ca3af;">—</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-size: 0.75rem; padding: 4px 6px;">{{ file.modified|date('Y-m-d H:i') }}</td>
+                            <td style="padding: 4px 6px; text-align: center;">
+                                <a class="btn-link" href="{{ path('app_admin_file_show', {'path': file.path|url_encode}) }}" style="font-size: 0.8rem; padding: 3px 6px; margin: 0; display: inline-block; border-radius: 4px;">View</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: #6b7280; font-family: 'Montserrat', Arial, sans-serif;">No files found.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if totalPages > 1 %}
+                <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb;">
+                    {% if page > 1 %}
+                        <a href="{{ path('app_admin_file_index', app.request.query.all|merge({page: page - 1})) }}" class="btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none; font-family: 'Poppins', Arial, sans-serif;">Previous</a>
+                    {% endif %}
+                    
+                    <span style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; padding: 0 1rem;">
+                        Page {{ page }} of {{ totalPages }}
+                    </span>
+                    
+                    {% if page < totalPages %}
+                        <a href="{{ path('app_admin_file_index', app.request.query.all|merge({page: page + 1})) }}" class="btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none; font-family: 'Poppins', Arial, sans-serif;">Next</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteFileModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 style="font-family: 'Poppins', Arial, sans-serif; margin-bottom: 1rem;">Delete File</h3>
+            <div id="deleteFileWarning" style="display: none; margin-bottom: 1rem; padding: 1rem; background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px;">
+                <div style="display: flex; align-items: start; gap: 0.75rem;">
+                    <i class="bi bi-exclamation-triangle-fill" style="color: #d97706; font-size: 1.25rem; margin-top: 2px;"></i>
+                    <div>
+                        <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.875rem; color: #92400e; font-weight: 600; margin-bottom: 0.25rem;">Warning: File is in use</div>
+                        <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.8125rem; color: #78350f;" id="deleteFileWarningText"></div>
+                    </div>
+                </div>
+            </div>
+            <p style="font-family: 'Montserrat', Arial, sans-serif; margin-bottom: 1.5rem;">Are you sure you want to delete <strong id="deleteFileName"></strong>? This action cannot be undone.</p>
+            <form id="deleteFileForm" method="POST" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_file') }}">
+                <button type="button" class="btn-secondary" onclick="closeDeleteModal()" style="padding: 0.5rem 1rem; font-family: 'Poppins', Arial, sans-serif;">Cancel</button>
+                <button type="submit" class="btn-danger" style="padding: 0.5rem 1rem; font-family: 'Poppins', Arial, sans-serif;">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Deleting Modal -->
+    <div id="deletingFileModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div style="text-align: center; padding: 1rem;">
+                <div style="margin-bottom: 1rem;">
+                    <div class="spinner" style="border: 4px solid #f3f4f6; border-top: 4px solid var(--color-primary); border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                </div>
+                <h3 style="font-family: 'Poppins', Arial, sans-serif; margin-bottom: 0.5rem; color: #374151;">Deleting File...</h3>
+                <p style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem;">Please wait while we delete <strong id="deletingFileName"></strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="deleteSuccessModal" class="project-modal hidden" aria-hidden="true">
+        <div class="project-modal__backdrop"></div>
+        <div class="project-modal__dialog success-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteSuccessTitle" style="max-width: 380px;">
+            <div class="success-modal-content">
+                <div style="text-align: center; padding: 0.75rem 0 1.25rem;">
+                    <div style="width: 60px; height: 60px; margin: 0 auto 0.75rem; background: #d1fae5; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-check-circle-fill" style="font-size: 2.25rem; color: #10b981;"></i>
+                    </div>
+                    <h2 id="deleteSuccessTitle" class="success-modal-title" style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; text-align: center;">File Deleted Successfully!</h2>
+                    <p class="success-modal-message" id="deleteSuccessMessage" style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem; line-height: 1.5; text-align: center; margin-bottom: 1.25rem;">The file has been deleted successfully.</p>
+                </div>
+                <div class="success-modal-footer" style="display: flex; justify-content: center;">
+                    <button type="button" class="btn btn-primary" onclick="closeSuccessModal()" style="min-width: 100px; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        <span>Got it</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function deleteFile(path, fileName, inUse, referenceCount) {
+            document.getElementById('deleteFileName').textContent = fileName;
+            document.getElementById('deleteFileForm').action = '{{ path('app_admin_file_delete', {'path': '__PATH__'}) }}'.replace('__PATH__', path);
+            
+            // Show warning if file is in use
+            const warningDiv = document.getElementById('deleteFileWarning');
+            const warningText = document.getElementById('deleteFileWarningText');
+            
+            if (inUse && referenceCount > 0) {
+                warningText.textContent = 'This file is currently being used by ' + referenceCount + ' reference(s). Deleting it may cause issues in the system.';
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+            
+            document.getElementById('deleteFileModal').style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteFileModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('deleteFileModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('deleteFileForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+            const fileName = document.getElementById('deleteFileName').textContent;
+            
+            // Close confirmation modal and show deleting modal
+            closeDeleteModal();
+            document.getElementById('deletingFileName').textContent = fileName;
+            document.getElementById('deletingFileModal').style.display = 'flex';
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide deleting modal
+                document.getElementById('deletingFileModal').style.display = 'none';
+                
+                if (data.success) {
+                    // Update success message if it includes user profile picture reset info
+                    const successMessage = document.getElementById('deleteSuccessMessage');
+                    if (data.message && data.message.includes('profile picture')) {
+                        successMessage.textContent = data.message;
+                    }
+                    
+                    // Show success modal
+                    const successModal = document.getElementById('deleteSuccessModal');
+                    if (successModal) {
+                        successModal.classList.remove('hidden');
+                        successModal.classList.remove('closing');
+                        successModal.setAttribute('aria-hidden', 'false');
+                        document.body.style.overflow = 'hidden';
+                        successModal.style.display = 'flex';
+                    }
+                } else {
+                    // Show error alert
+                    alert('Error: ' + (data.message || 'Failed to delete file.'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Hide deleting modal
+                document.getElementById('deletingFileModal').style.display = 'none';
+                alert('An error occurred while deleting the file.');
+            });
+        });
+
+        function closeSuccessModal() {
+            const successModal = document.getElementById('deleteSuccessModal');
+            if (successModal) {
+                successModal.classList.add('closing');
+                successModal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                
+                setTimeout(function() {
+                    successModal.classList.add('hidden');
+                    successModal.classList.remove('closing');
+                    successModal.style.display = '';
+                    window.location.reload();
+                }, 250);
+            }
+        }
+    </script>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+{% endblock %}
+

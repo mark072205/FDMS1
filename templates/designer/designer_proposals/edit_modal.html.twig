@@ -1,0 +1,65 @@
+<!-- Edit Proposal Modal Content -->
+<div class="project-modal-content">
+    <h2 class="project-modal__title">Edit Proposal</h2>
+    
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px;">
+        <div style="display: flex; align-items: start; gap: 0.75rem;">
+            <i class="bi bi-info-circle" style="color: #d97706; font-size: 1.25rem; margin-top: 2px;"></i>
+            <div>
+                <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;">Editing Proposal</div>
+                <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.8125rem; color: #78350f;">You can only edit proposals with pending status. Once accepted or rejected, proposals cannot be modified.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="project-modal__content">
+        <form id="editProposalForm">
+            <input type="hidden" id="editProposalId" name="proposalId" value="{{ proposal.id }}">
+            
+            <div class="form-group">
+                <label for="editCoverLetter">Cover Letter <span class="form-hint">(Optional)</span></label>
+                <textarea id="editCoverLetter" name="coverLetter" rows="4" placeholder="Introduce yourself and explain why you're the right fit for this project...">{{ proposal.coverLetter }}</textarea>
+                <small class="form-hint">A brief introduction to help the client understand your approach and expertise.</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="editProposalText">Proposal Text <span class="required">*</span></label>
+                <textarea id="editProposalText" name="proposalText" rows="6" placeholder="Describe your approach, methodology, timeline, and how you plan to deliver this project..." required>{{ proposal.proposalText }}</textarea>
+                <small class="form-hint">Detailed explanation of how you'll approach and complete this project.</small>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="editProposedPrice">Proposed Price <span class="required">*</span></label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-family: 'Montserrat', Arial, sans-serif;">$</span>
+                        <input type="number" id="editProposedPrice" name="proposedPrice" step="0.01" min="0.01" value="{{ proposal.proposedPrice }}" placeholder="0.00" required style="padding-left: 28px;">
+                    </div>
+                    <small class="form-hint">Your total price for completing this project.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editDeliveryTime">Delivery Time (Days) <span class="required">*</span></label>
+                    <input type="number" id="editDeliveryTime" name="deliveryTime" min="1" value="{{ proposal.deliveryTime }}" placeholder="e.g., 7" required>
+                    <small class="form-hint">Number of days to complete the project.</small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="editRevisionRounds">Revision Rounds</label>
+                <input type="number" id="editRevisionRounds" name="revisionRounds" min="0" value="{{ proposal.revisionRounds }}" placeholder="1">
+                <small class="form-hint">Number of revision rounds included in your proposal (default: 1).</small>
+            </div>
+        </form>
+    </div>
+    <div class="project-modal__footer">
+        <button type="button" class="btn btn-secondary btn-cancel-edit" id="cancelEditProposal">
+            <span>Cancel</span>
+        </button>
+        <button type="submit" form="editProposalForm" class="btn btn-primary btn-update-proposal-modal" id="submitEditProposalBtn">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Save Changes</span>
+        </button>
+    </div>
+</div>
+

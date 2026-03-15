@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}About Us | Mark & Motion{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/header.css') }}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{{ asset('styles/landing.css') }}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{{ asset('styles/footer.css') }}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{{ asset('styles/about.css') }}" data-turbo-track="reload">
+{% endblock %}
+
+{% block body %}
+<div class="about-page">
+    <header class="header" id="mainNav">
+        <div class="header-left">
+            <a href="{{ path('app_landing_page') }}" class="logo-link">
+                <img src="{{ asset('img/logomain.png') }}" alt="Mark & Motion">
+            </a>
+
+            <nav class="admin-nav" aria-label="Main navigation">
+                <a href="{{ path('app_landing_page') }}#home" class="nav-item">Home</a>
+                <a href="{{ path('app_landing_page') }}#categories" class="nav-item">Explore</a>
+                <a href="{{ path('app_landing_page') }}#reviews" class="nav-item">Reviews</a>
+                <a href="{{ path('app_landing_page') }}#how-it-works" class="nav-item">How It Works</a>
+                <a href="{{ path('app_about') }}" class="nav-item active">About</a>
+            </nav>
+        </div>
+
+        <div class="header-right">
+            <a href="{{ path('app_login') }}" class="btn btn-outline">Log In</a>
+            <a href="{{ path('app_signup') }}" class="btn btn-primary">Sign Up</a>
+        </div>
+    </header>
+
+    <main class="about-main" style="padding-top: 82px;">
+        {# Hero banner: two columns – left title/subtitle, right full-bleed photo with overlay #}
+        <section class="about-hero">
+            <div class="about-hero-inner">
+                <div class="about-hero-left">
+                    <h1 class="about-hero-title">About Us</h1>
+                    <p class="about-hero-subtitle">Client & Designer Connect.</p>
+                </div>
+                <div class="about-hero-right">
+                    <img src="{{ asset('img/ceo_img.jpg') }}" alt="Hayden Brown" class="about-hero-photo">
+                    <div class="about-hero-overlay">
+                        <span class="about-hero-name">Aljemark Sendiong</span>
+                        <span class="about-hero-role">President & CEO</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# Narrative section – left-aligned text, concluding sentence, signature image + typed name/title #}
+        <section class="about-narrative">
+            <div class="about-narrative-inner">
+                <p>Mark & Motion is a freelance design marketplace built to connect clients with talented designers. We help businesses and creatives thrive by making it simple to find the right talent for every project—from logos and brand identity to UI/UX, illustration, and beyond. No matter how your design needs evolve, our purpose stays the same: to put creativity in motion and create marks that last.</p>
+                <p>Today, design drives how brands stand out and how products come to life. Mark & Motion is where clients and designers meet that moment. Our platform gives everyone—from startups to established brands—a trusted place to post projects, discover designers, and collaborate from brief to delivery. Secure payments and clear workflows support every step from idea to finished work.</p>
+                <p>Mark & Motion is where clients and designers achieve more than they imagined. Whether you're here to get your next project done, grow your design career, or build your brand, we're glad you're part of our community.</p>
+                <p class="about-narrative-close">Let's create what's next—together.</p>
+                <div class="about-signature-block">
+                    <span class="about-signature-handwritten">Aljemark Sendiong</span>
+                    <span class="about-signature-name">Aljemark Sendiong,</span>
+                    <span class="about-signature-title">President and CEO</span>
+                </div>
+            </div>
+        </section>
+
+        {# Our Leaders / Board of Directors – white card, green eyebrow & links, two-column layout #}
+        <section class="about-leaders">
+            <div class="about-leaders-inner">
+                <div class="about-leaders-header">
+                    <p class="about-leaders-eyebrow">Our Leaders</p>
+                    <h2 class="about-leaders-title">Board of Directors</h2>
+                </div>
+                <ul class="about-leaders-list">
+                    <li class="about-leader-item">
+                        <div class="about-leader-avatar">
+                            <img src="{{ asset('img/ceo_img.jpg') }}" alt="Hayden Brown" class="about-leader-photo">
+                        </div>
+                        <div class="about-leader-content">
+                            <h3 class="about-leader-name">Hayden Brown</h3>
+                            <p class="about-leader-title">President and CEO</p>
+                            <p class="about-leader-desc">Hayden Brown is president and CEO of Upwork, the world's human and AI-powered work marketplace, where Fortune 100 companies through small businesses connect with talented professionals.</p>
+                            <a href="javascript:void(0)" class="about-leader-readmore">Read more</a>
+                        </div>
+                    </li>
+                    <li class="about-leader-item">
+                        <div class="about-leader-avatar">
+                            <img src="{{ asset('img/ceo_img.jpg') }}" alt="Erica Gessert" class="about-leader-photo">
+                        </div>
+                        <div class="about-leader-content">
+                            <h3 class="about-leader-name">Erica Gessert</h3>
+                            <p class="about-leader-title">Chief Financial Officer</p>
+                            <p class="about-leader-desc">Erica Gessert is Chief Financial Officer at Upwork, where she oversees Upwork's global finance team and operations.</p>
+                            <a href="javascript:void(0)" class="about-leader-readmore">Read more</a>
+                        </div>
+                    </li>
+                    <li class="about-leader-item">
+                        <div class="about-leader-avatar">
+                            <img src="{{ asset('img/ceo_img.jpg') }}" alt="Sunita Solao" class="about-leader-photo">
+                        </div>
+                        <div class="about-leader-content">
+                            <h3 class="about-leader-name">Sunita Solao</h3>
+                            <p class="about-leader-title">Chief People Officer</p>
+                            <p class="about-leader-desc">As Chief People Officer at Upwork, Sunita is responsible for driving innovation in the company's workforce strategy and designing a world-class team member experience.</p>
+                            <a href="javascript:void(0)" class="about-leader-readmore">Read more</a>
+                        </div>
+                    </li>
+                    <li class="about-leader-item">
+                        <div class="about-leader-avatar">
+                            <img src="{{ asset('img/ceo_img.jpg') }}" alt="Andrew Rabinovich" class="about-leader-photo">
+                        </div>
+                        <div class="about-leader-content">
+                            <h3 class="about-leader-name">Andrew Rabinovich</h3>
+                            <p class="about-leader-title">Chief Technology Officer, Head of AI/ML</p>
+                            <p class="about-leader-desc">Andrew Rabinovich is Chief Technology Officer and head of artificial intelligence (AI) & machine learning (ML) at Upwork, where he leads all aspects of product and technology.</p>
+                            <a href="javascript:void(0)" class="about-leader-readmore">Read more</a>
+                        </div>
+                    </li>
+                    <li class="about-leader-item">
+                        <div class="about-leader-avatar">
+                            <img src="{{ asset('img/ceo_img.jpg') }}" alt="Anthony Kappus" class="about-leader-photo">
+                        </div>
+                        <div class="about-leader-content">
+                            <h3 class="about-leader-name">Anthony Kappus</h3>
+                            <p class="about-leader-title">Chief Operating Officer</p>
+                            <p class="about-leader-desc">As Upwork's Chief Operating Officer, Anthony Kappus leads a team spanning legal, information security, payments & trust, customer support, and operations.</p>
+                            <a href="javascript:void(0)" class="about-leader-readmore">Read more</a>
+                        </div>
+                    </li>
+                    <li class="about-leader-item">
+                        <div class="about-leader-avatar">
+                            <img src="{{ asset('img/ceo_img.jpg') }}" alt="Dave Bottoms" class="about-leader-photo">
+                        </div>
+                        <div class="about-leader-content">
+                            <h3 class="about-leader-name">Dave Bottoms</h3>
+                            <p class="about-leader-title">GM, Marketplace</p>
+                            <p class="about-leader-desc">Dave Bottoms leads Upwork's Marketplace organization, a global team responsible for the core Marketplace, search & recommendations, ads & growth.</p>
+                            <a href="javascript:void(0)" class="about-leader-readmore">Read more</a>
+                        </div>
+                    </li>
+                    <li class="about-leader-item">
+                        <div class="about-leader-avatar">
+                            <img src="{{ asset('img/ceo_img.jpg') }}" alt="Jacob McQuown" class="about-leader-photo">
+                        </div>
+                        <div class="about-leader-content">
+                            <h3 class="about-leader-name">Jacob McQuown</h3>
+                            <p class="about-leader-title">Chief Legal Officer</p>
+                            <p class="about-leader-desc">Jacob McQuown oversees Upwork's legal, regulatory, and government affairs functions globally, providing strategic counsel to the company as it continues to scale.</p>
+                            <a href="javascript:void(0)" class="about-leader-readmore">Read more</a>
+                        </div>
+                    </li>
+                    <li class="about-leader-item">
+                        <div class="about-leader-avatar">
+                            <img src="{{ asset('img/ceo_img.jpg') }}" alt="Peter Sanborn" class="about-leader-photo">
+                        </div>
+                        <div class="about-leader-content">
+                            <h3 class="about-leader-name">Peter Sanborn</h3>
+                            <p class="about-leader-title">VP, Strategy, Corporate Development and Partnerships</p>
+                            <p class="about-leader-desc">Peter Sanborn is Vice President, Strategy, Corporate Development and Partnerships at Upwork, where he oversees Upwork's corporate strategy, M&A, and partnerships.</p>
+                            <a href="javascript:void(0)" class="about-leader-readmore">Read more</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        {# CTA section #}
+        <section class="about-cta">
+            <div class="about-cta-inner">
+                <div class="about-cta-left">
+                    <h2 class="about-cta-title">Start your journey</h2>
+                    <div class="about-cta-buttons">
+                        <a href="{{ path('app_landing_page') }}#categories" class="btn btn-primary btn-cta-solid">Find Talent</a>
+                        <a href="{{ path('app_landing_page') }}#categories" class="btn btn-outline btn-cta-outline">Find Work</a>
+                    </div>
+                </div>
+                <div class="about-cta-right">
+                    <div class="about-cta-image" style="background-image: url('{{ asset('img/hero_img.jpg') }}');"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% include 'landing_page/_footerlanding.html.twig' %}
+</div>
+{% endblock %}

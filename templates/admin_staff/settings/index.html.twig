@@ -1,0 +1,1066 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Settings · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'settings' } %}
+
+    {% set isStaff = is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Settings</h1>
+                <p class="admin-subtitle">{% if isStaff %}Configure your account settings{% else %}Configure system and account settings{% endif %}</p>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        {% if isStaff %}
+            {# Staff Settings - Profile and Password #}
+            <div class="settings-container">
+                <div class="settings-layout">
+                    <div class="settings-sidebar">
+                        <div class="settings-tabs">
+                            <button type="button" class="settings-tab {% if activeTab == 'profile' or activeTab is not defined %}active{% endif %}" data-tab="profile">
+                                <i class="bi bi-person" style="margin-right: 0.75rem;"></i>Profile
+                            </button>
+                            <button type="button" class="settings-tab {% if activeTab == 'password' %}active{% endif %}" data-tab="password">
+                                <i class="bi bi-key" style="margin-right: 0.75rem;"></i>Password
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-content">
+                        <div class="admin-card" style="padding: 1.25rem;">
+                            {# Profile Section #}
+                            <div class="settings-section {% if activeTab == 'profile' or activeTab is not defined %}active{% endif %}" id="profile-section">
+                                <h2 class="settings-section-title">Profile Information</h2>
+                                <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1.5rem; font-family: 'Montserrat', Arial, sans-serif;">Update your personal information and account details.</p>
+                                
+                                {{ form_start(profileForm, {'attr': {'id': 'profileForm'}}) }}
+                                <input type="hidden" name="activeTab" value="profile">
+                                
+                                <div class="settings-grid">
+                                    <div class="settings-form-group">
+                                        {{ form_label(profileForm.firstName) }}
+                                        {{ form_widget(profileForm.firstName) }}
+                                        {{ form_errors(profileForm.firstName) }}
+                                        <div class="settings-help-text">Your first name as it appears on your account</div>
+                                    </div>
+                                    <div class="settings-form-group">
+                                        {{ form_label(profileForm.lastName) }}
+                                        {{ form_widget(profileForm.lastName) }}
+                                        {{ form_errors(profileForm.lastName) }}
+                                        <div class="settings-help-text">Your last name as it appears on your account (optional)</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-grid">
+                                    <div class="settings-form-group">
+                                        {{ form_label(profileForm.email) }}
+                                        {{ form_widget(profileForm.email) }}
+                                        {{ form_errors(profileForm.email) }}
+                                        <div class="settings-help-text">Your email address for account notifications</div>
+                                    </div>
+                                    <div class="settings-form-group">
+                                        {{ form_label(profileForm.username) }}
+                                        {{ form_widget(profileForm.username) }}
+                                        {{ form_errors(profileForm.username) }}
+                                        <div class="settings-help-text">Your unique username (letters, numbers, and underscores only)</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                                    <button type="button" class="btn-secondary" onclick="window.location.href='{{ path('app_dashboard') }}'">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="btn-primary">
+                                        <i class="bi bi-save" style="margin-right: 0.5rem;"></i>Save Profile
+                                    </button>
+                                </div>
+                                
+                                {{ form_end(profileForm) }}
+                            </div>
+
+                            {# Password Section #}
+                            <div class="settings-section {% if activeTab == 'password' %}active{% endif %}" id="password-section">
+                                <h2 class="settings-section-title">Change Password</h2>
+                                <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1.5rem; font-family: 'Montserrat', Arial, sans-serif;">Update your password to keep your account secure.</p>
+                                
+                                {{ form_start(passwordForm, {'attr': {'id': 'changePasswordForm', 'novalidate': 'novalidate'}}) }}
+                                <input type="hidden" name="activeTab" value="password">
+                                
+                                <div class="settings-form-group" style="margin-bottom: 1.25rem;">
+                                    {{ form_label(passwordForm.currentPassword) }}
+                                    <div class="password-wrapper">
+                                        {{ form_widget(passwordForm.currentPassword, {'attr': {'id': passwordForm.currentPassword.vars.id}}) }}
+                                        <button type="button" class="toggle-password" data-target="{{ passwordForm.currentPassword.vars.id }}" aria-label="Toggle password visibility">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    {{ form_errors(passwordForm.currentPassword) }}
+                                    <div class="settings-help-text">Enter your current password to verify your identity</div>
+                                </div>
+                                
+                                <div class="settings-form-group" style="margin-bottom: 1.25rem;">
+                                    {{ form_label(passwordForm.newPassword) }}
+                                    <div class="password-wrapper">
+                                        {{ form_widget(passwordForm.newPassword, {'attr': {'id': passwordForm.newPassword.vars.id}}) }}
+                                        <button type="button" class="toggle-password" data-target="{{ passwordForm.newPassword.vars.id }}" aria-label="Toggle password visibility">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    {% if not isStaff %}
+                                        {{ form_errors(passwordForm.newPassword) }}
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="settings-form-group" style="margin-bottom: 1.5rem;">
+                                    {{ form_label(passwordForm.confirmPassword) }}
+                                    <div class="password-wrapper" style="position: relative;">
+                                        {{ form_widget(passwordForm.confirmPassword, {'attr': {'id': passwordForm.confirmPassword.vars.id, 'style': 'padding-right: 2.5rem;'}}) }}
+                                        <button type="button" class="toggle-password" data-target="{{ passwordForm.confirmPassword.vars.id }}" aria-label="Toggle password visibility">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    {{ form_errors(passwordForm.confirmPassword) }}
+                                    <div class="settings-help-text">Re-enter your new password to confirm</div>
+                                </div>
+                                
+                                <div class="settings-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                                    <button type="submit" class="btn-primary">
+                                        <i class="bi bi-key" style="margin-right: 0.5rem;"></i>Change Password
+                                    </button>
+                                </div>
+                                
+                                {{ form_end(passwordForm) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            {# Admin Settings - Full Settings #}
+        <div class="settings-container">
+            <div class="settings-layout">
+                <div class="settings-sidebar">
+                    <div class="settings-tabs">
+                        <button type="button" class="settings-tab {% if activeTab is not defined or activeTab == 'profile' %}active{% endif %}" data-tab="profile">
+                            <i class="bi bi-person" style="margin-right: 0.75rem;"></i>Profile
+                        </button>
+                        <button type="button" class="settings-tab {% if activeTab == 'general' %}active{% endif %}" data-tab="general">
+                            <i class="bi bi-gear" style="margin-right: 0.75rem;"></i>General
+                        </button>
+                        <button type="button" class="settings-tab {% if activeTab == 'email' %}active{% endif %}" data-tab="email">
+                            <i class="bi bi-envelope" style="margin-right: 0.75rem;"></i>Email
+                        </button>
+                        <button type="button" class="settings-tab {% if activeTab == 'payment' %}active{% endif %}" data-tab="payment">
+                            <i class="bi bi-credit-card" style="margin-right: 0.75rem;"></i>Payment
+                        </button>
+                        <button type="button" class="settings-tab {% if activeTab == 'password' %}active{% endif %}" data-tab="password">
+                            <i class="bi bi-key" style="margin-right: 0.75rem;"></i>Password
+                        </button>
+                        <button type="button" class="settings-tab {% if activeTab == 'security' %}active{% endif %}" data-tab="security">
+                            <i class="bi bi-shield-lock" style="margin-right: 0.75rem;"></i>Security
+                        </button>
+                        <button type="button" class="settings-tab {% if activeTab == 'features' %}active{% endif %}" data-tab="features">
+                            <i class="bi bi-toggle-on" style="margin-right: 0.75rem;"></i>Features
+                        </button>
+                        <button type="button" class="settings-tab {% if activeTab == 'maintenance' %}active{% endif %}" data-tab="maintenance">
+                            <i class="bi bi-wrench" style="margin-right: 0.75rem;"></i>Maintenance
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-content">
+                    <div class="admin-card" style="padding: 1.25rem;">
+                        <!-- Profile Section -->
+                        {% if profileForm is defined %}
+                            <div class="settings-section {% if activeTab is not defined or activeTab == 'profile' %}active{% endif %}" id="profile-section">
+                                <h2 class="settings-section-title">Profile Information</h2>
+                                <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1.5rem; font-family: 'Montserrat', Arial, sans-serif;">Update your personal information and account details.</p>
+                                
+                                {{ form_start(profileForm, {'attr': {'id': 'adminProfileForm'}}) }}
+                                <input type="hidden" name="activeTab" value="profile">
+                                
+                                <div class="settings-grid">
+                                    <div class="settings-form-group">
+                                        {{ form_label(profileForm.firstName) }}
+                                        {{ form_widget(profileForm.firstName) }}
+                                        {{ form_errors(profileForm.firstName) }}
+                                        <div class="settings-help-text">Your first name as it appears on your account</div>
+                                    </div>
+                                    <div class="settings-form-group">
+                                        {{ form_label(profileForm.lastName) }}
+                                        {{ form_widget(profileForm.lastName) }}
+                                        {{ form_errors(profileForm.lastName) }}
+                                        <div class="settings-help-text">Your last name as it appears on your account (optional)</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-grid">
+                                    <div class="settings-form-group">
+                                        {{ form_label(profileForm.email) }}
+                                        {{ form_widget(profileForm.email) }}
+                                        {{ form_errors(profileForm.email) }}
+                                        <div class="settings-help-text">Your email address for account notifications</div>
+                                    </div>
+                                    <div class="settings-form-group">
+                                        {{ form_label(profileForm.username) }}
+                                        {{ form_widget(profileForm.username) }}
+                                        {{ form_errors(profileForm.username) }}
+                                        <div class="settings-help-text">Your unique username (letters, numbers, and underscores only)</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="settings-actions" style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                                    <button type="submit" class="btn-primary">
+                                        <i class="bi bi-save" style="margin-right: 0.5rem;"></i>Save Profile
+                                    </button>
+                                </div>
+                                
+                                {{ form_end(profileForm) }}
+                            </div>
+                        {% endif %}
+
+                        {{ form_start(form, {'attr': {'id': 'settingsForm'}}) }}
+
+                        <!-- General Settings -->
+                        <div class="settings-section {% if activeTab == 'general' %}active{% endif %}" id="general-section">
+                    <h2 class="settings-section-title">General Settings</h2>
+                    <div class="settings-grid">
+                        <div class="settings-form-group">
+                            {{ form_label(form.site_name) }}
+                            {{ form_widget(form.site_name) }}
+                            <div class="settings-help-text">The name of your marketplace</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.site_logo) }}
+                            {{ form_widget(form.site_logo) }}
+                            <div class="settings-help-text">URL to your site logo</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.contact_email) }}
+                            {{ form_widget(form.contact_email) }}
+                            <div class="settings-help-text">Primary contact email address</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.contact_phone) }}
+                            {{ form_widget(form.contact_phone) }}
+                            <div class="settings-help-text">Contact phone number</div>
+                        </div>
+                    </div>
+                    <div class="settings-form-group">
+                        {{ form_label(form.site_description) }}
+                        {{ form_widget(form.site_description) }}
+                        <div class="settings-help-text">Brief description of your marketplace</div>
+                    </div>
+                </div>
+
+                <!-- Email Settings -->
+                <div class="settings-section" id="email-section">
+                    <h2 class="settings-section-title">Email Configuration</h2>
+                    <div class="settings-grid">
+                        <div class="settings-form-group">
+                            {{ form_label(form.smtp_host) }}
+                            {{ form_widget(form.smtp_host) }}
+                            <div class="settings-help-text">SMTP server hostname</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.smtp_port) }}
+                            {{ form_widget(form.smtp_port) }}
+                            <div class="settings-help-text">SMTP server port (usually 587 or 465)</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.smtp_username) }}
+                            {{ form_widget(form.smtp_username) }}
+                            <div class="settings-help-text">SMTP authentication username</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.smtp_password) }}
+                            {{ form_widget(form.smtp_password) }}
+                            <div class="settings-help-text">SMTP authentication password</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.smtp_encryption) }}
+                            {{ form_widget(form.smtp_encryption) }}
+                            <div class="settings-help-text">Encryption method for SMTP</div>
+                        </div>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="settings-form-group">
+                            {{ form_label(form.email_from_address) }}
+                            {{ form_widget(form.email_from_address) }}
+                            <div class="settings-help-text">Default sender email address</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.email_from_name) }}
+                            {{ form_widget(form.email_from_name) }}
+                            <div class="settings-help-text">Default sender name</div>
+                        </div>
+                    </div>
+                    <div class="settings-actions">
+                        <button type="button" class="btn-secondary test-button" id="testEmailBtn">
+                            <i class="bi bi-envelope-check" style="margin-right: 0.5rem;"></i>Test Email
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Settings -->
+                <div class="settings-section" id="payment-section">
+                    <h2 class="settings-section-title">Payment Configuration</h2>
+                    <div class="settings-grid">
+                        <div class="settings-form-group">
+                            {{ form_label(form.payment_gateway) }}
+                            {{ form_widget(form.payment_gateway) }}
+                            <div class="settings-help-text">Primary payment gateway</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.platform_fee_percentage) }}
+                            {{ form_widget(form.platform_fee_percentage) }}
+                            <div class="settings-help-text">Platform fee percentage (0-100)</div>
+                        </div>
+                    </div>
+                    <div class="settings-grid">
+                        <div class="settings-form-group">
+                            {{ form_label(form.stripe_public_key) }}
+                            {{ form_widget(form.stripe_public_key) }}
+                            <div class="settings-help-text">Stripe publishable key</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.stripe_secret_key) }}
+                            {{ form_widget(form.stripe_secret_key) }}
+                            <div class="settings-help-text">Stripe secret key</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.paypal_client_id) }}
+                            {{ form_widget(form.paypal_client_id) }}
+                            <div class="settings-help-text">PayPal client ID</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password Settings -->
+                <div class="settings-section {% if activeTab == 'password' %}active{% endif %}" id="password-section">
+                    <h2 class="settings-section-title">Change Admin Password</h2>
+                    <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 1.5rem; font-family: 'Montserrat', Arial, sans-serif;">Update your admin password to keep your account secure.</p>
+                    
+                    <div class="settings-form-group" style="margin-bottom: 1.25rem;">
+                        <label for="admin_current_password">Current Password</label>
+                        <div class="password-wrapper admin-password-wrapper">
+                            <input type="password" id="admin_current_password" name="admin_current_password" class="form-control" placeholder="Enter your current password" style="padding-right: 2.5rem;">
+                            <button type="button" class="toggle-password admin-toggle-password" data-target="admin_current_password" aria-label="Toggle password visibility">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="settings-help-text">Enter your current password to verify your identity</div>
+                    </div>
+                    
+                    <div class="settings-form-group" style="margin-bottom: 1.25rem;">
+                        <label for="admin_new_password">New Password</label>
+                        <div class="password-wrapper admin-password-wrapper">
+                            <input type="password" id="admin_new_password" name="admin_new_password" class="form-control" placeholder="Enter your new password" style="padding-right: 2.5rem;">
+                            <button type="button" class="toggle-password admin-toggle-password" data-target="admin_new_password" aria-label="Toggle password visibility">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-form-group" style="margin-bottom: 1.5rem;">
+                        <label for="admin_confirm_password">Confirm New Password</label>
+                        <div class="password-wrapper admin-password-wrapper">
+                            <input type="password" id="admin_confirm_password" name="admin_confirm_password" class="form-control" placeholder="Confirm your new password" style="padding-right: 2.5rem;">
+                            <button type="button" class="toggle-password admin-toggle-password" data-target="admin_confirm_password" aria-label="Toggle password visibility">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="settings-help-text">Re-enter your new password to confirm</div>
+                    </div>
+                    
+                </div>
+
+                <!-- Security Settings -->
+                <div class="settings-section" id="security-section">
+                    <h2 class="settings-section-title">Security Settings</h2>
+                    <h3 style="font-size: 1.0625rem; font-weight: 500; margin: 0 0 1rem 0; font-family: 'Montserrat', Arial, sans-serif;">Password Policy</h3>
+                    <div class="settings-grid">
+                        <div class="settings-form-group">
+                            {{ form_label(form.password_min_length) }}
+                            {{ form_widget(form.password_min_length) }}
+                            <div class="settings-help-text">Minimum password length (6-32 characters)</div>
+                        </div>
+                        <div class="settings-form-group">
+                            {{ form_label(form.session_timeout) }}
+                            {{ form_widget(form.session_timeout) }}
+                            <div class="settings-help-text">Session timeout in minutes (5-1440)</div>
+                        </div>
+                    </div>
+                    <h3 style="font-size: 1.0625rem; font-weight: 500; margin: 1.25rem 0 0.875rem 0; font-family: 'Montserrat', Arial, sans-serif;">Password Requirements</h3>
+                    <div class="settings-grid">
+                        <div class="settings-form-group">
+                            <div class="toggle-switch-wrapper">
+                                <label class="toggle-switch">
+                                    {{ form_widget(form.password_require_uppercase, {'attr': {'class': 'toggle-input'}}) }}
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <label class="toggle-label" for="{{ form.password_require_uppercase.vars.id }}">
+                                    {{ form.password_require_uppercase.vars.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="settings-form-group">
+                            <div class="toggle-switch-wrapper">
+                                <label class="toggle-switch">
+                                    {{ form_widget(form.password_require_lowercase, {'attr': {'class': 'toggle-input'}}) }}
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <label class="toggle-label" for="{{ form.password_require_lowercase.vars.id }}">
+                                    {{ form.password_require_lowercase.vars.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="settings-form-group">
+                            <div class="toggle-switch-wrapper">
+                                <label class="toggle-switch">
+                                    {{ form_widget(form.password_require_number, {'attr': {'class': 'toggle-input'}}) }}
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <label class="toggle-label" for="{{ form.password_require_number.vars.id }}">
+                                    {{ form.password_require_number.vars.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="settings-form-group">
+                            <div class="toggle-switch-wrapper">
+                                <label class="toggle-switch">
+                                    {{ form_widget(form.password_require_special, {'attr': {'class': 'toggle-input'}}) }}
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <label class="toggle-label" for="{{ form.password_require_special.vars.id }}">
+                                    {{ form.password_require_special.vars.label }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Toggles -->
+                <div class="settings-section" id="features-section">
+                    <h2 class="settings-section-title">Feature Toggles</h2>
+                    <div class="settings-grid">
+                        <div class="settings-form-group">
+                            <div class="toggle-switch-wrapper">
+                                <label class="toggle-switch">
+                                    {{ form_widget(form.feature_user_registration, {'attr': {'class': 'toggle-input'}}) }}
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <label class="toggle-label" for="{{ form.feature_user_registration.vars.id }}">
+                                    {{ form.feature_user_registration.vars.label }}
+                                </label>
+                            </div>
+                            <div class="settings-help-text">Allow new users to register</div>
+                        </div>
+                        <div class="settings-form-group">
+                            <div class="toggle-switch-wrapper">
+                                <label class="toggle-switch">
+                                    {{ form_widget(form.feature_email_notifications, {'attr': {'class': 'toggle-input'}}) }}
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <label class="toggle-label" for="{{ form.feature_email_notifications.vars.id }}">
+                                    {{ form.feature_email_notifications.vars.label }}
+                                </label>
+                            </div>
+                            <div class="settings-help-text">Send email notifications to users</div>
+                        </div>
+                        <div class="settings-form-group">
+                            <div class="toggle-switch-wrapper">
+                                <label class="toggle-switch">
+                                    {{ form_widget(form.feature_proposals, {'attr': {'class': 'toggle-input'}}) }}
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <label class="toggle-label" for="{{ form.feature_proposals.vars.id }}">
+                                    {{ form.feature_proposals.vars.label }}
+                                </label>
+                            </div>
+                            <div class="settings-help-text">Enable proposal submissions</div>
+                        </div>
+                        <div class="settings-form-group">
+                            <div class="toggle-switch-wrapper">
+                                <label class="toggle-switch">
+                                    {{ form_widget(form.feature_file_uploads, {'attr': {'class': 'toggle-input'}}) }}
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <label class="toggle-label" for="{{ form.feature_file_uploads.vars.id }}">
+                                    {{ form.feature_file_uploads.vars.label }}
+                                </label>
+                            </div>
+                            <div class="settings-help-text">Allow file uploads</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Maintenance Mode -->
+                <div class="settings-section" id="maintenance-section">
+                    <h2 class="settings-section-title">Maintenance Mode</h2>
+                    <div class="settings-form-group">
+                        <div class="toggle-switch-wrapper">
+                            <label class="toggle-switch">
+                                {{ form_widget(form.maintenance_mode, {'attr': {'class': 'toggle-input'}}) }}
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <label class="toggle-label" for="{{ form.maintenance_mode.vars.id }}">
+                                {{ form.maintenance_mode.vars.label }}
+                            </label>
+                        </div>
+                        <div class="settings-help-text">Enable maintenance mode to restrict site access (admins can still access)</div>
+                    </div>
+                    <div class="settings-form-group">
+                        {{ form_label(form.maintenance_message) }}
+                        {{ form_widget(form.maintenance_message) }}
+                        <div class="settings-help-text">Message displayed to users during maintenance</div>
+                    </div>
+                </div>
+
+                        <div class="settings-actions" id="adminSettingsActions" {% if activeTab is defined and activeTab == 'profile' %}style="display: none;"{% endif %}>
+                            <button type="button" class="btn-secondary" onclick="window.location.href='{{ path('app_dashboard') }}'">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn-primary" id="saveSettingsBtn">
+                                <i class="bi bi-save" style="margin-right: 0.5rem;"></i>Save Settings
+                            </button>
+                        </div>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching (for both admin and staff settings)
+            const tabs = document.querySelectorAll('.settings-tab');
+            const sections = document.querySelectorAll('.settings-section');
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            const adminSettingsActions = document.getElementById('adminSettingsActions');
+
+            {% if not isStaff %}
+            // Admin password change functionality (defined first so it can be used by updateButtonForTab)
+            function handleAdminPasswordChange() {
+                const currentPassword = document.getElementById('admin_current_password').value;
+                const newPassword = document.getElementById('admin_new_password').value;
+                const confirmPassword = document.getElementById('admin_confirm_password').value;
+                
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    // Show inline error message
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-error';
+                    errorDiv.textContent = 'Please fill in all password fields.';
+                    errorDiv.style.marginTop = '1rem';
+                    
+                    // Remove existing error if any
+                    const existingError = document.querySelector('#password-section .alert-error');
+                    if (existingError) {
+                        existingError.remove();
+                    }
+                    
+                    // Insert error before the form
+                    const passwordSection = document.getElementById('password-section');
+                    if (passwordSection) {
+                        passwordSection.insertBefore(errorDiv, passwordSection.firstChild);
+                    }
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    // Show inline error message
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-error';
+                    errorDiv.textContent = 'New passwords do not match.';
+                    errorDiv.style.marginTop = '1rem';
+                    
+                    // Remove existing error if any
+                    const existingError = document.querySelector('#password-section .alert-error');
+                    if (existingError) {
+                        existingError.remove();
+                    }
+                    
+                    // Insert error before the form
+                    const passwordSection = document.getElementById('password-section');
+                    if (passwordSection) {
+                        passwordSection.insertBefore(errorDiv, passwordSection.firstChild);
+                    }
+                    return;
+                }
+                
+                const adminChangePasswordBtn = document.getElementById('adminChangePasswordBtn');
+                if (!adminChangePasswordBtn) return;
+                
+                // Disable button during request
+                adminChangePasswordBtn.disabled = true;
+                adminChangePasswordBtn.innerHTML = '<i class="bi bi-hourglass-split" style="margin-right: 0.5rem;"></i>Changing...';
+                
+                fetch('{{ path('app_admin_change_password') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        currentPassword: currentPassword,
+                        newPassword: newPassword,
+                        confirmPassword: confirmPassword
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    adminChangePasswordBtn.disabled = false;
+                    adminChangePasswordBtn.innerHTML = '<i class="bi bi-key" style="margin-right: 0.5rem;"></i>Change Password';
+                    
+                    if (data.success) {
+                        // Clear form fields
+                        document.getElementById('admin_current_password').value = '';
+                        document.getElementById('admin_new_password').value = '';
+                        document.getElementById('admin_confirm_password').value = '';
+                        
+                        // Show success message inline (keep form visible)
+                        const successDiv = document.createElement('div');
+                        successDiv.className = 'alert alert-success';
+                        successDiv.textContent = data.message || 'Your password has been changed successfully.';
+                        successDiv.style.marginTop = '1rem';
+                        successDiv.style.marginBottom = '1rem';
+                        
+                        // Remove existing messages if any
+                        const existingSuccess = document.querySelector('#password-section .alert-success');
+                        if (existingSuccess) {
+                            existingSuccess.remove();
+                        }
+                        const existingError = document.querySelector('#password-section .alert-error');
+                        if (existingError) {
+                            existingError.remove();
+                        }
+                        
+                        // Insert success message at the top of password section
+                        const passwordSection = document.getElementById('password-section');
+                        if (passwordSection) {
+                            const firstChild = passwordSection.firstElementChild;
+                            if (firstChild) {
+                                passwordSection.insertBefore(successDiv, firstChild);
+                            } else {
+                                passwordSection.appendChild(successDiv);
+                            }
+                        }
+                        
+                        // Scroll to success message
+                        successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        // Show error message inline without redirecting (keep form visible)
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'alert alert-error';
+                        errorDiv.textContent = data.message || 'Failed to change password.';
+                        errorDiv.style.marginTop = '1rem';
+                        errorDiv.style.marginBottom = '1rem';
+                        
+                        // Remove existing error if any
+                        const existingError = document.querySelector('#password-section .alert-error');
+                        if (existingError) {
+                            existingError.remove();
+                        }
+                        
+                        // Insert error at the top of password section
+                        const passwordSection = document.getElementById('password-section');
+                        if (passwordSection) {
+                            const firstChild = passwordSection.firstElementChild;
+                            if (firstChild) {
+                                passwordSection.insertBefore(errorDiv, firstChild);
+                            } else {
+                                passwordSection.appendChild(errorDiv);
+                            }
+                        }
+                        
+                        // Scroll to error message
+                        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                })
+                .catch(error => {
+                    adminChangePasswordBtn.disabled = false;
+                    adminChangePasswordBtn.innerHTML = '<i class="bi bi-key" style="margin-right: 0.5rem;"></i>Change Password';
+                    // Show inline error message
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'alert alert-error';
+                    errorDiv.textContent = 'An error occurred while changing the password.';
+                    errorDiv.style.marginTop = '1rem';
+                    
+                    // Remove existing error if any
+                    const existingError = document.querySelector('#password-section .alert-error');
+                    if (existingError) {
+                        existingError.remove();
+                    }
+                    
+                    // Insert error before the form
+                    const passwordSection = document.getElementById('password-section');
+                    if (passwordSection) {
+                        passwordSection.insertBefore(errorDiv, passwordSection.firstChild);
+                    }
+                    console.error('Error:', error);
+                });
+            }
+            
+            // Function to update button state based on active tab (admin only)
+            function updateButtonForTab(tabName) {
+                const cancelBtn = adminSettingsActions?.querySelector('.btn-secondary');
+                
+                if (tabName === 'password') {
+                    // Password tab is active, hide Save Settings and Cancel, show Change Password
+                    if (saveSettingsBtn && adminSettingsActions) {
+                        // Ensure actions section is visible
+                        adminSettingsActions.style.display = 'flex';
+                        saveSettingsBtn.style.display = 'none';
+                        // Hide Cancel button
+                        if (cancelBtn) {
+                            cancelBtn.style.display = 'none';
+                        }
+                        if (!adminSettingsActions.querySelector('#adminChangePasswordBtn')) {
+                            const changePasswordBtn = document.createElement('button');
+                            changePasswordBtn.type = 'button';
+                            changePasswordBtn.className = 'btn-primary';
+                            changePasswordBtn.id = 'adminChangePasswordBtn';
+                            changePasswordBtn.innerHTML = '<i class="bi bi-key" style="margin-right: 0.5rem;"></i>Change Password';
+                            adminSettingsActions.appendChild(changePasswordBtn);
+                            changePasswordBtn.addEventListener('click', handleAdminPasswordChange);
+                        } else {
+                            // Button exists, just make sure it's visible
+                            const changePasswordBtn = adminSettingsActions.querySelector('#adminChangePasswordBtn');
+                            changePasswordBtn.style.display = 'inline-block';
+                        }
+                    }
+                } else if (tabName === 'profile') {
+                    // Profile tab is active, hide entire actions section (profile form has its own submit button)
+                    if (adminSettingsActions) {
+                        adminSettingsActions.style.display = 'none';
+                    }
+                } else {
+                    // Other tabs active, show Save Settings and Cancel, hide Change Password
+                    if (adminSettingsActions) {
+                        adminSettingsActions.style.display = 'flex';
+                    }
+                    if (saveSettingsBtn) {
+                        saveSettingsBtn.style.display = 'inline-block';
+                    }
+                    // Show Cancel button
+                    if (cancelBtn) {
+                        cancelBtn.style.display = 'inline-block';
+                    }
+                    const changePasswordBtn = adminSettingsActions?.querySelector('#adminChangePasswordBtn');
+                    if (changePasswordBtn) {
+                        changePasswordBtn.remove();
+                    }
+                }
+            }
+            {% endif %}
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update active section
+                    sections.forEach(s => s.classList.remove('active'));
+                    const targetSection = document.getElementById(targetTab + '-section');
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                    }
+                    
+                    // Show/hide Save Settings button based on active tab (admin only)
+                    {% if not isStaff %}
+                    updateButtonForTab(targetTab);
+                    {% endif %}
+                    
+                    // Update URL for staff settings to maintain tab state
+                    {% if isStaff %}
+                    const url = new URL(window.location);
+                    url.searchParams.set('tab', targetTab);
+                    window.history.pushState({}, '', url);
+                    {% endif %}
+                });
+            });
+
+            // Password toggle functionality
+            function initPasswordToggles() {
+                const toggleButtons = document.querySelectorAll('.toggle-password');
+                toggleButtons.forEach(button => {
+                    // Check if button already has a listener (prevent duplicates)
+                    if (button.dataset.initialized === 'true') {
+                        return;
+                    }
+                    button.dataset.initialized = 'true';
+                    
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Find the input in the same password-wrapper (most reliable method)
+                        const wrapper = this.closest('.password-wrapper');
+                        if (!wrapper) {
+                            console.warn('Password toggle button not inside a password-wrapper');
+                            return;
+                        }
+                        
+                        const passwordInput = wrapper.querySelector('input[type="password"], input[type="text"]');
+                        
+                        if (!passwordInput) {
+                            console.warn('Password input not found in wrapper');
+                            return;
+                        }
+                        
+                        // Toggle the input type
+                        const type = passwordInput.type === 'password' ? 'text' : 'password';
+                        passwordInput.type = type;
+                        
+                        // Update icon (toggle between eye and eye-slash)
+                        if (type === 'text') {
+                            // Show open eye icon (password is visible)
+                            this.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            `;
+                        } else {
+                            // Show closed/crossed eye icon (password is hidden)
+                            this.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            `;
+                        }
+                    });
+                });
+            }
+            
+            // Initialize on page load
+            initPasswordToggles();
+            
+            // Re-initialize on Turbo navigation
+            document.addEventListener('turbo:load', function() {
+                // Reset initialization flags
+                document.querySelectorAll('.toggle-password').forEach(btn => {
+                    btn.dataset.initialized = 'false';
+                });
+                initPasswordToggles();
+            });
+
+            {% if isStaff %}
+            // Staff password change form handling with AJAX
+            const staffPasswordForm = document.getElementById('changePasswordForm');
+            if (staffPasswordForm) {
+                staffPasswordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const currentPassword = formData.get('change_password[currentPassword]');
+                    const newPassword = formData.get('change_password[newPassword]');
+                    const confirmPassword = formData.get('change_password[confirmPassword]');
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    
+                    // Validation
+                    if (!currentPassword || !newPassword || !confirmPassword) {
+                        showStaffPasswordMessage('Please fill in all password fields.', 'error');
+                        return;
+                    }
+                    
+                    if (newPassword !== confirmPassword) {
+                        showStaffPasswordMessage('New passwords do not match.', 'error');
+                        return;
+                    }
+                    
+                    // Disable button during request
+                    if (submitButton) {
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = '<i class="bi bi-hourglass-split" style="margin-right: 0.5rem;"></i>Changing...';
+                    }
+                    
+                    // Submit form via AJAX
+                    fetch(this.action || window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        // Check if response is JSON
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json().then(data => {
+                                // Handle both success and error responses
+                                // Check response status and data.success explicitly
+                                if (response.ok && data.success === true) {
+                                    const message = data.message || 'Your password has been changed successfully.';
+                                    showStaffPasswordMessage(message, 'success');
+                                    // Clear form fields on success
+                                    const form = this;
+                                    setTimeout(() => {
+                                        form.querySelector('input[name="change_password[currentPassword]"]').value = '';
+                                        form.querySelector('input[name="change_password[newPassword]"]').value = '';
+                                        form.querySelector('input[name="change_password[confirmPassword]"]').value = '';
+                                    }, 100);
+                                } else {
+                                    // Handle error response (either !response.ok or data.success === false)
+                                    const message = data.message || 'Failed to change password.';
+                                    showStaffPasswordMessage(message, 'error');
+                                }
+                            }).catch(err => {
+                                console.error('JSON parse error:', err);
+                                showStaffPasswordMessage('An error occurred while processing the response.', 'error');
+                            });
+                        } else {
+                            // If not JSON, it might be a redirect or HTML response
+                            // Try to parse as HTML for flash messages
+                            return response.text().then(html => {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                const flashMessages = doc.querySelectorAll('.alert-success, .alert-error');
+                                
+                                if (flashMessages.length > 0) {
+                                    const message = flashMessages[0].textContent.trim();
+                                    const type = flashMessages[0].classList.contains('alert-success') ? 'success' : 'error';
+                                    showStaffPasswordMessage(message, type);
+                                    
+                                    if (type === 'success') {
+                                        // Clear form fields
+                                        this.querySelector('input[name="change_password[currentPassword]"]').value = '';
+                                        this.querySelector('input[name="change_password[newPassword]"]').value = '';
+                                        this.querySelector('input[name="change_password[confirmPassword]"]').value = '';
+                                    }
+                                } else {
+                                    // Fallback message
+                                    showStaffPasswordMessage('Your password has been changed successfully.', 'success');
+                                    // Clear form fields
+                                    this.querySelector('input[name="change_password[currentPassword]"]').value = '';
+                                    this.querySelector('input[name="change_password[newPassword]"]').value = '';
+                                    this.querySelector('input[name="change_password[confirmPassword]"]').value = '';
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showStaffPasswordMessage('An error occurred while changing the password.', 'error');
+                    })
+                    .finally(() => {
+                        // Re-enable button
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = '<i class="bi bi-key" style="margin-right: 0.5rem;"></i>Change Password';
+                        }
+                    });
+                });
+            }
+            
+            // Function to show inline message for staff password change
+            function showStaffPasswordMessage(message, type) {
+                const passwordSection = document.getElementById('password-section');
+                if (!passwordSection) return;
+                
+                // Remove existing messages (both from flash and inline)
+                const existingMessages = passwordSection.querySelectorAll('.alert-success, .alert-error');
+                existingMessages.forEach(msg => msg.remove());
+                
+                // Also remove any flash messages at the top of the page
+                const topMessages = document.querySelectorAll('.admin-container > .alert-success, .admin-container > .alert-error');
+                topMessages.forEach(msg => msg.remove());
+                
+                // Create message div
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+                messageDiv.textContent = message;
+                messageDiv.style.marginTop = '1rem';
+                messageDiv.style.marginBottom = '1rem';
+                
+                // Insert at the top of password section (after the title)
+                const title = passwordSection.querySelector('.settings-section-title');
+                if (title && title.parentElement) {
+                    title.parentElement.insertBefore(messageDiv, title.nextSibling);
+                } else {
+                    const firstChild = passwordSection.firstElementChild;
+                    if (firstChild) {
+                        passwordSection.insertBefore(messageDiv, firstChild);
+                    } else {
+                        passwordSection.appendChild(messageDiv);
+                    }
+                }
+                
+                // Scroll to message
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            {% endif %}
+
+            {% if not isStaff %}
+            // Initialize button state on page load (admin only)
+            // Use setTimeout to ensure DOM is fully ready
+            setTimeout(function() {
+                const initialTab = document.querySelector('.settings-tab.active');
+                if (initialTab) {
+                    const tabName = initialTab.getAttribute('data-tab');
+                    updateButtonForTab(tabName);
+                } else {
+                    // If no active tab, check if password section is visible
+                    const passwordSection = document.getElementById('password-section');
+                    if (passwordSection && passwordSection.classList.contains('active')) {
+                        updateButtonForTab('password');
+                    }
+                }
+            }, 100);
+            
+            // Test email button (admin only)
+            const testEmailBtn = document.getElementById('testEmailBtn');
+            if (testEmailBtn) {
+                testEmailBtn.addEventListener('click', function() {
+                    alert('Email test functionality will be implemented. This would send a test email to verify SMTP configuration.');
+                });
+            }
+            {% endif %}
+        });
+    </script>
+{% endblock %}
+

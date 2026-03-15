@@ -3,7 +3,9 @@
 {% block title %}Mark & Motion · Designer{% endblock %}
 
 {% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/header.css')}} ">
     <link rel="stylesheet" href=" {{ asset('styles/designer.css')}} ">
+    <link rel="stylesheet" href="{{ asset('styles/footer.css') }}">
 {% endblock %}
 
 {% block javascripts %}
@@ -13,19 +15,30 @@
 {% block body %}
 {% include 'designer/_headerdesigner.html.twig' with { active: 'home' } %}
 
-<main class="designer-main">
+<main class="designer-main-studio">
     <!-- Hero / Studio Header -->
     <section class="studio-hero">
-        <div class="studio-hero-ambient"></div>
+        <div class="studio-hero-ambient" id="heroAmbientPattern">
+            {# Pattern class will be randomly assigned by JavaScript on page load #}
+        </div>
         <div class="studio-hero-content">
             <div class="studio-hero-avatar">
-                <div class="studio-hero-avatar-circle">
-                    AS
+                <div class="studio-hero-avatar-circle" style="position: relative; overflow: hidden;">
+                    {% if app.user and app.user.profilePicture and app.user.profilePicture|trim != '' %}
+                        <img src="{{ asset('uploads/profile_pictures/' ~ app.user.profilePicture) }}?v={{ 'now'|date('U') }}" alt="{{ app.user.firstName }} {{ app.user.lastName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;" onerror="this.style.display='none'; this.nextElementSibling.style.zIndex='1';">
+                    {% endif %}
+                    <span style="display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: {% if app.user and app.user.profilePicture and app.user.profilePicture|trim != '' %}0{% else %}1{% endif %}; font-size: inherit; color: inherit; font-weight: inherit;">
+                        {% if app.user %}
+                            {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+                        {% else %}
+                            AS
+                        {% endif %}
+                    </span>
                 </div>
             </div>
-            <h1 class="studio-hero-title">Welcome back, Aljemark.</h1>
-            <p class="studio-hero-subtitle">Your studio's ready — pick up where you left off.</p>
-            <button class="studio-hero-cta">Resume your latest project</button>
+            <h1 class="studio-hero-title">Welcome back, {% if app.user %}{{ app.user.firstName }}{% else %}Aljemark{% endif %}.</h1>
+            <p class="studio-hero-subtitle">Discover new opportunities — connect with clients and explore exciting projects.</p>
+            <button class="studio-hero-cta"><span>Explore Projects</span></button>
         </div>
     </section>
 
@@ -34,7 +47,6 @@
         <h2 class="studio-section-title">Your Studio Space</h2>
         <div class="workspace-zones">
             <a href="#" class="workspace-zone">
-                <div class="workspace-zone-icon">📋</div>
                 <div class="workspace-zone-content">
                     <h3 class="workspace-zone-title">On the Table</h3>
                     <p class="workspace-zone-desc">Ongoing projects</p>
@@ -45,7 +57,6 @@
             </a>
             
             <a href="#" class="workspace-zone">
-                <div class="workspace-zone-icon">👁️</div>
                 <div class="workspace-zone-content">
                     <h3 class="workspace-zone-title">In Review</h3>
                     <p class="workspace-zone-desc">Submitted designs awaiting approval</p>
@@ -56,7 +67,6 @@
             </a>
             
             <a href="#" class="workspace-zone">
-                <div class="workspace-zone-icon">🎯</div>
                 <div class="workspace-zone-content">
                     <h3 class="workspace-zone-title">Up for Grabs</h3>
                     <p class="workspace-zone-desc">Explore new client projects</p>
@@ -67,7 +77,6 @@
             </a>
             
             <a href="#" class="workspace-zone">
-                <div class="workspace-zone-icon">📦</div>
                 <div class="workspace-zone-content">
                     <h3 class="workspace-zone-title">Archived Works</h3>
                     <p class="workspace-zone-desc">Completed projects</p>
@@ -155,16 +164,88 @@
                 </div>
             </div>
 
-            <!-- Creative Journal -->
-            <div class="creative-journal">
-                <div class="journal-header">
-                    <h2 class="studio-section-title">Creative Journal</h2>
-                    <span class="journal-saved-indicator">
-                        <i class="bi bi-check-circle"></i>
-                        <span>Saved</span>
-                    </span>
+            <!-- Upcoming Tasks -->
+            <div class="upcoming-tasks">
+                <div class="tasks-header">
+                    <h2 class="studio-section-title">Upcoming Deadlines</h2>
+                    <a href="#" class="tasks-view-all">View all</a>
                 </div>
-                <textarea class="journal-textarea" placeholder="Jot down ideas, color palettes, or concepts you're exploring...">Exploring a new color palette for the spring collection - thinking soft pastels with bold accent colors.</textarea>
+                <div class="tasks-list">
+                    <div class="task-item">
+                        <div class="task-priority priority-high"></div>
+                        <div class="task-content">
+                            <div class="task-main">
+                                <h3 class="task-title">Brand Identity Final Review</h3>
+                                <p class="task-project">Coffee Shop Branding</p>
+                            </div>
+                            <div class="task-meta">
+                                <span class="task-deadline">
+                                    <i class="bi bi-calendar"></i>
+                                    Due in 2 days
+                                </span>
+                                <span class="task-progress">
+                                    <span class="progress-bar">
+                                        <span class="progress-fill" style="width: 85%"></span>
+                                    </span>
+                                    <span class="progress-text">85%</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="task-action-btn"><i class="bi bi-arrow-right"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-priority priority-medium"></div>
+                        <div class="task-content">
+                            <div class="task-main">
+                                <h3 class="task-title">Logo Concept Presentation</h3>
+                                <p class="task-project">Tech Startup Redesign</p>
+                            </div>
+                            <div class="task-meta">
+                                <span class="task-deadline">
+                                    <i class="bi bi-calendar"></i>
+                                    Due in 5 days
+                                </span>
+                                <span class="task-progress">
+                                    <span class="progress-bar">
+                                        <span class="progress-fill" style="width: 60%"></span>
+                                    </span>
+                                    <span class="progress-text">60%</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="task-action-btn"><i class="bi bi-arrow-right"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="task-priority priority-low"></div>
+                        <div class="task-content">
+                            <div class="task-main">
+                                <h3 class="task-title">Color Palette Refinement</h3>
+                                <p class="task-project">Fashion Brand Campaign</p>
+                            </div>
+                            <div class="task-meta">
+                                <span class="task-deadline">
+                                    <i class="bi bi-calendar"></i>
+                                    Due in 1 week
+                                </span>
+                                <span class="task-progress">
+                                    <span class="progress-bar">
+                                        <span class="progress-fill" style="width: 40%"></span>
+                                    </span>
+                                    <span class="progress-text">40%</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <button class="task-action-btn"><i class="bi bi-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -221,30 +302,69 @@
 
     <!-- Studio Vibe (Subtle Insights) -->
     <section class="studio-vibe">
-        <h2 class="studio-section-title">Your Studio's Vibe This Month</h2>
+        <div class="vibe-header">
+            <h2 class="studio-section-title">This Month's Performance</h2>
+            <span class="vibe-period">December 2024</span>
+        </div>
         <div class="vibe-content">
-            <div class="vibe-palette">
-                <div class="vibe-color" style="background: #1e3a8a;"></div>
-                <div class="vibe-color" style="background: #3b82f6;"></div>
-                <div class="vibe-color" style="background: #60a5fa;"></div>
-                <div class="vibe-color" style="background: #93c5fd;"></div>
-            </div>
-            <div class="vibe-momentum">
-                <div class="momentum-meter">
-                    <div class="momentum-bar" style="width: 75%;"></div>
+            <div class="vibe-stats">
+                <div class="vibe-stat-item">
+                    <div class="vibe-stat-icon" style="background: linear-gradient(135deg, #1e3a8a, #3b82f6);">
+                        <i class="bi bi-briefcase"></i>
+                    </div>
+                    <div class="vibe-stat-content">
+                        <span class="vibe-stat-value">8</span>
+                        <span class="vibe-stat-label">Projects Completed</span>
+                        <span class="vibe-stat-change positive">+2 from last month</span>
+                    </div>
                 </div>
-                <span class="momentum-label">Creative momentum: Strong</span>
+                <div class="vibe-stat-item">
+                    <div class="vibe-stat-icon" style="background: linear-gradient(135deg, #3b82f6, #60a5fa);">
+                        <i class="bi bi-upload"></i>
+                    </div>
+                    <div class="vibe-stat-content">
+                        <span class="vibe-stat-value">24</span>
+                        <span class="vibe-stat-label">Designs Uploaded</span>
+                        <span class="vibe-stat-change positive">+5 from last month</span>
+                    </div>
+                </div>
+                <div class="vibe-stat-item">
+                    <div class="vibe-stat-icon" style="background: linear-gradient(135deg, #60a5fa, #93c5fd);">
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <div class="vibe-stat-content">
+                        <span class="vibe-stat-value">4.9</span>
+                        <span class="vibe-stat-label">Avg Client Rating</span>
+                        <span class="vibe-stat-change positive">+0.2 improvement</span>
+                    </div>
+                </div>
+                <div class="vibe-stat-item">
+                    <div class="vibe-stat-icon" style="background: linear-gradient(135deg, #93c5fd, #dbeafe);">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <div class="vibe-stat-content">
+                        <span class="vibe-stat-value">94%</span>
+                        <span class="vibe-stat-label">On-Time Delivery</span>
+                        <span class="vibe-stat-change positive">+3% improvement</span>
+                    </div>
+                </div>
+            </div>
+            <div class="vibe-momentum-card">
+                <div class="momentum-header">
+                    <span class="momentum-label">Creative Momentum</span>
+                    <span class="momentum-status">Strong</span>
+                </div>
+                <div class="momentum-meter">
+                    <div class="momentum-bar" style="width: 82%;">
+                        <div class="momentum-glow"></div>
+                    </div>
+                </div>
+                <p class="momentum-description">You're maintaining excellent workflow consistency this month</p>
             </div>
         </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="footer-designer">
-        <div class="studio-footer-content">
-            <p class="studio-footer-tagline">Built for creators. Powered by Mark & Motion.</p>
-            {# <p class="studio-footer-copy">&copy; 2025 Mark & Motion. All rights reserved.</p> #}
-        </div>
-    </footer>
 </main>
+
+{% include 'designer/_footerdesigner.html.twig' with { active: 'home' } %}
 
 {% endblock %}

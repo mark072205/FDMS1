@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Categories · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'categories' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Categories</h1>
+                <p class="admin-subtitle">Manage marketplace categories for Mark & Motion</p>
+            </div>
+            <div class="admin-toolbar">
+                <a class="btn-primary" href="{{ path('app_category_new') }}">+ Add New Category</a>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="admin-card" style="padding: 1.1rem 1.25rem;">
+            <h2 style="font-family:'Poppins', Arial, sans-serif; font-size:1.2rem; margin: 0 0 0.9rem 0; font-weight: 600;">All Categories</h2>
+            <div class="admin-table-wrapper">
+                <table class="admin-table table-balanced table-colored category-table">
+                    <thead>
+                        <tr>
+                            <th class="col-id" style="padding: 6px;">ID</th>
+                            <th class="col-title" style="padding: 6px;">Name</th>
+                            <th class="col-category" style="text-align: left !important; padding: 6px;">Description</th>
+                            <th class="col-actions" style="width:160px; padding: 6px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for category in categories %}
+                        <tr class="admin-row" data-category-id="{{ category.id }}">
+                            <td>{{ category.id }}</td>
+                            <td><span class="truncate" title="{{ category.name }}" style="padding: 6px;">{{ category.name }}</span></td>
+                            <td style="text-align: left !important; padding: 6px;">{{ category.description|default('—') }}</td>
+                            <td>
+                                <a class="btn-link" href="{{ path('app_category_show', {'id': category.id}) }}">View</a>
+                                <a class="btn-link" href="{{ path('app_category_edit', {'id': category.id}) }}">Edit</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4">No categories found.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+{% endblock %}

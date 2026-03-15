@@ -11,6 +11,23 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Delete;
+
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(),
+        new Put(),
+        new Delete()
+    ]
+)]
+
 #[ORM\Entity(repositoryClass: UsersRepository::class)]
 class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -43,25 +60,27 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     )]
     private ?string $firstName = null;
 
-    #[ORM\Column(length: 100)]
-    #[Assert\NotBlank(message: 'Last name is required.')]
+    #[ORM\Column(length: 100, nullable: true)]
     #[Assert\Length(
         min: 2,
         max: 100,
         minMessage: 'Last name must be at least {{ limit }} characters long.',
-        maxMessage: 'Last name cannot be longer than {{ limit }} characters.'
+        maxMessage: 'Last name cannot be longer than {{ limit }} characters.',
+        groups: ['Default']
     )]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Password is required.')]
+    #[Assert\NotBlank(message: 'Password is required.', groups: ['Default', 'password_required'])]
     #[Assert\Length(
         min: 8,
-        minMessage: 'Password must be at least {{ limit }} characters long.'
+        minMessage: 'Password must be at least {{ limit }} characters long.',
+        groups: ['password_strict']
     )]
     #[Assert\Regex(
         pattern: '/^(?=.*[a-zA-Z0-9@$!%*?&_])[A-Za-z\d@$!%*?&_]{8,}$/',
-        message: 'Password must be at least 8 characters and contain at least one of the following: uppercase letter, lowercase letter, number, or special character (@$!%*?&_).'
+        message: 'Password must be at least 8 characters and contain at least one of the following: uppercase letter, lowercase letter, number, or special character (@$!%*?&_).',
+        groups: ['password_strict']
     )]
     private ?string $password = null;
 
@@ -74,6 +93,10 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $profilePicture = null;
 
+    #[ORM\ManyToOne(targetEntity: File::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?File $profilePictureFile = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -82,6 +105,12 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'client')]
     private Collection $projects;
+
+    /**
+     * @var Collection<int, Proposal>
+     */
+    #[ORM\OneToMany(targetEntity: Proposal::class, mappedBy: 'designer')]
+    private Collection $proposals;
 
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank(message: 'Email is required.')]
@@ -115,6 +144,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->projects = new ArrayCollection();
+        $this->proposals = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -151,7 +181,7 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->lastName;
     }
 
-    public function setLastName(string $lastName): static
+    public function setLastName(?string $lastName): static
     {
         $this->lastName = $lastName;
 
@@ -196,13 +226,77 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getProfilePicture(): ?string
     {
+        // Return File path if File entity exists and is active, otherwise return string
+        if ($this->profilePictureFile) {
+            // Only return path if the file is active (not deleted)
+            if ($this->profilePictureFile->isActive()) {
+                $path = $this->profilePictureFile->getPath();
+                // Normalize path to just filename for template compatibility
+                // Templates prepend 'uploads/profile_pictures/', so we need just the filename
+                if ($path) {
+                    // Extract filename from path (handle both forward and backslashes)
+                    $filename = basename($path);
+                    // Remove any directory prefixes if present
+                    $filename = str_replace('profile_pictures/', '', $filename);
+                    $filename = str_replace('profile_pictures\\', '', $filename);
+                    return $filename ?: null;
+                }
+                return null;
+            } else {
+                // File was deleted, return null (don't modify entity in getter)
+                return null;
+            }
+        }
+        // Return old string-based profile picture if it exists
+        // Normalize it as well to ensure consistency
+        if ($this->profilePicture) {
+            // If it's already just a filename (no slashes), return as-is
+            if (strpos($this->profilePicture, '/') === false && strpos($this->profilePicture, '\\') === false) {
         return $this->profilePicture;
+            }
+            // Extract filename from path
+            $filename = basename($this->profilePicture);
+            // Remove any directory prefixes if present
+            $filename = str_replace('profile_pictures/', '', $filename);
+            $filename = str_replace('profile_pictures\\', '', $filename);
+            $filename = str_replace('uploads/profile_pictures/', '', $filename);
+            $filename = str_replace('uploads\\profile_pictures\\', '', $filename);
+            return $filename ?: null;
+        }
+        return null;
     }
 
     public function setProfilePicture(?string $profilePicture): static
     {
         $this->profilePicture = $profilePicture;
+        return $this;
+    }
 
+    public function getProfilePictureFile(): ?File
+    {
+        return $this->profilePictureFile;
+    }
+
+    public function setProfilePictureFile(?File $profilePictureFile): static
+    {
+        $this->profilePictureFile = $profilePictureFile;
+        // Sync the string field for backward compatibility
+        // Store just the filename, not the full path, to match template expectations
+        if ($profilePictureFile) {
+            $path = $profilePictureFile->getPath();
+            if ($path) {
+                // Extract just the filename for backward compatibility
+                $filename = basename($path);
+                // Remove any directory prefixes if present
+                $filename = str_replace('profile_pictures/', '', $filename);
+                $filename = str_replace('profile_pictures\\', '', $filename);
+                $this->profilePicture = $filename ?: null;
+            } else {
+                $this->profilePicture = null;
+            }
+        } else {
+            $this->profilePicture = null;
+        }
         return $this;
     }
 
@@ -333,6 +427,36 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * @return Collection<int, Proposal>
+     */
+    public function getProposals(): Collection
+    {
+        return $this->proposals;
+    }
+
+    public function addProposal(Proposal $proposal): static
+    {
+        if (!$this->proposals->contains($proposal)) {
+            $this->proposals->add($proposal);
+            $proposal->setDesigner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProposal(Proposal $proposal): static
+    {
+        if ($this->proposals->removeElement($proposal)) {
+            // set the owning side to null (unless already changed)
+            if ($proposal->getDesigner() === $this) {
+                $proposal->setDesigner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * A visual identifier that represents this user.
      *
      * @see UserInterface
@@ -352,14 +476,14 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         
         if ($this->role === 'admin') {
             $roles[] = 'ROLE_ADMIN';
+        } elseif ($this->role === 'staff') {
+            // Staff has its own role but also gets admin access through security config
+            $roles[] = 'ROLE_STAFF';
         } elseif ($this->role === 'designer') {
             $roles[] = 'ROLE_DESIGNER';
         } elseif ($this->role === 'client') {
             $roles[] = 'ROLE_CLIENT';
         }
-        
-        // Guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
         
         return array_unique($roles);
     }

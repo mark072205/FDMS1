@@ -1,0 +1,1121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ user.firstName }} {{ user.lastName }} - User Details · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+    <style>
+        /* Delete User Modal Styles */
+        #deleteUserPassword:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        #deleteUserModal .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        #deleteUserModal .btn-danger:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        #deleteUserModal .btn-danger:active {
+            transform: translateY(0);
+        }
+
+        #toggleDeletePassword:hover {
+            color: #374151;
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+
+        #invalidPasswordModal .btn-primary:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+        }
+
+        #invalidPasswordModal .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Toggle Status Modal Styles */
+        #toggleStatusModal .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        #toggleStatusModal .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        #toggleStatusModal .btn-primary:active {
+            transform: translateY(0);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'users' } %}
+    
+    {% if is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
+        <div class="admin-container">
+            <div class="admin-card" style="text-align: center; padding: 3rem 2rem; max-width: 600px; margin: 2rem auto;">
+                <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-shield-x" style="font-size: 2.5rem; color: #dc2626;"></i>
+                </div>
+                <h2 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem;">Restricted Access</h2>
+                <p style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                    You do not have permission to view user details. Only administrators can access user information.
+                </p>
+                <a href="{{ path('app_dashboard') }}" class="btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem; text-decoration: none;">
+                    Return to Dashboard
+                </a>
+            </div>
+        </div>
+    {% else %}
+    <div class="admin-container">
+        <div class="admin-header">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                {% set roleType = (user.userType is defined and user.userType ? user.userType : (user.role is defined ? user.role : 'admin'))|lower %}
+                <div class="profile-avatar {{ roleType == 'designer' ? 'is-designer' : (roleType == 'client' ? 'is-client' : (roleType == 'staff' ? 'is-staff' : 'is-admin')) }}" style="width: 60px; height: 60px; min-width: 60px; min-height: 60px; max-width: 60px; max-height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #ffffff; font-weight: bold; font-family: 'Poppins', Arial, sans-serif; flex-shrink: 0; position: relative; overflow: hidden;">
+                    {% if user.profilePicture and user.profilePicture|trim != '' %}
+                        <img src="{{ asset('uploads/profile_pictures/' ~ user.profilePicture) }}?v={{ 'now'|date('U') }}" alt="{{ user.firstName }} {{ user.lastName }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;" onerror="this.style.display='none'; this.parentElement.querySelector('span').style.zIndex='1';">
+                    {% endif %}
+                    <span style="display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: {% if user.profilePicture and user.profilePicture|trim != '' %}0{% else %}1{% endif %};">{{ user.firstName|first|upper }}{{ user.lastName|first|upper }}</span>
+                </div>
+                <div>
+                    <h1 class="admin-title">{{ user.firstName }} {{ user.lastName }}</h1>
+                    <p class="admin-subtitle">{{ user.userType|title }}</p>
+                </div>
+            </div>
+            <div class="admin-toolbar">
+                <a class="btn-secondary" href="{{ path('app_user_index') }}">← Back to Users</a>
+                {# Edit button - only for staff users (not admin, client, or designer) #}
+                {% if user.userType != 'admin' and user.role != 'admin' and user.userType != 'client' and user.role != 'client' and user.userType != 'designer' and user.role != 'designer' %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn-icon btn-primary" title="Edit User">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    {% endif %}
+                {% endif %}
+                {# Disable/Enable button - available for all non-admin users (including client and designer) #}
+                {% if user.userType != 'admin' and user.role != 'admin' %}
+                    <button class="btn-icon toggle-status {{ user.isActive ? 'btn-danger' : 'btn-success' }}" 
+                            data-user-id="{{ user.id }}" 
+                            data-current-status="{{ user.isActive ? 'active' : 'inactive' }}"
+                            title="{{ user.isActive ? 'Disable User' : 'Enable User' }}">
+                        <i class="bi bi-{{ user.isActive ? 'person-x' : 'person-check' }}"></i>
+                    </button>
+                {% endif %}
+                {# Verify/Unverify button - available for client and designer users only #}
+                {% if user.userType != 'admin' and user.userType != 'staff' %}
+                    <button class="btn-icon toggle-verification {{ user.verified ? 'btn-warning' : 'btn-success' }}" 
+                            data-user-id="{{ user.id }}" 
+                            data-current-verified="{{ user.verified ? 'verified' : 'unverified' }}"
+                            title="{{ user.verified ? 'Unverify User' : 'Verify User' }}">
+                        <i class="bi bi-{{ user.verified ? 'shield-x' : 'shield-check' }}"></i>
+                    </button>
+                {% endif %}
+                {# Delete button - available for all non-admin users (including client and designer) #}
+                {% if user.userType != 'admin' and user.role != 'admin' %}
+                    {% set currentUserRole = attribute(app.user, 'role')|default(null) %}
+                    {% set currentUserType = attribute(app.user, 'userType')|default(null) %}
+                    {% if not (app.user and (currentUserRole == 'staff' or currentUserType == 'staff')) %}
+                        <button class="btn-icon btn-danger btn-delete-user" 
+                                data-user-id="{{ user.id }}" 
+                                data-username="{{ user.username }}"
+                                title="Delete User">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    {% endif %}
+                {% endif %}
+                {# For admin users, show a message that they cannot be edited #}
+                {% if user.userType == 'admin' or user.role == 'admin' %}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <span style="color: #6b7280; font-size: 0.875rem; font-family: 'Montserrat', Arial, sans-serif;">
+                            <i class="bi bi-info-circle" style="margin-right: 0.25rem;"></i>Admin users cannot be edited
+                        </span>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="admin-card" style="padding: 1.1rem 1.25rem; margin-bottom: 2rem;">
+            <h2 style="font-family:'Poppins'; font-size:1.2rem; margin: 0 0 0.9rem 0;">User Information</h2>
+            <div class="admin-table-wrapper">
+                <table class="admin-table table-balanced table-colored">
+                    <thead>
+                        <tr>
+                            <th class="col-title">Field</th>
+                            <th class="col-category">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="admin-row">
+                            <td><strong>Username</strong></td>
+                            <td>{{ user.username }}</td>
+                        </tr>
+                        <tr class="admin-row">
+                            <td><strong>Email</strong></td>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                        <tr class="admin-row">
+                            <td><strong>First Name</strong></td>
+                            <td>{{ user.firstName }}</td>
+                        </tr>
+                        <tr class="admin-row">
+                            <td><strong>Last Name</strong></td>
+                            <td>{{ user.lastName }}</td>
+                        </tr>
+                        <tr class="admin-row">
+                            <td><strong>User Type</strong></td>
+                            <td>
+                                {% set userTypeClass = user.userType == 'admin' ? 'badge-danger' : (user.userType == 'staff' ? 'badge-danger' : (user.userType == 'designer' ? 'badge-warning' : 'badge-info')) %}
+                                <span class="badge {{ userTypeClass }}">{{ user.userType|title }}</span>
+                            </td>
+                        </tr>
+                        <tr class="admin-row">
+                            <td><strong>Role</strong></td>
+                            <td><span class="badge badge-secondary">{{ user.role|title }}</span></td>
+                        </tr>
+                        <tr class="admin-row">
+                            <td><strong>Status</strong></td>
+                            <td>
+                                {% set statusClass = user.isActive ? 'is-active' : 'is-inactive' %}
+                                <span class="badge-status {{ statusClass }}" id="status-{{ user.id }}">{{ user.isActive ? 'Active' : 'Disabled' }}</span>
+                            </td>
+                        </tr>
+                        <tr class="admin-row">
+                            <td><strong>Verified</strong></td>
+                            <td>
+                                {% if user.userType == 'admin' or user.userType == 'staff' %}
+                                    <span class="badge-status" style="color: #6b7280;">N/A (Admin/Staff users are always verified)</span>
+                                {% else %}
+                                {% set verifiedClass = user.verified ? 'is-active' : 'is-pending' %}
+                                <span class="badge-status {{ verifiedClass }}" id="verified-status-{{ user.id }}">{{ user.verified ? 'Verified' : 'Unverified' }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if user.bio %}
+                        <tr class="admin-row">
+                            <td><strong>Bio</strong></td>
+                            <td>{{ user.bio }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-card" style="padding: 1.1rem 1.25rem; margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem;">
+                <h2 style="font-family:'Poppins'; font-size:1.2rem; margin: 0;">Password Information</h2>
+            </div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table table-balanced table-colored">
+                    <thead>
+                        <tr>
+                            <th class="col-title">Field</th>
+                            <th class="col-category">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="admin-row">
+                            <td><strong>Password (Encrypted)</strong></td>
+                            <td>
+                                <div class="password-display">
+                                    <code class="password-hash">{{ user.password }}</code>
+                                    <button class="btn-link copy-btn" onclick="copyToClipboard('{{ user.password }}')">Copy</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-card" style="padding: 1.1rem 1.25rem; margin-bottom: 2rem;">
+            <h2 style="font-family:'Poppins'; font-size:1.2rem; margin: 0 0 0.9rem 0;">Activity Timeline</h2>
+            <div class="admin-table-wrapper">
+                <table class="admin-table table-balanced table-colored">
+                    <thead>
+                        <tr>
+                            <th class="col-title">Event</th>
+                            <th class="col-date">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="admin-row">
+                            <td><strong>Account Created</strong></td>
+                            <td>{{ user.createdAt|date('Y-m-d H:i') }}</td>
+                        </tr>
+                        {% if user.lastLogin %}
+                        <tr class="admin-row">
+                            <td><strong>Last Login</strong></td>
+                            <td>{{ user.lastLogin|date('Y-m-d H:i') }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if user.lastActivity %}
+                        <tr class="admin-row">
+                            <td><strong>Last Activity</strong></td>
+                            <td>{{ user.lastActivity|date('Y-m-d H:i') }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if user.updatedAt %}
+                        <tr class="admin-row">
+                            <td><strong>Last Updated</strong></td>
+                            <td>{{ user.updatedAt|date('Y-m-d H:i') }}</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Delete User Confirmation Modal -->
+    <div id="deleteUserModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 520px; padding: 0; overflow: hidden;">
+            <!-- Modal Header -->
+            <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); padding: 1.5rem 2rem; border-bottom: 1px solid #fecaca;">
+                <div style="text-align: center;">
+                    <div style="width: 64px; height: 64px; margin: 0 auto 1rem; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #dc2626;"></i>
+                    </div>
+                    <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.5rem; font-weight: 600; color: #111827; margin: 0 0 0.5rem 0;">Delete User</h3>
+                    <p style="font-family: 'Montserrat', Arial, sans-serif; color: #7f1d1d; font-size: 0.875rem; margin: 0; font-weight: 500;">This action cannot be undone</p>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 2rem;">
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <p style="font-family: 'Montserrat', Arial, sans-serif; color: #991b1b; font-size: 0.875rem; line-height: 1.6; margin: 0; text-align: center;">
+                        Are you sure you want to delete <strong id="deleteUserName" style="color: #7f1d1d; font-weight: 600;"></strong>? This will permanently remove the user and all associated data.
+                    </p>
+                </div>
+
+                <div style="background: #f9fafb; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <i class="bi bi-shield-lock" style="font-size: 1.125rem; color: #dc2626;"></i>
+                        <label for="deleteUserPassword" style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.875rem; color: #374151; font-weight: 600; margin: 0;">Enter Your Password to Confirm</label>
+                    </div>
+                    <div class="password-wrapper" style="position: relative;">
+                        <input type="password" id="deleteUserPassword" name="password" required placeholder="Enter your admin password" style="width: 100%; padding: 0.875rem 3rem 0.875rem 1rem; border: 2px solid #e5e7eb; border-radius: 8px; font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9375rem; box-sizing: border-box; transition: all 0.2s ease; background: #ffffff;">
+                        <button type="button" class="toggle-password" id="toggleDeletePassword" aria-label="Toggle password visibility" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.5rem; display: flex; align-items: center; justify-content: center; color: #6b7280; transition: color 0.2s ease;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <small style="display: block; margin-top: 0.5rem; font-family: 'Montserrat', Arial, sans-serif; font-size: 0.75rem; color: #6b7280;">
+                        <i class="bi bi-info-circle" style="margin-right: 0.25rem;"></i>You must enter your admin password to confirm this deletion
+                    </small>
+                </div>
+
+                <!-- Modal Footer -->
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                    <button type="button" class="btn-secondary" onclick="closeDeleteUserModal()" style="padding: 0.75rem 1.5rem; font-family: 'Poppins', Arial, sans-serif; font-size: 0.9375rem; font-weight: 500; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; color: #374151; cursor: pointer; transition: all 0.2s ease;">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn-danger" id="confirmDeleteUserBtn" style="padding: 0.75rem 1.5rem; font-family: 'Poppins', Arial, sans-serif; font-size: 0.9375rem; font-weight: 500; border-radius: 8px; border: none; background: #dc2626; color: #ffffff; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i class="bi bi-trash"></i>
+                        Delete User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disable/Enable User Confirmation Modal -->
+    <div id="toggleStatusModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 480px; padding: 0; overflow: hidden;">
+            <!-- Modal Header -->
+            <div id="toggleStatusHeader" style="padding: 1.5rem 2rem; border-bottom: 1px solid #e5e7eb;">
+                <div style="text-align: center;">
+                    <div id="toggleStatusIcon" style="width: 64px; height: 64px; margin: 0 auto 1rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                        <i id="toggleStatusIconClass" class="bi" style="font-size: 2rem;"></i>
+                    </div>
+                    <h3 id="toggleStatusTitle" style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.5rem; font-weight: 600; color: #111827; margin: 0 0 0.5rem 0;">Disable User</h3>
+                    <p id="toggleStatusSubtitle" style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem; margin: 0; font-weight: 500;">User Access Control</p>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 2rem;">
+                <div id="toggleStatusWarningBox" style="border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <p id="toggleStatusMessage" style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.875rem; line-height: 1.6; margin: 0; text-align: center;">
+                        Are you sure you want to disable <strong id="toggleStatusUserName"></strong>? They will not be able to access their account.
+                    </p>
+                </div>
+
+                <!-- Modal Footer -->
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                    <button type="button" class="btn-secondary" onclick="closeToggleStatusModal()" style="padding: 0.75rem 1.5rem; font-family: 'Poppins', Arial, sans-serif; font-size: 0.9375rem; font-weight: 500; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; color: #374151; cursor: pointer; transition: all 0.2s ease;">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn-primary" id="confirmToggleStatusBtn" style="padding: 0.75rem 1.5rem; font-family: 'Poppins', Arial, sans-serif; font-size: 0.9375rem; font-weight: 500; border-radius: 8px; border: none; background: var(--color-primary); color: #ffffff; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i id="confirmToggleStatusIcon" class="bi"></i>
+                        <span id="confirmToggleStatusText">Disable User</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invalid Password Error Modal -->
+    <div id="invalidPasswordModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 480px; padding: 0; overflow: hidden;">
+            <!-- Modal Header -->
+            <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); padding: 1.5rem 2rem; border-bottom: 1px solid #fecaca;">
+                <div style="text-align: center;">
+                    <div style="width: 64px; height: 64px; margin: 0 auto 1rem; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);">
+                        <i class="bi bi-x-circle-fill" style="font-size: 2.25rem; color: #dc2626;"></i>
+                    </div>
+                    <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.375rem; font-weight: 600; color: #111827; margin: 0 0 0.5rem 0;">Invalid Password</h3>
+                    <p style="font-family: 'Montserrat', Arial, sans-serif; color: #7f1d1d; font-size: 0.875rem; margin: 0; font-weight: 500;">Authentication Failed</p>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div style="padding: 2rem; text-align: center;">
+                <p style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.9375rem; line-height: 1.6; margin: 0 0 1.5rem 0;">
+                    The password you entered is incorrect. Please verify your password and try again.
+                </p>
+                <div style="display: flex; gap: 0.75rem; justify-content: center;">
+                    <button type="button" class="btn-primary" onclick="closeInvalidPasswordModal()" style="padding: 0.75rem 1.5rem; font-family: 'Poppins', Arial, sans-serif; font-size: 0.9375rem; font-weight: 500; border-radius: 8px; border: none; background: var(--color-primary); color: #ffffff; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem; min-width: 120px; justify-content: center;">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deleting User Modal -->
+    <div id="deletingUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div style="text-align: center; padding: 1rem;">
+                <div style="margin-bottom: 1rem;">
+                    <div class="spinner" style="border: 4px solid #f3f4f6; border-top: 4px solid var(--color-primary); border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                </div>
+                <h3 style="font-family: 'Poppins', Arial, sans-serif; margin-bottom: 0.5rem; color: #374151;">Deleting User...</h3>
+                <p style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem;">Please wait while we delete <strong id="deletingUserName"></strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete User Success Modal -->
+    <div id="deleteUserSuccessModal" class="project-modal hidden" aria-hidden="true">
+        <div class="project-modal__backdrop"></div>
+        <div class="project-modal__dialog success-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="deleteUserSuccessTitle" style="max-width: 380px;">
+            <div class="success-modal-content">
+                <div style="text-align: center; padding: 0.75rem 0 1.25rem;">
+                    <div style="width: 60px; height: 60px; margin: 0 auto 0.75rem; background: #d1fae5; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-check-circle-fill" style="font-size: 2.25rem; color: #10b981;"></i>
+                    </div>
+                    <h2 id="deleteUserSuccessTitle" class="success-modal-title" style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; text-align: center;">User Deleted Successfully!</h2>
+                    <p class="success-modal-message" id="deleteUserSuccessMessage" style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem; line-height: 1.5; text-align: center; margin-bottom: 1.25rem;">The user has been deleted successfully.</p>
+                </div>
+                <div class="success-modal-footer" style="display: flex; justify-content: center;">
+                    <button type="button" class="btn btn-primary" onclick="closeDeleteUserSuccessModal()" style="min-width: 100px; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        <span>Got it</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promote User Success Modal -->
+    <div id="promoteUserSuccessModal" class="project-modal hidden" aria-hidden="true">
+        <div class="project-modal__backdrop"></div>
+        <div class="project-modal__dialog success-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="promoteUserSuccessTitle" style="max-width: 380px;">
+            <div class="success-modal-content">
+                <div style="text-align: center; padding: 0.75rem 0 1.25rem;">
+                    <div style="width: 60px; height: 60px; margin: 0 auto 0.75rem; background: #d1fae5; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-check-circle-fill" style="font-size: 2.25rem; color: #10b981;"></i>
+                    </div>
+                    <h2 id="promoteUserSuccessTitle" class="success-modal-title" style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; text-align: center;">User Promoted Successfully!</h2>
+                    <p class="success-modal-message" id="promoteUserSuccessMessage" style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem; line-height: 1.5; text-align: center; margin-bottom: 1.25rem;">The user has been promoted to Staff successfully.</p>
+                </div>
+                <div class="success-modal-footer" style="display: flex; justify-content: center;">
+                    <button type="button" class="btn btn-primary" onclick="closePromoteUserSuccessModal()" style="min-width: 100px; padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        <span>Got it</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentUserId = {{ user.id }};
+            console.log('DOM loaded, currentUserId:', currentUserId);
+            
+            // Delete user functionality
+            const deleteButton = document.querySelector('.btn-delete-user');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const username = this.getAttribute('data-username');
+                    
+                    // Show confirmation modal
+                    showDeleteUserModal(userId, username);
+                });
+            }
+
+            // Show delete confirmation modal
+            window.showDeleteUserModal = function(userId, username) {
+                document.getElementById('deleteUserName').textContent = username;
+                document.getElementById('deleteUserPassword').value = '';
+                document.getElementById('deleteUserModal').style.display = 'flex';
+                
+                // Store userId for the confirm button
+                const confirmBtn = document.getElementById('confirmDeleteUserBtn');
+                if (confirmBtn) {
+                    confirmBtn.setAttribute('data-user-id', userId);
+                    confirmBtn.setAttribute('data-username', username);
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Delete User';
+                }
+                
+                // Focus on password input
+                setTimeout(() => {
+                    const passwordInput = document.getElementById('deleteUserPassword');
+                    if (passwordInput) {
+                        passwordInput.focus();
+                    }
+                }, 100);
+            };
+
+            // Close delete confirmation modal
+            window.closeDeleteUserModal = function() {
+                document.getElementById('deleteUserModal').style.display = 'none';
+            };
+
+            // Show invalid password modal
+            window.showInvalidPasswordModal = function() {
+                document.getElementById('invalidPasswordModal').style.display = 'flex';
+            };
+
+            // Close invalid password modal and reopen delete modal to try again
+            window.closeInvalidPasswordModal = function() {
+                document.getElementById('invalidPasswordModal').style.display = 'none';
+                // Reopen delete modal and clear password for retry
+                const confirmBtn = document.getElementById('confirmDeleteUserBtn');
+                if (confirmBtn) {
+                    const userId = confirmBtn.getAttribute('data-user-id');
+                    const username = confirmBtn.getAttribute('data-username');
+                    if (userId && username) {
+                        showDeleteUserModal(userId, username);
+                    }
+                }
+            };
+
+            // Close modals when clicking outside
+            document.getElementById('deleteUserModal')?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteUserModal();
+                }
+            });
+
+            document.getElementById('invalidPasswordModal')?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeInvalidPasswordModal();
+                }
+            });
+
+            // Confirm delete button handler
+            document.getElementById('confirmDeleteUserBtn')?.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const username = this.getAttribute('data-username');
+                const password = document.getElementById('deleteUserPassword').value;
+                
+                // Validate password
+                if (!password || password.trim() === '') {
+                    showInvalidPasswordModal();
+                    return;
+                }
+                
+                // Disable button during request
+                this.disabled = true;
+                this.textContent = 'Verifying...';
+                
+                // Close confirmation modal and show deleting modal
+                closeDeleteUserModal();
+                document.getElementById('deletingUserName').textContent = username;
+                document.getElementById('deletingUserModal').style.display = 'flex';
+                
+                // Perform delete request with password
+                fetch(`/users/${userId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ password: password })
+                })
+                .then(async response => {
+                    // Re-enable button
+                    const confirmBtn = document.getElementById('confirmDeleteUserBtn');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = 'Delete User';
+                    }
+                    
+                    // Hide deleting modal first
+                    document.getElementById('deletingUserModal').style.display = 'none';
+                    
+                    // Check if response is ok
+                    if (!response.ok) {
+                        // If unauthorized, show invalid password modal
+                        if (response.status === 401 || response.status === 403) {
+                            showInvalidPasswordModal();
+                            return null; // Return null to prevent further processing
+                        }
+                        // Try to parse error message from JSON
+                        let errorMessage = `Server error: ${response.status} ${response.statusText}`;
+                        try {
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                const errorData = await response.json();
+                                errorMessage = errorData.message || errorMessage;
+                            } else {
+                                // If not JSON, read as text to see what we got
+                                const text = await response.text();
+                                console.error('Non-JSON error response:', text);
+                            }
+                        } catch (parseError) {
+                            console.error('Error parsing error response:', parseError);
+                        }
+                        alert('Error: ' + errorMessage);
+                        return null; // Return null to prevent further processing
+                    }
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        const text = await response.text();
+                        console.error('Non-JSON response:', text);
+                        alert('Error: Server returned non-JSON response');
+                        return null; // Return null to prevent further processing
+                    }
+                    
+                    return response.json();
+                })
+                .then(data => {
+                    // If data is null (error case), don't proceed
+                    if (!data) {
+                        return;
+                    }
+                    
+                    if (data.success) {
+                        // Update success message if provided
+                        const successMessage = document.getElementById('deleteUserSuccessMessage');
+                        if (data.message) {
+                            successMessage.textContent = data.message;
+                        }
+                        
+                        // Show success modal
+                        const successModal = document.getElementById('deleteUserSuccessModal');
+                        if (successModal) {
+                            successModal.classList.remove('hidden');
+                            successModal.classList.remove('closing');
+                            successModal.setAttribute('aria-hidden', 'false');
+                            document.body.style.overflow = 'hidden';
+                            successModal.style.display = 'flex';
+                        }
+                        
+                        // Redirect after 1.5 seconds
+                        setTimeout(function() {
+                            window.location.href = '/users';
+                        }, 1500);
+                    } else {
+                        // Show error alert
+                        alert('Error: ' + (data.message || 'Failed to delete user.'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Hide deleting modal
+                    document.getElementById('deletingUserModal').style.display = 'none';
+                    
+                    // Re-enable button
+                    const confirmBtn = document.getElementById('confirmDeleteUserBtn');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = 'Delete User';
+                    }
+                    
+                    // Show error alert
+                    alert('Error: ' + (error.message || 'An error occurred while deleting the user.'));
+                });
+            });
+            
+            // Password toggle for delete modal
+            function initDeletePasswordToggle() {
+                const toggleButton = document.getElementById('toggleDeletePassword');
+                if (toggleButton) {
+                    toggleButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const passwordInput = document.getElementById('deleteUserPassword');
+                        if (!passwordInput) return;
+                        
+                        const type = passwordInput.type === 'password' ? 'text' : 'password';
+                        passwordInput.type = type;
+                        
+                        // Update icon
+                        if (type === 'text') {
+                            this.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            `;
+                        } else {
+                            this.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            `;
+                        }
+                    });
+                }
+            }
+            
+            // Initialize password toggle
+            initDeletePasswordToggle();
+
+            // Toggle status (disable/enable) functionality - override admin_staff.js handler
+            const toggleStatusButton = document.querySelector('.toggle-status');
+            if (toggleStatusButton) {
+                // Remove any existing listeners by cloning
+                const newButton = toggleStatusButton.cloneNode(true);
+                toggleStatusButton.parentNode.replaceChild(newButton, toggleStatusButton);
+                
+                newButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const userId = this.getAttribute('data-user-id');
+                    const currentStatus = this.getAttribute('data-current-status');
+                    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+                    const action = newStatus === 'active' ? 'enable' : 'disable';
+                    const username = '{{ user.username }}';
+                    
+                    showToggleStatusModal(userId, username, action, newStatus);
+                });
+            }
+
+            // Show toggle status modal
+            window.showToggleStatusModal = function(userId, username, action, newStatus) {
+                const modal = document.getElementById('toggleStatusModal');
+                const header = document.getElementById('toggleStatusHeader');
+                const icon = document.getElementById('toggleStatusIcon');
+                const iconClass = document.getElementById('toggleStatusIconClass');
+                const title = document.getElementById('toggleStatusTitle');
+                const subtitle = document.getElementById('toggleStatusSubtitle');
+                const warningBox = document.getElementById('toggleStatusWarningBox');
+                const message = document.getElementById('toggleStatusMessage');
+                const confirmBtn = document.getElementById('confirmToggleStatusBtn');
+                const confirmIcon = document.getElementById('confirmToggleStatusIcon');
+                const confirmText = document.getElementById('confirmToggleStatusText');
+                const userNameSpan = document.getElementById('toggleStatusUserName');
+                
+                if (action === 'disable') {
+                    // Disable styling
+                    header.style.background = 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)';
+                    header.style.borderBottom = '1px solid #fecaca';
+                    icon.style.background = '#ffffff';
+                    icon.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.15)';
+                    iconClass.className = 'bi bi-person-x-fill';
+                    iconClass.style.color = '#dc2626';
+                    title.textContent = 'Disable User';
+                    subtitle.textContent = 'Restrict Access';
+                    subtitle.style.color = '#7f1d1d';
+                    warningBox.style.background = '#fef2f2';
+                    warningBox.style.border = '1px solid #fecaca';
+                    message.innerHTML = `Are you sure you want to disable <strong style="color: #7f1d1d; font-weight: 600;">${username}</strong>? They will not be able to access their account until you enable them again.`;
+                    message.style.color = '#991b1b';
+                    confirmBtn.style.background = '#dc2626';
+                    confirmBtn.style.color = '#ffffff';
+                    confirmIcon.className = 'bi bi-person-x';
+                    confirmText.textContent = 'Disable User';
+                } else {
+                    // Enable styling
+                    header.style.background = 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)';
+                    header.style.borderBottom = '1px solid #bbf7d0';
+                    icon.style.background = '#ffffff';
+                    icon.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.15)';
+                    iconClass.className = 'bi bi-person-check-fill';
+                    iconClass.style.color = '#10b981';
+                    title.textContent = 'Enable User';
+                    subtitle.textContent = 'Restore Access';
+                    subtitle.style.color = '#065f46';
+                    warningBox.style.background = '#f0fdf4';
+                    warningBox.style.border = '1px solid #bbf7d0';
+                    message.innerHTML = `Are you sure you want to enable <strong style="color: #065f46; font-weight: 600;">${username}</strong>? They will regain full access to their account.`;
+                    message.style.color = '#047857';
+                    confirmBtn.style.background = '#10b981';
+                    confirmBtn.style.color = '#ffffff';
+                    confirmIcon.className = 'bi bi-person-check';
+                    confirmText.textContent = 'Enable User';
+                }
+                
+                userNameSpan.textContent = username;
+                confirmBtn.setAttribute('data-user-id', userId);
+                confirmBtn.setAttribute('data-new-status', newStatus);
+                modal.style.display = 'flex';
+            };
+
+            // Close toggle status modal
+            window.closeToggleStatusModal = function() {
+                document.getElementById('toggleStatusModal').style.display = 'none';
+            };
+
+            // Confirm toggle status
+            document.getElementById('confirmToggleStatusBtn')?.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const newStatus = this.getAttribute('data-new-status');
+                const button = document.querySelector(`.toggle-status[data-user-id="${userId}"]`);
+                
+                // Disable button during request
+                this.disabled = true;
+                this.innerHTML = '<i class="bi bi-hourglass-split"></i><span>Processing...</span>';
+                
+                // Close modal
+                closeToggleStatusModal();
+                
+                // Perform toggle request
+                fetch(`/users/${userId}/toggle-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Re-enable button
+                    const confirmBtn = document.getElementById('confirmToggleStatusBtn');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                    }
+                    
+                    if (data.success) {
+                        // Update button state
+                        if (button) {
+                            const isActive = newStatus === 'active';
+                            button.className = `btn-icon toggle-status ${isActive ? 'btn-danger' : 'btn-success'}`;
+                            button.setAttribute('data-current-status', newStatus);
+                            button.setAttribute('title', isActive ? 'Disable User' : 'Enable User');
+                            button.innerHTML = `<i class="bi bi-${isActive ? 'person-x' : 'person-check'}"></i>`;
+                        }
+                        
+                        // Show success message
+                        if (window.adminManager && window.adminManager.showAlert) {
+                            window.adminManager.showAlert('success', data.message);
+                        } else {
+                            alert('Success: ' + data.message);
+                        }
+                        
+                        // Reload page to reflect changes
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        if (window.adminManager && window.adminManager.showAlert) {
+                            window.adminManager.showAlert('error', data.message);
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const confirmBtn = document.getElementById('confirmToggleStatusBtn');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                    }
+                    if (window.adminManager && window.adminManager.showAlert) {
+                        window.adminManager.showAlert('error', 'An error occurred while updating user status.');
+                    } else {
+                        alert('Error: An error occurred while updating user status.');
+                    }
+                });
+            });
+
+            // Close modal when clicking outside
+            document.getElementById('toggleStatusModal')?.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeToggleStatusModal();
+                }
+            });
+
+            // Close success modal
+            window.closeDeleteUserSuccessModal = function() {
+                const successModal = document.getElementById('deleteUserSuccessModal');
+                if (successModal) {
+                    successModal.classList.add('closing');
+                    successModal.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = '';
+                    
+                    setTimeout(function() {
+                        successModal.classList.add('hidden');
+                        successModal.classList.remove('closing');
+                        successModal.style.display = '';
+                        window.location.href = '/users';
+                    }, 250);
+                }
+            };
+
+            // Close promote user success modal
+            window.closePromoteUserSuccessModal = function() {
+                const successModal = document.getElementById('promoteUserSuccessModal');
+                if (successModal) {
+                    successModal.classList.add('closing');
+                    successModal.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = '';
+                    
+                    setTimeout(function() {
+                        successModal.classList.add('hidden');
+                        successModal.classList.remove('closing');
+                        successModal.style.display = '';
+                        window.location.reload();
+                    }, 250);
+                }
+            };
+        });
+        
+        // Promotion user handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const promoteButtons = document.querySelectorAll('.promote-user');
+            
+            promoteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const userId = this.getAttribute('data-user-id');
+                    const username = this.getAttribute('data-username');
+                    const newRole = this.getAttribute('data-role');
+                    const roleLabel = 'Staff';
+                    
+                    if (window.adminManager && window.adminManager.showConfirmationModal) {
+                        window.adminManager.showConfirmationModal(
+                            `Are you sure you want to promote <strong>${username}</strong> to <strong>Staff</strong>? This action will grant them staff privileges and limited administrative access.`,
+                            () => {
+                                promoteUser(userId, username, newRole);
+                            },
+                            'success',
+                            'Promote to Staff'
+                        );
+                    } else {
+                        if (confirm(`Are you sure you want to promote ${username} to Staff?`)) {
+                            promoteUser(userId, username, newRole);
+                        }
+                    }
+                });
+            });
+        });
+        
+        function promoteUser(userId, username, newRole) {
+            const roleLabel = 'Staff';
+            
+            fetch(`/users/${userId}/promote`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    role: newRole
+                })
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    let errorMessage = `Server error: ${response.status}`;
+                    try {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            const data = await response.json();
+                            errorMessage = data.message || errorMessage;
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing error response:', parseError);
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response');
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Update success message if provided
+                    const successMessage = document.getElementById('promoteUserSuccessMessage');
+                    if (data.message && successMessage) {
+                        successMessage.textContent = data.message;
+                    }
+                    
+                    // Show success modal
+                    const successModal = document.getElementById('promoteUserSuccessModal');
+                    if (successModal) {
+                        successModal.classList.remove('hidden');
+                        successModal.classList.remove('closing');
+                        successModal.setAttribute('aria-hidden', 'false');
+                        document.body.style.overflow = 'hidden';
+                        successModal.style.display = 'flex';
+                    }
+                    
+                    // Reload page after 1.5 seconds
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    if (window.adminManager && window.adminManager.showAlert) {
+                        window.adminManager.showAlert('error', data.message || 'Failed to promote user.');
+                    } else {
+                        alert('Error: ' + (data.message || 'Failed to promote user.'));
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (window.adminManager && window.adminManager.showAlert) {
+                    window.adminManager.showAlert('error', error.message || 'An error occurred while promoting the user.');
+                } else {
+                    alert('Error: ' + (error.message || 'An error occurred while promoting the user.'));
+                }
+            });
+        }
+        
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            if (window.adminManager) {
+                window.adminManager.copyToClipboard(text, 'Password hash copied to clipboard!');
+            } else {
+                navigator.clipboard.writeText(text).then(function() {
+                    showAlert('success', 'Password hash copied to clipboard!');
+                }, function(err) {
+                    console.error('Could not copy text: ', err);
+                    showAlert('error', 'Failed to copy to clipboard');
+                });
+            }
+        }
+
+
+        // Edit User Modal Functions
+        {% if user.userType != 'admin' and user.role != 'admin' and user.userType != 'client' and user.role != 'client' and user.userType != 'designer' and user.role != 'designer' and is_granted('ROLE_ADMIN') %}
+        document.querySelectorAll('.btn-edit-user').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                const firstName = this.dataset.firstName;
+                const lastName = this.dataset.lastName || '';
+                const email = this.dataset.email;
+                const role = this.dataset.role;
+                const userType = this.dataset.userType;
+
+                document.getElementById('editFirstName').value = firstName;
+                document.getElementById('editLastName').value = lastName;
+                document.getElementById('editEmail').value = email;
+                document.getElementById('editRole').value = role;
+                document.getElementById('editUserForm').dataset.userId = userId;
+                document.getElementById('editUserForm').dataset.userType = userType;
+
+                document.getElementById('editUserModal').style.display = 'flex';
+            });
+        });
+
+        function closeEditUserModal() {
+            document.getElementById('editUserModal').style.display = 'none';
+        }
+
+        document.getElementById('editUserForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userId = this.dataset.userId;
+            const userType = this.dataset.userType;
+            const formData = {
+                firstName: document.getElementById('editFirstName').value,
+                lastName: document.getElementById('editLastName').value,
+                email: document.getElementById('editEmail').value,
+                role: document.getElementById('editRole').value,
+                userType: document.getElementById('editRole').value
+            };
+
+            try {
+                const response = await fetch(`/users/${userId}/edit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    if (window.adminManager && window.adminManager.showAlert) {
+                        window.adminManager.showAlert('success', data.message);
+                    } else {
+                        alert(data.message);
+                    }
+                    closeEditUserModal();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    if (window.adminManager && window.adminManager.showAlert) {
+                        window.adminManager.showAlert('error', data.message);
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                if (window.adminManager && window.adminManager.showAlert) {
+                    window.adminManager.showAlert('error', 'An error occurred while updating the user.');
+                } else {
+                    alert('An error occurred while updating the user.');
+                }
+            }
+        });
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function(event) {
+            const editModal = document.getElementById('editUserModal');
+            if (event.target === editModal) {
+                closeEditUserModal();
+            }
+        });
+        {% endif %}
+    </script>
+
+    {% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}"></script>
+{% endblock %}

@@ -28,5 +28,48 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Force footer to maintain fixed width
+    const footer = document.querySelector('.footer-login');
+    if (footer) {
+        // Set initial width
+        footer.style.width = '1263px';
+        footer.style.maxWidth = '1263px';
+        footer.style.minWidth = '1263px';
+        
+        // Monitor for changes and force width back
+        const observer = new MutationObserver(function(mutations) {
+            const computedWidth = window.getComputedStyle(footer).width;
+            if (computedWidth !== '1263px') {
+                footer.style.width = '1263px';
+                footer.style.maxWidth = '1263px';
+                footer.style.minWidth = '1263px';
+            }
+        });
+        
+        observer.observe(footer, {
+            attributes: true,
+            attributeFilter: ['style', 'class'],
+            childList: false,
+            subtree: false
+        });
+        
+        // Also check on resize and after DOM mutations
+        window.addEventListener('resize', function() {
+            footer.style.width = '1263px';
+            footer.style.maxWidth = '1263px';
+            footer.style.minWidth = '1263px';
+        });
+        
+        // Check periodically as a fallback
+        setInterval(function() {
+            const computedWidth = window.getComputedStyle(footer).width;
+            if (computedWidth !== '1263px') {
+                footer.style.width = '1263px';
+                footer.style.maxWidth = '1263px';
+                footer.style.minWidth = '1263px';
+            }
+        }, 100);
+    }
 });
 

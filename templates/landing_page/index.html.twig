@@ -4,7 +4,9 @@
 
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('styles/header.css') }}" data-turbo-track="reload">
     <link rel="stylesheet" href="{{ asset('styles/landing.css') }}" data-turbo-track="reload">
+    <link rel="stylesheet" href="{{ asset('styles/footer.css') }}" data-turbo-track="reload">
 {% endblock %}
 
 {% block body %}
@@ -25,34 +27,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const scrollY = window.scrollY;
         const windowHeight = window.innerHeight;
         
-        // Special handling for CTA section and footer (about section)
-        const ctaSection = document.querySelector('.cta-section');
-        const footer = document.getElementById('about');
-        
-        if (ctaSection) {
-            const ctaTop = ctaSection.offsetTop;
-            if (scrollY >= ctaTop - 100) {
-                current = 'about';
+        // Check all sections including the about (CTA) section
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - 100;
+            const sectionHeight = section.offsetHeight;
+            
+            if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+                current = section.getAttribute('id');
             }
-        }
-        
-        if (footer) {
-            const footerTop = footer.offsetTop;
-            if (scrollY + windowHeight >= footerTop - 200) {
-                current = 'about';
-            }
-        }
-        
-        if (!current) {
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop - 100;
-                const sectionHeight = section.offsetHeight;
-                
-                if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
-                    current = section.getAttribute('id');
-                }
-            });
-        }
+        });
         
         navLinks.forEach(link => {
             link.classList.remove('active');
@@ -74,12 +57,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetElement = document.getElementById(targetId);
             
             if (targetElement) {
-                const headerOffset = 80; // Adjust based on your header height
+                const header = document.querySelector('.header');
+                const headerHeight = header ? header.offsetHeight : 62;
+                const headerOffset = headerHeight + 20; // Header height + extra spacing
                 const elementPosition = targetElement.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
                 
                 window.scrollTo({
-                    top: offsetPosition,
+                    top: Math.max(0, offsetPosition),
                     behavior: 'smooth'
                 });
             }
@@ -91,18 +76,20 @@ document.addEventListener('DOMContentLoaded', function() {
     anchorLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             const href = this.getAttribute('href');
-            if (href === '#how-it-works' || href === '#about' || href === '#categories' || href === '#home') {
+            if (href === '#how-it-works' || href === '#about' || href === '#categories' || href === '#home' || href === '#reviews') {
                 e.preventDefault();
                 const targetId = href.substring(1);
                 const targetElement = document.getElementById(targetId);
                 
                 if (targetElement) {
-                    const headerOffset = 80; // Adjust based on your header height
+                    const header = document.querySelector('.header');
+                    const headerHeight = header ? header.offsetHeight : 62;
+                    const headerOffset = headerHeight + 20; // Header height + extra spacing
                     const elementPosition = targetElement.getBoundingClientRect().top;
                     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
                     
                     window.scrollTo({
-                        top: offsetPosition,
+                        top: Math.max(0, offsetPosition),
                         behavior: 'smooth'
                     });
                 }
@@ -140,12 +127,13 @@ document.addEventListener('DOMContentLoaded', function() {
 <header class="header" id="mainNav">
     <div class="header-left">
         <a href="/" class="logo-link">
-            <img src="{{ asset('img/Logo2.png') }}" alt="Mark & Motion">
+            <img src="{{ asset('img/logomain.png') }}" alt="Mark & Motion">
         </a>
 
         <nav class="admin-nav" aria-label="Main navigation">
             <a href="#home" class="nav-item">Home</a>
             <a href="#categories" class="nav-item">Explore</a>
+            <a href="#reviews" class="nav-item">Reviews</a>
             <a href="#how-it-works" class="nav-item">How It Works</a>
             <a href="#about" class="nav-item">About</a>
         </nav>
@@ -239,6 +227,78 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </section>
 
+<!-- Real Results from Clients Section -->
+<section class="testimonials-section" id="reviews">
+    <div class="section-header">
+        <h2>Real results from clients</h2>
+    </div>
+
+    <div class="testimonials-grid">
+        <article class="testimonial-card">
+            <div class="testimonial-category">
+                <i class="bi bi-window"></i>
+                <span>Web Design</span>
+            </div>
+            <blockquote class="testimonial-quote">
+                "Haris came in and helped us transfer knowledge from our departing developer, meeting a serious deadline, without fail. His knowledge and experience are exceptional."
+            </blockquote>
+            <div class="testimonial-rating">
+                <span class="stars">★★★★★</span>
+            </div>
+            <div class="testimonial-details">
+                <p class="work-done">Work done by <strong>Haris S.</strong></p>
+                <p class="work-role">Full-Stack Developer</p>
+                <p class="work-date">Apr 7, 2025</p>
+            </div>
+            <div class="testimonial-profile">
+                <div class="testimonial-avatar">HS</div>
+            </div>
+        </article>
+
+        <article class="testimonial-card">
+            <div class="testimonial-category">
+                <i class="bi bi-film"></i>
+                <span>Video Editing</span>
+            </div>
+            <blockquote class="testimonial-quote">
+                "Ezzan did an amazing job editing my videos—fast turnaround, great attention to detail, and very easy to work with. He follows directions well and delivers high-quality work consistently. Highly recommend him!"
+            </blockquote>
+            <div class="testimonial-rating">
+                <span class="stars">★★★★★</span>
+            </div>
+            <div class="testimonial-details">
+                <p class="work-done">Work done by <strong>Ezzan S.</strong></p>
+                <p class="work-role">Short form and long form video editor needed!</p>
+                <p class="work-date">Mar 14, 2025</p>
+            </div>
+            <div class="testimonial-profile">
+                <div class="testimonial-avatar">ES</div>
+            </div>
+        </article>
+
+        <article class="testimonial-card">
+            <div class="testimonial-category">
+                <i class="bi bi-layout-text-window-reverse"></i>
+                <span>UI/UX Design</span>
+            </div>
+            <blockquote class="testimonial-quote">
+                "Rick is a fantastic AI/ML engineer with specialization in LLMs, delivering end-to-end solutions. We had a few concepts when we started the work; ultimately, he delivered a working solution. Looking forward to working with him again."
+            </blockquote>
+            <div class="testimonial-rating">
+                <span class="stars">★★★★★</span>
+            </div>
+            <div class="testimonial-details">
+                <p class="work-done">Work done by <strong>Richard C.</strong></p>
+                <p class="work-role">LLM/RAG agent system development</p>
+                <p class="work-date">Mar 28, 2025</p>
+            </div>
+            <div class="testimonial-profile">
+                <div class="testimonial-avatar">RC</div>
+            </div>
+        </article>
+    </div>
+</section>
+
 <!-- Features Section -->
 <section class="features-section" id="how-it-works">
     <div class="section-header">
@@ -273,33 +333,8 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </section>
 
-<!-- Stats Section -->
-{# <section class="stats-section">
-    <div class="stats-container">
-        <div class="stat-item">
-            <h2>5M+</h2>
-            <p>Registered Users</p>
-        </div>
-        
-        <div class="stat-item">
-            <h2>500K+</h2>
-            <p>Projects Completed</p>
-        </div>
-        
-        <div class="stat-item">
-            <h2>150+</h2>
-            <p>Countries</p>
-        </div>
-        
-        <div class="stat-item">
-            <h2>4.9/5</h2>
-            <p>Average Rating</p>
-        </div>
-    </div>
-</section> #}
-
 <!-- CTA Section -->
-<section class="cta-section">
+<section class="cta-section" id="about">
     <div class="cta-container">
         <h2>Ready to get started?</h2>
         <p>Join thousands of businesses and creative designers who trust Mark & Motion to bring their projects to life</p>
@@ -311,61 +346,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 
 <!-- Footer -->
-<footer class="footer-landing" id="about">
-    <div class="footer-container">
-        <div class="footer-grid">
-            <div class="footer-column">
-                <h4>Mark & Motion</h4>
-                <p>Creativity in Motion, Marks that Last. Connect with talented designers and bring your creative projects to life.</p>
-                <div class="social-links">
-                    <a href="javascript:void(0)"><i class="bi bi-facebook"></i></a>
-                    <a href="javascript:void(0)"><i class="bi bi-instagram"></i></a>
-                    <a href="javascript:void(0)"><i class="bi bi-linkedin"></i></a>
-                </div>
-            </div>
-            
-            <div class="footer-column">
-                <h4>For Clients</h4>
-                <ul>
-                    <li><a href="javascript:void(0)">How to Hire</a></li>
-                    <li><a href="javascript:void(0)">Talent Marketplace</a></li>
-                    <li><a href="javascript:void(0)">Project Catalog</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-column">
-                <h4>For Designers</h4>
-                <ul>
-                    <li><a href="javascript:void(0)">How to Find Work</a></li>
-                    <li><a href="javascript:void(0)">Direct Contracts</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-column">
-                <h4>Resources</h4>
-                <ul>
-                    <li><a href="javascript:void(0)">Help & Support</a></li>
-                    <li><a href="javascript:void(0)">Community</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-column">
-                <h4>Company</h4>
-                <ul>
-                    <li><a href="javascript:void(0)">About Us</a></li>
-                    {# <li><a href="javascript:void(0)">Careers</a></li> #}
-                </ul>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <div>© 2025 Mark & Motion.</div>
-            <div>
-                <a href="javascript:void(0)" style="color: rgba(255, 255, 255, 0.5); text-decoration: none; margin: 0 12px;">Terms of Service</a>
-                <a href="javascript:void(0)" style="color: rgba(255, 255, 255, 0.5); text-decoration: none; margin: 0 12px;">Privacy Policy</a>
-            </div>
-        </div>
-    </div>
-</footer>
-</div>
+{% include 'landing_page/_footerlanding.html.twig' %}
+
 {% endblock %}

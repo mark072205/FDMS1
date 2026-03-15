@@ -1,0 +1,86 @@
+{% set statusClass = proposal.status == 'accepted' ? 'status-completed' : (proposal.status == 'rejected' ? 'status-cancelled' : 'status-pending') %}
+<div class="project-modal-content">
+    <h2 class="project-modal__title">Proposal Details</h2>
+    
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+        <span class="status-badge {{ statusClass }}" style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.875rem; padding: 0.375rem 0.75rem; border-radius: 12px;">{{ proposal.status|capitalize }}</span>
+        <span style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem;">Submitted {{ proposal.createdAt|date('M d, Y') }}</span>
+        {% if proposal.updatedAt %}
+            <span style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem;">• Updated {{ proposal.updatedAt|date('M d, Y') }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Project Information -->
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+        <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1rem; margin: 0 0 0.75rem 0; color: #111827; font-weight: 600;">Project</h3>
+        <div style="font-family: 'Poppins', Arial, sans-serif; font-weight: 600; color: #111827; font-size: 1rem; margin-bottom: 0.5rem;">{{ proposal.project.title }}</div>
+        {% if proposal.project.category %}
+            <div style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 0.875rem;">{{ proposal.project.category.name }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Cover Letter -->
+    {% if proposal.coverLetter %}
+    <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1rem; margin: 0 0 0.75rem 0; color: #111827; font-weight: 600;">Cover Letter</h3>
+        <div style="font-family: 'Montserrat', Arial, sans-serif; color: #374151; line-height: 1.8; white-space: pre-wrap; padding: 1rem; background: #f9fafb; border-radius: 8px;">{{ proposal.coverLetter }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Proposal Text -->
+    <div style="margin-bottom: 1.5rem;">
+        <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1rem; margin: 0 0 0.75rem 0; color: #111827; font-weight: 600;">Proposal Text</h3>
+        <div style="font-family: 'Montserrat', Arial, sans-serif; color: #374151; line-height: 1.8; white-space: pre-wrap; padding: 1rem; background: #f9fafb; border-radius: 8px;">{{ proposal.proposalText }}</div>
+    </div>
+
+    <!-- Proposal Details -->
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Proposed Price</div>
+            <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 1.25rem; font-weight: 600; color: #111827;">${{ proposal.proposedPrice|number_format(2, '.', ',') }}</div>
+        </div>
+        <div>
+            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Time</div>
+            <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9375rem; color: #111827;">{{ proposal.deliveryTime }} day{{ proposal.deliveryTime != 1 ? 's' : '' }}</div>
+        </div>
+        <div>
+            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Revision Rounds</div>
+            <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9375rem; color: #111827;">{{ proposal.revisionRounds }}</div>
+        </div>
+        <div>
+            <div style="font-family: 'Poppins', Arial, sans-serif; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Created</div>
+            <div style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9375rem; color: #111827;">{{ proposal.createdAt|date('M d, Y') }}</div>
+        </div>
+    </div>
+
+    <!-- Rejection Reason -->
+    {% if proposal.rejectionReason %}
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+        <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1rem; margin: 0 0 0.75rem 0; color: #991b1b; font-weight: 600;">Rejection Reason</h3>
+        <div style="font-family: 'Montserrat', Arial, sans-serif; color: #991b1b; line-height: 1.8; white-space: pre-wrap;">{{ proposal.rejectionReason }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Client Notes -->
+    {% if proposal.clientNotes %}
+    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+        <h3 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1rem; margin: 0 0 0.75rem 0; color: #1e40af; font-weight: 600;">Client Notes</h3>
+        <div style="font-family: 'Montserrat', Arial, sans-serif; color: #1e40af; line-height: 1.8; white-space: pre-wrap;">{{ proposal.clientNotes }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Action Button -->
+    <div class="project-modal__footer" style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+        {% if proposal.status == 'pending' %}
+            <button type="button" class="btn btn-primary btn-edit-proposal-modal" data-proposal-id="{{ proposal.id }}">
+                <i class="bi bi-pencil-fill"></i>
+                <span>Edit Proposal</span>
+            </button>
+        {% endif %}
+        <button type="button" class="btn btn-danger btn-delete-proposal-modal" data-proposal-id="{{ proposal.id }}" data-proposal-project="{{ proposal.project.title }}" style="background: #ef4444; color: white; border: none; font-family: 'Poppins', Arial, sans-serif; font-weight: 500; padding: 0.625rem 1.25rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;">
+            <i class="bi bi-trash" style="font-size: 0.875rem;"></i>
+            <span>Delete Proposal</span>
+        </button>
+    </div>
+</div>
+

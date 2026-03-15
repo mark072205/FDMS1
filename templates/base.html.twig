@@ -3,6 +3,13 @@
     <head>
         <meta charset="UTF-8">
         <meta name="csrf-token" content="{{ csrf_token('authenticate') }}">
+        {% if app.user %}
+            {% if is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
+                <meta name="user-role" content="staff">
+            {% elseif is_granted('ROLE_ADMIN') %}
+                <meta name="user-role" content="admin">
+            {% endif %}
+        {% endif %}
         <title>{% block title %}Mark & Motion | Creativity in Motion, Marks that Last{% endblock %}</title>
         <link rel="icon" href="{{ asset('favicon.ico') }}">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -12,7 +19,6 @@
 
         {% block javascripts %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
-            <script src="{{ asset('controllers/search_controller.js') }}" defer></script>
         {% endblock %}
     </head>
     <body{% block body_class %}{% endblock %}>

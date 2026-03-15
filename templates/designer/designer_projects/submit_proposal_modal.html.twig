@@ -1,0 +1,58 @@
+<!-- Submit Proposal Modal -->
+<div id="submitProposalModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="submitProposalTitle">
+        <button type="button" class="project-modal__close" id="closeSubmitProposal" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <h2 id="submitProposalTitle" class="project-modal__title">Submit Proposal</h2>
+        <div class="project-modal__content">
+            <form id="submitProposalForm">
+                <input type="hidden" id="proposalProjectId" name="projectId" value="">
+                
+                <div class="form-group">
+                    <label for="coverLetter">Cover Letter <span class="form-hint">(Optional)</span></label>
+                    <textarea id="coverLetter" name="coverLetter" rows="4" placeholder="Introduce yourself and explain why you're the right fit for this project..."></textarea>
+                    <small class="form-hint">A brief introduction to help the client understand your approach and expertise.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="proposalText">Proposal Text <span class="required">*</span></label>
+                    <textarea id="proposalText" name="proposalText" rows="6" placeholder="Describe your approach, methodology, timeline, and how you plan to deliver this project..." required></textarea>
+                    <small class="form-hint">Detailed explanation of how you'll approach and complete this project.</small>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="proposedPrice">Proposed Price <span class="required">*</span></label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6b7280; font-family: 'Montserrat', Arial, sans-serif;">$</span>
+                            <input type="number" id="proposedPrice" name="proposedPrice" step="0.01" min="0.01" placeholder="0.00" required style="padding-left: 28px;">
+                        </div>
+                        <small class="form-hint">Your total price for completing this project.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="deliveryTime">Delivery Time (Days) <span class="required">*</span></label>
+                        <input type="number" id="deliveryTime" name="deliveryTime" min="1" placeholder="e.g., 7" required>
+                        <small class="form-hint">Number of days to complete the project.</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="revisionRounds">Revision Rounds</label>
+                    <input type="number" id="revisionRounds" name="revisionRounds" min="0" value="1" placeholder="1">
+                    <small class="form-hint">Number of revision rounds included in your proposal (default: 1).</small>
+                </div>
+            </form>
+        </div>
+        <div class="project-modal__footer">
+            <button type="button" class="btn btn-secondary" id="cancelSubmitProposal">Cancel</button>
+            <button type="submit" form="submitProposalForm" class="btn btn-primary" id="submitProposalFormBtn" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="bi bi-send-fill"></i>
+                <span>Submit Proposal</span>
+            </button>
+        </div>
+    </div>
+</div>
+

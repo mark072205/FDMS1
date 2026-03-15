@@ -1,620 +1,3 @@
-/* Client header and navbar styles (copied from admin.css) */
-
-/* Custom Fonts */
-@font-face {
-    font-family: 'Montserrat';
-    src: url('../fonts/MONTSERRAT-REGULAR.TTF') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Poppins';
-    src: url('../fonts/POPPINS-MEDIUM.TTF') format('truetype');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Poppins';
-    src: url('../fonts/POPPINS-BOLD.TTF') format('truetype');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
-}
-
-/* Search Dropdown Styles */
-.search-dropdown {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    left: 0;
-    background: #ffffff;
-    border: 1px solid var(--color-neutral-200);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    z-index: 1001;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.search-result-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    text-decoration: none;
-    color: inherit;
-    border-bottom: 1px solid var(--color-neutral-100);
-    transition: background-color 0.2s ease;
-}
-
-.search-result-item:hover,
-.search-result-item.active {
-    background-color: var(--color-primary-50);
-    text-decoration: none;
-    color: inherit;
-}
-
-.search-result-item:last-child {
-    border-bottom: none;
-}
-
-.search-result-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.search-result-title {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: #111827;
-    margin-bottom: 0.25rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-family: 'Montserrat', Arial, sans-serif;
-}
-
-.search-result-subtitle {
-    font-size: 0.75rem;
-    color: #6b7280;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-family: 'Montserrat', Arial, sans-serif;
-}
-
-.search-result-badge {
-    margin-left: 0.75rem;
-    flex-shrink: 0;
-}
-
-.search-loading,
-.search-no-results,
-.search-error {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
-    text-align: center;
-}
-
-.search-loading-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--color-neutral-200);
-    border-top: 2px solid var(--color-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-right: 0.5rem;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.search-loading-text,
-.search-no-results-text,
-.search-error-text {
-    font-size: 0.875rem;
-    color: #6b7280;
-    font-family: 'Montserrat', Arial, sans-serif;
-}
-
-.search-no-results-icon,
-.search-error-icon {
-    margin-right: 0.5rem;
-    color: #9ca3af;
-}
-
-.search-error-icon {
-    color: #ef4444;
-}
-
-/* Theme */
-:root {
-    --color-primary: #1e3a8a;
-    --color-primary-hover: #162c5a;
-    --color-primary-50: #e6ecfa;
-    --color-primary-100: #d5def7;
-    --color-muted: #c0c0c0;
-    --color-neutral: #c0c0c0;
-    --color-neutral-50: #f2f2f2;
-    --color-neutral-100: #e6e6e6;
-    --color-neutral-200: #d9d9d9;
-    --color-neutral-300: #cccccc;
-    --color-primary-ring: rgba(30,58,138,0.12);
-}
-
-/* Client Dropdown menu */
-.client-dropdown {
-    position: absolute;
-    /* reliably position the dropdown just below the badge (badge will be relative)
-       using calc to account for badge height and a small gap */
-    top: calc(100% + 0.5rem);
-    right: -3px; /* right-align the menu to the badge */
-    background: #ffffff;
-    border: 1px solid var(--color-neutral-200);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    min-width: 250px;
-    z-index: 1001;
-    display: none;
-    padding-top: 6px; /* create a small non-highlighted strip above the profile section */
-    margin-top: -10px; /* small spacing for arrow */
-}
-
-/* Arrow */
-.client-dropdown::before {
-    content: "";
-    position: absolute;
-    top: -8px;   /* places arrow ABOVE the box */
-    right: 13px;  /* adjust so it points to the badge */
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 10px solid #ffffff; /* arrow matches dropdown bg */
-    z-index: 1002;
-}
-
-/* Optional subtle shadow for arrow like Upwork */
-.client-dropdown::after {
-    content: "";
-    position: absolute;
-    top: -9px;  /* just behind ::before */
-    right: 13px;
-    width: 0;
-    height: 0;
-    border-left: 9px solid transparent;
-    border-right: 9px solid transparent;
-    border-bottom: 11px solid rgba(0,0,0,0.05); /* shadow */
-    z-index: 1000;
-}
-
-.client-dropdown.show {
-    display: block;
-}
-
-/* Profile section */
-.client-profile-section {
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-neutral-100);
-    border-radius: 10px; /* keep hover highlight inside, away from outer curve */
-}
-
-.client-profile-section:hover {
-    background: var(--color-neutral-50);
-    border-radius: 10px;
-}
-
-
-.client-profile-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.client-profile-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #2563eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    color: #ffffff;
-    font-weight: 400;
-    font-family: 'Poppins', Arial, sans-serif;
-    border: none;
-}
-
-.client-profile-details h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #111827;
-    font-family: 'Montserrat', Arial, sans-serif;
-}
-
-.client-profile-details p {
-    margin: 0.25rem 0 0;
-    font-size: 0.875rem;
-    color: var(--color-muted);
-    font-family: 'Montserrat', Arial, sans-serif;
-}
-
-/* Menu items */
-.client-dropdown-menu {
-    padding: 0.5rem 0;
-}
-
-.client-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    color: #374151;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-family: 'Montserrat', Arial, sans-serif;
-    transition: background 0.2s ease;
-}
-
-.client-menu-item:hover {
-    background: var(--color-neutral-50);
-    color: #111827;
-}
-
-.client-menu-item-icon {
-    width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.client-menu-item.logout-item {
-    color: #dc2626;
-}
-
-.client-menu-item.logout-item:hover {
-    background: #fef2f2;
-    color: #b91c1c;
-}
-
-.client-menu-divider {
-    height: 1px;
-    background: var(--color-neutral-100);
-    margin: 0.5rem 0;
-}
-
-/* Small responsive adjustments */
-@media (max-width: 640px) {
-    .header-client-no-avatar { left: 16px; right: 16px; width: auto; }
-    .client-dropdown { right: 8px; min-width: 220px; }
-}
-
-/* Client Header base */
-.header-client-no-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 24px;
-    background: #ffffff;
-    /* border-bottom: 1px solid var(--color-neutral-200); */
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
-}
-
-/* Styling for elements within header-client-no-avatar */
-.header-client-no-avatar .client-logo-link img {
-    height: 30px;
-    width: auto;
-    display: block;
-}
-
-.header-client-no-avatar .client-nav .client-nav-item {
-    color: #374151;
-    text-decoration: none;
-    padding: 4px 6px;
-    border-radius: 8px;
-    font-family: 'Montserrat', Arial, sans-serif;
-    font-size: 0.9rem;
-    transition: color 0.18s ease, transform 0.12s ease, background 0.2s ease;
-}
-
-.header-client-no-avatar .client-nav .client-nav-item:hover,
-.header-client-no-avatar .client-nav .client-nav-item:focus {
-    color: var(--color-primary);
-    background: transparent;
-    transform: translateY(-1px);
-    outline: none;
-}
-
-.header-client-no-avatar .client-nav .client-nav-item.active {
-    color: var(--color-primary);
-    font-weight: 600;
-    background: transparent;
-}
-
-.header-client-no-avatar .client-search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border: 1px solid var(--color-neutral-200);
-    border-radius: 999px;
-    min-width: 280px;
-    background: #ffffff;
-}
-
-.header-client-no-avatar .client-search-box input {
-    border: 0;
-    outline: none;
-    background: transparent;
-    width: 100%;
-    font-family: 'Montserrat', Arial, sans-serif;
-    color: #111827;
-}
-
-.header-client-no-avatar .client-search-box input::placeholder {
-    color: #6b7280;
-}
-
-.header-client-no-avatar .client-icon {
-    color: #6b7280;
-}
-
-.header-client-no-avatar .client-icon path,
-.header-client-no-avatar .client-icon circle {
-    stroke: #6b7280;
-}
-
-.header-client-no-avatar .client-icon.bell {
-    color: #111827;
-}
-
-.header-client-no-avatar .client-icon.bell i.bi {
-    color: #111827;
-    font-weight: normal;
-    font-size: 18px;
-}
-
-.header-client-no-avatar .client-icon.bell .dot {
-    position: absolute;
-    right: 2px;
-    top: 2px;
-    width: 9px;
-    height: 9px;
-    background: #ff5a5f;
-    border-radius: 50%;
-    box-shadow: 0 0 0 1px #fff;
-}
-
-/* Avatar styling for header-client-no-avatar */
-.header-client-no-avatar .client-badge {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: transparent;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: none;
-    position: relative;
-}
-
-.header-client-no-avatar .client-badge > .client-profile-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #2563eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    font-family: 'Poppins', Arial, sans-serif;
-    font-weight: 400;
-    font-size: 1.1rem;
-    line-height: 1;
-    border: none;
-    overflow: hidden;
-}
-
-.header-client-left {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-}
-
-.client-logo-link img {
-    height: 30px;
-    width: auto;
-    display: block;
-}
-
-.client-nav {
-    display: flex;
-    gap: 10px;
-}
-
-.client-nav .client-nav-item {
-    color: #374151;
-    text-decoration: none;
-    padding: 4px 6px;
-    border-radius: 8px;
-    font-family: 'Montserrat', Arial, sans-serif;
-    font-size: 0.9rem;
-    transition: color 0.18s ease, transform 0.12s ease;
-}
-
-.client-nav .client-nav-item:hover,
-.client-nav .client-nav-item:focus {
-    color: var(--color-primary);
-    background: transparent;
-    transform: translateY(-1px);
-    outline: none;
-}
-
-/* keyboard-focus visible state for accessibility - subtle ring */
-.client-nav .client-nav-item:focus-visible {
-    box-shadow: 0 0 0 3px var(--color-primary-ring);
-}
-
-.client-nav .client-nav-item.active {
-    color: var(--color-primary);
-    font-weight: 600;
-    background: transparent;
-}
-
-.header-client-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.client-search-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border: 1px solid var(--color-neutral-200);
-    border-radius: 999px;
-    min-width: 280px;
-}
-
-.client-search-box input {
-    border: 0;
-    outline: none;
-    background: transparent;
-    width: 100%;
-    font-family: 'Montserrat', Arial, sans-serif;
-}
-
-/* Remove gradient from search input clear button */
-.client-search-box input[type="search"]::-webkit-search-cancel-button {
-    -webkit-appearance: none;
-    appearance: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 16px;
-}
-
-.client-search-box input[type="search"]::-moz-search-clear-button {
-    -moz-appearance: none;
-    appearance: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'%3E%3C/line%3E%3Cline x1='6' y1='6' x2='18' y2='18'%3E%3C/line%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: 16px;
-}
-
-.client-icon {
-    width: 22px;
-    height: 22px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #555;
-}
-
-.client-icon.bell {
-    position: relative;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.client-icon.bell i.bi {
-    font-size: 20px;
-    line-height: 1;
-    color: #111827;
-}
-
-.client-icon.bell .dot {
-    position: absolute;
-    right: 2px;
-    top: 2px;
-    width: 9px;
-    height: 9px;
-    background: #ff5a5f;
-    border-radius: 50%;
-    box-shadow: 0 0 0 2px #fff;
-}
-
-.client-badge {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: transparent;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: none;
-    position: relative;
-}
-
-.client-badge > .client-profile-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #2563eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    font-family: 'Poppins', Arial, sans-serif;
-    font-weight: 400;
-    font-size: 1.1rem;
-    line-height: 1;
-    border: none;
-    overflow: hidden;
-}
-
-/* Ensure the avatar shown inside the dropdown has the green background */
-.client-dropdown .client-profile-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #2563eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Poppins', Arial, sans-serif;
-    font-size: 1.2rem;
-    color: #ffffff;
-    font-weight: 400;
-    border: none;
-    overflow: hidden;
-}
-
 /* Client main content area */
 .client-main {
     margin-top: 120px; /* Extra space so content clears fixed header */
@@ -1495,6 +878,19 @@ button.btn-save:active {
     flex-grow: 1;
 }
 
+.project-budget {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 14px;
+    color: #374151;
+    margin: 12px 0;
+}
+
+.project-budget strong {
+    font-family: 'Poppins', Arial, sans-serif;
+    font-weight: 500;
+    color: #111827;
+}
+
 .project-actions {
     display: flex;
     gap: 8px;
@@ -1621,12 +1017,22 @@ button.btn-save:active {
 }
 
 /* Empty State */
+/* Empty State - Centered and Standalone */
 .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: 64px 24px;
-    background: #ffffff;
-    border: 1px solid var(--color-neutral-200);
-    border-radius: 12px;
+    padding: 1.5rem 1rem 0.5rem 1rem;
+    min-height: auto;
+    max-width: 100%;
+    width: 100%;
+    margin: 0.5rem auto;
+    background: transparent;
+    border: none;
+    box-sizing: border-box;
+    font-family: 'Montserrat', Arial, sans-serif;
 }
 
 .empty-state-icon {
@@ -1662,6 +1068,7 @@ button.btn-save:active {
 
 .empty-state .btn {
     margin-top: 8px;
+    font-family: 'Poppins', Arial, sans-serif;
 }
 
 /* Post Project Modal */
@@ -3873,4 +3280,84 @@ html body.messages-page {
     .message-content {
         max-width: 85%;
     }
+}
+
+/* Notification System */
+.client-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    max-width: 500px;
+    opacity: 0;
+    transform: translateX(400px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    font-family: 'Poppins', Arial, sans-serif;
+    font-size: 14px;
+}
+
+.client-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.client-notification-success {
+    background-color: #10b981;
+    color: #ffffff;
+}
+
+.client-notification-error {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+.client-notification .notification-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 16px;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.client-notification .notification-close:hover {
+    opacity: 1;
+}
+
+/* Form Error Styling */
+.field-error {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 4px;
+    font-family: 'Montserrat', Arial, sans-serif;
+}
+
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-hint {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+    font-family: 'Montserrat', Arial, sans-serif;
 }

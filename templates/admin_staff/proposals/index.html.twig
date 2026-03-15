@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Proposals Management · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'proposals' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Proposals</h1>
+                <p class="admin-subtitle">Manage all project proposals</p>
+            </div>
+            <div class="admin-toolbar">
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <!-- Filters -->
+        <div class="admin-card" style="padding: 1.1rem 1.25rem; margin-bottom: 1.5rem;">
+            <form method="GET" action="{{ path('app_admin_proposal_index') }}" class="admin-filters">
+                <div style="display: flex; gap: 1rem; align-items: end;">
+                    <div style="flex: 1;">
+                        <label for="statusFilter" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Status</label>
+                        <select id="statusFilter" name="status" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All Status</option>
+                            <option value="pending" {% if statusFilter == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="accepted" {% if statusFilter == 'accepted' %}selected{% endif %}>Accepted</option>
+                            <option value="rejected" {% if statusFilter == 'rejected' %}selected{% endif %}>Rejected</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="projectFilter" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Project</label>
+                        <select id="projectFilter" name="project" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All Projects</option>
+                            {% for project in projects %}
+                                <option value="{{ project.id }}" {% if projectFilter == (project.id ~ '') %}selected{% endif %}>{{ project.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="designerFilter" style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280; font-family: 'Poppins', Arial, sans-serif;">Designer</label>
+                        <select id="designerFilter" name="designer" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 6px; font-family: 'Montserrat', Arial, sans-serif;">
+                            <option value="">All Designers</option>
+                            {% for designer in designers %}
+                                <option value="{{ designer.id }}" {% if designerFilter == (designer.id ~ '') %}selected{% endif %}>{{ designer.username }} ({{ designer.firstName }} {{ designer.lastName }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="submit" class="btn-primary" style="padding: 0.5rem 1rem; font-family: 'Poppins', Arial, sans-serif;">Filter</button>
+                        <a href="{{ path('app_admin_proposal_index') }}" class="btn-secondary" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block; font-family: 'Poppins', Arial, sans-serif;">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="admin-projects-table-card">
+            <h2 class="admin-projects-table-title">All Proposals</h2>
+            <div class="admin-table-wrapper">
+                <table class="admin-table table-balanced table-colored admin-projects-table">
+                    <thead>
+                        <tr>
+                            <th class="col-id admin-projects-table-header">ID</th>
+                            <th class="col-title admin-projects-table-header">Project</th>
+                            <th class="col-category admin-projects-table-header">Designer</th>
+                            <th class="col-status admin-projects-table-header">Price</th>
+                            <th class="col-status admin-projects-table-header">Delivery Time</th>
+                            <th class="col-status admin-projects-table-header">Status</th>
+                            <th class="col-date admin-projects-table-header">Created</th>
+                            <th class="col-actions admin-projects-table-header admin-projects-table-header-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for proposal in proposals %}
+                        <tr class="admin-row" data-proposal-id="{{ proposal.id }}">
+                            <td class="admin-projects-table-cell">{{ proposal.id }}</td>
+                            <td class="admin-projects-table-cell">
+                                <a href="{{ path('app_admin_project_show', {'id': proposal.project.id}) }}" style="color: var(--color-primary); text-decoration: none; font-family: 'Poppins', Arial, sans-serif;">
+                                    {{ proposal.project.title }}
+                                </a>
+                            </td>
+                            <td class="admin-projects-table-cell">
+                                <a href="{{ path('app_user_show', {'id': proposal.designer.id}) }}" style="color: var(--color-primary); text-decoration: none; font-family: 'Poppins', Arial, sans-serif;">
+                                    {{ proposal.designer.username }}
+                                </a>
+                            </td>
+                            <td class="admin-projects-table-cell">${{ proposal.proposedPrice|number_format(2, '.', ',') }}</td>
+                            <td class="admin-projects-table-cell">{{ proposal.deliveryTime }} days</td>
+                            <td class="admin-projects-table-cell-status">
+                                {% set status = proposal.status|lower %}
+                                {% set statusClass =
+                                    status == 'accepted' ? 'is-completed' :
+                                    (status == 'rejected' ? 'is-cancelled' : 'is-pending')
+                                %}
+                                <span class="badge-status {{ statusClass }}" id="status-{{ proposal.id }}">{{ proposal.status|capitalize }}</span>
+                            </td>
+                            <td class="admin-projects-table-cell">{{ proposal.createdAt|date('Y-m-d') }}</td>
+                            <td class="admin-projects-table-cell-actions">
+                                <a class="btn-link admin-projects-table-view-link" href="{{ path('app_admin_proposal_show', {'id': proposal.id}) }}">View</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="admin-projects-table-empty">No proposals found.</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+{% endblock %}
+

@@ -1,0 +1,23 @@
+{# Signup page header partial #}
+<div class="header">
+    <div class="header-left">
+        <a href="{{ path('app_landing_page') }}" class="logo-link">
+            <img src="{{ asset('img/logomain.png') }}" alt="Mark & Motion">
+        </a>
+    </div>
+    <div class="header-right {% if role %}visible{% endif %}" id="headerRight">
+        <span class="header-text">
+            {% if role == 'designer' %}
+                Here to hire designer?
+            {% elseif role == 'client' %}
+                Here to find work?
+            {% endif %}
+        </span>
+        {% if role == 'designer' %}
+            <a href="/signup/as-client" class="header-link">Join as a Client</a>
+        {% elseif role == 'client' %}
+            <a href="/signup/as-designer" class="header-link">Join as a Designer</a>
+        {% endif %}
+    </div>
+</div>
+

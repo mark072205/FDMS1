@@ -3,6 +3,7 @@
 {% block title %}Mark & Motion · Projects{% endblock %}
 
 {% block stylesheets %}
+    <link rel="stylesheet" href=" {{ asset('styles/header.css')}} ">
     <link rel="stylesheet" href=" {{ asset('styles/designer.css')}} ">
 {% endblock %}
 
@@ -13,10 +14,108 @@
 {% block body %}
 {% include 'designer/_headerdesigner.html.twig' with { active: 'projects' } %}
 
-<main class="designer-main">
-    <div class="example-wrapper">
-        <h1>Projects</h1>
-        <p>This page is under development.</p>
-    </div>
+<main class="designer-main projects-main">
+    <!-- Feed Header -->
+    <section class="projects-feed-header">
+        <h1 class="feed-title" style="font-family: 'Poppins', Arial, sans-serif;">Projects Feed</h1>
+    </section>
+
+    <!-- Search and Filters -->
+    <section class="projects-filters">
+        <form method="GET" action="{{ path('app_designer_projects') }}" id="projectsFilterForm" style="display: contents;">
+            <div class="search-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 21l-4.35-4.35" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="11" cy="11" r="6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <input type="search" id="projectsSearch" name="search" value="{{ searchQuery }}" placeholder="Search projects by title or category" aria-label="Search projects">
+            </div>
+            <div class="filters-wrapper">
+                <select id="categoryFilter" name="category" class="filter-select" aria-label="Filter by category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if categoryFilter == (category.id ~ '') %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+                <select id="statusFilter" name="status" class="filter-select" aria-label="Filter by status">
+                    <option value="">All Status</option>
+                    <option value="pending" {% if statusFilter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="active" {% if statusFilter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="ongoing" {% if statusFilter == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                </select>
+                <select id="budgetFilter" name="budget" class="filter-select" aria-label="Filter by budget">
+                    <option value="">All Budgets</option>
+                    <option value="0-500" {% if budgetFilter == '0-500' %}selected{% endif %}>$0 - $500</option>
+                    <option value="500-1000" {% if budgetFilter == '500-1000' %}selected{% endif %}>$500 - $1,000</option>
+                    <option value="1000-5000" {% if budgetFilter == '1000-5000' %}selected{% endif %}>$1,000 - $5,000</option>
+                    <option value="5000+" {% if budgetFilter == '5000+' %}selected{% endif %}>$5,000+</option>
+                </select>
+            </div>
+        </form>
+    </section>
+
+    <!-- Projects Content -->
+    <section class="projects-content">
+        {% if projects|length > 0 %}
+            <div class="projects-grid" id="projectsGrid">
+                {% for project in projects %}
+                    <div class="project-card explore-card" data-project-id="{{ project.id }}">
+                        <div class="project-header">
+                            <div class="project-author">
+                                {% set initials = (project.client.firstName|first|upper) ~ (project.client.lastName|first|upper) %}
+                                <div class="author-avatar">{{ initials }}</div>
+                                <span class="author-name">{{ project.client.firstName }} {{ project.client.lastName }}</span>
+                            </div>
+                            <div class="project-actions-icons">
+                                <button type="button" class="icon-btn-small" title="Save project" aria-label="Save project">
+                                    <i class="bi bi-bookmark"></i>
+                                </button>
+                                <button type="button" class="icon-btn-small" title="Share project" aria-label="Share project">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <h3>{{ project.title }}</h3>
+                        <div class="project-meta">
+                            <span class="project-category">{{ project.category ? project.category.name : 'Uncategorized' }}</span>
+                            <span class="project-date">Posted {{ project.createdAt|date('M d, Y') }}</span>
+                        </div>
+                        <p class="project-description">{{ project.description|length > 150 ? project.description|slice(0, 150) ~ '...' : project.description }}</p>
+                        <div class="project-budget">
+                            <strong>Budget:</strong> ${{ project.budget|number_format(2, '.', ',') }}
+                        </div>
+                        <div class="project-actions">
+                            <button type="button" class="btn btn-sm btn-primary view-project-btn" data-project-id="{{ project.id }}">View Details</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyProjects">
+                <div class="empty-state-icon">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h3>No projects found.</h3>
+                <p>Try adjusting your search or filters to find more projects.</p>
+            </div>
+        {% endif %}
+    </section>
 </main>
+
+<!-- Project Detail Modal -->
+<div id="projectDetailModal" class="project-modal hidden" aria-hidden="true">
+    <div class="project-modal__backdrop"></div>
+    <div class="project-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="projectDetailTitle">
+        <button type="button" class="project-modal__close" id="closeProjectDetail" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div id="projectDetailContent">
+            <!-- Content will be loaded here via AJAX -->
+        </div>
+    </div>
+</div>
+
+{% include 'designer/designer_projects/submit_proposal_modal.html.twig' %}
+{% include 'designer/designer_projects/success_modal.html.twig' %}
 {% endblock %}

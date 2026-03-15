@@ -1,0 +1,276 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}" defer></script>
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'notifications' } %}
+
+    {% set isStaff = is_granted('ROLE_STAFF') and not is_granted('ROLE_ADMIN') %}
+    
+    <div class="admin-container {% if isStaff %}blurred-content{% endif %}">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Notifications</h1>
+                <p class="admin-subtitle">View and manage all your notifications</p>
+            </div>
+            <div class="admin-toolbar">
+                {% if unreadCount > 0 %}
+                    <button type="button" id="markAllReadBtn" class="btn-secondary">
+                        <i class="bi bi-check-all" style="margin-right: 0.5rem;"></i>
+                        Mark all as read
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="notifications-stats">
+            <div class="notification-stat-card">
+                <div class="notification-stat-icon blue">
+                    <i class="bi bi-bell"></i>
+                </div>
+                <div class="notification-stat-content">
+                    <div class="notification-stat-value">{{ notifications|length }}</div>
+                    <div class="notification-stat-label">Total Notifications</div>
+                </div>
+            </div>
+            <div class="notification-stat-card">
+                <div class="notification-stat-icon orange">
+                    <i class="bi bi-envelope"></i>
+                </div>
+                <div class="notification-stat-content">
+                    <div class="notification-stat-value" style="color: #3b82f6;">{{ unreadCount }}</div>
+                    <div class="notification-stat-label">Unread</div>
+                </div>
+            </div>
+            <div class="notification-stat-card">
+                <div class="notification-stat-icon green">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="notification-stat-content">
+                    <div class="notification-stat-value" style="color: #10b981;">{{ notifications|length - unreadCount }}</div>
+                    <div class="notification-stat-label">Read</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-card notifications-card">
+            <div class="notifications-tabs">
+                <button type="button" class="notification-tab active" data-tab="all">
+                    <i class="bi bi-bell"></i>
+                    <span>All Notifications</span>
+                    <span class="tab-count">{{ notifications|length }}</span>
+                </button>
+                <button type="button" class="notification-tab" data-tab="unread">
+                    <i class="bi bi-envelope"></i>
+                    <span>Unread</span>
+                    {% if unreadCount > 0 %}
+                        <span class="tab-count tab-count-unread">{{ unreadCount }}</span>
+                    {% else %}
+                        <span class="tab-count">0</span>
+                    {% endif %}
+                </button>
+            </div>
+
+            <div class="notifications-tab-content" id="tab-all">
+                {% if notifications|length > 0 %}
+                    <div class="notifications-list">
+                        {% for item in notificationsWithUsers %}
+                            {% set notification = item.notification %}
+                            {% set relatedUser = item.relatedUser %}
+                            <div class="notification-item-page {% if not notification.isRead %}unread{% endif %}" 
+                                 data-notification-id="{{ notification.id }}"
+                                 data-is-read="{{ notification.isRead ? 'true' : 'false' }}"
+                                 data-action-url="{{ notification.actionUrl ?? '' }}">
+                            <div class="notification-item-page__avatar-wrapper">
+                                {% if relatedUser %}
+                                    {% set userType = relatedUser.userType|lower %}
+                                    {% set roleClass = userType == 'designer' ? 'is-designer' : (userType == 'client' ? 'is-client' : (userType == 'staff' ? 'is-staff' : 'is-admin')) %}
+                                    <div class="notification-item-page__avatar {{ roleClass }}">
+                                        {% if relatedUser.profilePicture and relatedUser.profilePicture|trim != '' %}
+                                            <img src="{{ asset('uploads/profile_pictures/' ~ relatedUser.profilePicture) }}" 
+                                                 alt="{{ relatedUser.firstName }} {{ relatedUser.lastName }}"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        {% endif %}
+                                        <span style="display: {% if relatedUser.profilePicture and relatedUser.profilePicture|trim != '' %}none{% else %}flex{% endif %};">
+                                            {{ relatedUser.firstName|first|upper }}{{ relatedUser.lastName|first|upper }}
+                                        </span>
+                                    </div>
+                                {% else %}
+                                    <div class="notification-item-page__icon {% if not notification.isRead %}pulse{% endif %}">
+                                        {% if notification.type == 'new_user' %}
+                                            <i class="bi bi-person-plus-fill"></i>
+                                        {% elseif notification.type == 'new_project' %}
+                                            <i class="bi bi-folder-plus-fill"></i>
+                                        {% elseif notification.type == 'new_proposal' %}
+                                            <i class="bi bi-file-earmark-text-fill"></i>
+                                        {% elseif notification.type == 'user_status_changed' %}
+                                            <i class="bi bi-person-check-fill"></i>
+                                        {% elseif notification.type == 'file_uploaded' %}
+                                            <i class="bi bi-cloud-upload-fill"></i>
+                                        {% elseif notification.type == 'profile_picture_changed' %}
+                                            <i class="bi bi-image-fill"></i>
+                                        {% elseif notification.type == 'project_updated' %}
+                                            <i class="bi bi-folder-check-fill"></i>
+                                        {% elseif notification.type == 'project_deleted' %}
+                                            <i class="bi bi-folder-x-fill"></i>
+                                        {% elseif notification.type == 'proposal_updated' %}
+                                            <i class="bi bi-file-earmark-check-fill"></i>
+                                        {% elseif notification.type == 'proposal_deleted' %}
+                                            <i class="bi bi-file-earmark-x-fill"></i>
+                                        {% else %}
+                                            <i class="bi bi-bell-fill"></i>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                                {% if not notification.isRead %}
+                                    <span class="notification-dot"></span>
+                                {% endif %}
+                            </div>
+                            <div class="notification-item-page__content">
+                                <div class="notification-item-page__header">
+                                    <h4 class="notification-item-page__title">{{ notification.title }}</h4>
+                                    <span class="notification-item-page__time">
+                                        <i class="bi bi-clock"></i>
+                                        {{ notification.createdAt|date('M d, Y g:i A') }}
+                                    </span>
+                                </div>
+                                <p class="notification-item-page__message">{{ notification.message }}</p>
+                                <div class="notification-item-page__footer">
+                                    <span class="notification-item-page__type">{{ notification.type|replace({'_': ' '})|title }}</span>
+                                    {% if notification.actionUrl %}
+                                        <a href="{{ notification.actionUrl }}" class="notification-item-page__action">
+                                            View <i class="bi bi-arrow-right"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="notification-empty-state">
+                        <div class="notification-empty-state__icon">
+                            <i class="bi bi-bell-slash"></i>
+                        </div>
+                        <h3 class="notification-empty-state__title">No notifications yet</h3>
+                        <p class="notification-empty-state__message">You'll see notifications here when there's activity in the system.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="notifications-tab-content hidden" id="tab-unread">
+                {% set unreadNotificationsWithUsers = notificationsWithUsers|filter(item => not item.notification.isRead) %}
+                {% if unreadNotificationsWithUsers|length > 0 %}
+                    <div class="notifications-list">
+                        {% for item in unreadNotificationsWithUsers %}
+                            {% set notification = item.notification %}
+                            {% set relatedUser = item.relatedUser %}
+                            <div class="notification-item-page unread" 
+                                 data-notification-id="{{ notification.id }}"
+                                 data-is-read="false"
+                                 data-action-url="{{ notification.actionUrl ?? '' }}">
+                                <div class="notification-item-page__avatar-wrapper">
+                                    {% if relatedUser %}
+                                        {% set userType = relatedUser.userType|lower %}
+                                        {% set roleClass = userType == 'designer' ? 'is-designer' : (userType == 'client' ? 'is-client' : (userType == 'staff' ? 'is-staff' : 'is-admin')) %}
+                                        <div class="notification-item-page__avatar {{ roleClass }}">
+                                            {% if relatedUser.profilePicture and relatedUser.profilePicture|trim != '' %}
+                                                <img src="{{ asset('uploads/profile_pictures/' ~ relatedUser.profilePicture) }}" 
+                                                     alt="{{ relatedUser.firstName }} {{ relatedUser.lastName }}"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            {% endif %}
+                                            <span style="display: {% if relatedUser.profilePicture and relatedUser.profilePicture|trim != '' %}none{% else %}flex{% endif %};">
+                                                {{ relatedUser.firstName|first|upper }}{{ relatedUser.lastName|first|upper }}
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <div class="notification-item-page__icon pulse">
+                                            {% if notification.type == 'new_user' %}
+                                                <i class="bi bi-person-plus-fill"></i>
+                                            {% elseif notification.type == 'new_project' %}
+                                                <i class="bi bi-folder-plus-fill"></i>
+                                            {% elseif notification.type == 'new_proposal' %}
+                                                <i class="bi bi-file-earmark-text-fill"></i>
+                                            {% elseif notification.type == 'user_status_changed' %}
+                                                <i class="bi bi-person-check-fill"></i>
+                                            {% elseif notification.type == 'file_uploaded' %}
+                                                <i class="bi bi-cloud-upload-fill"></i>
+                                            {% elseif notification.type == 'profile_picture_changed' %}
+                                                <i class="bi bi-image-fill"></i>
+                                            {% elseif notification.type == 'project_updated' %}
+                                                <i class="bi bi-folder-check-fill"></i>
+                                            {% elseif notification.type == 'project_deleted' %}
+                                                <i class="bi bi-folder-x-fill"></i>
+                                            {% elseif notification.type == 'proposal_updated' %}
+                                                <i class="bi bi-file-earmark-check-fill"></i>
+                                            {% elseif notification.type == 'proposal_deleted' %}
+                                                <i class="bi bi-file-earmark-x-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-bell-fill"></i>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    {% if not notification.isRead %}
+                                        <span class="notification-dot"></span>
+                                    {% endif %}
+                                </div>
+                                <div class="notification-item-page__content">
+                                    <div class="notification-item-page__header">
+                                        <h4 class="notification-item-page__title">{{ notification.title }}</h4>
+                                        <span class="notification-item-page__time">
+                                            <i class="bi bi-clock"></i>
+                                            {{ notification.createdAt|date('M d, Y g:i A') }}
+                                        </span>
+                                    </div>
+                                    <p class="notification-item-page__message">{{ notification.message }}</p>
+                                    <div class="notification-item-page__footer">
+                                        <span class="notification-item-page__type">{{ notification.type|replace({'_': ' '})|title }}</span>
+                                        {% if notification.actionUrl %}
+                                            <a href="{{ notification.actionUrl }}" class="notification-item-page__action">
+                                                View <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="notification-empty-state">
+                        <div class="notification-empty-state__icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <h3 class="notification-empty-state__title">No unread notifications</h3>
+                        <p class="notification-empty-state__message">All caught up! You have no unread notifications.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% if isStaff %}
+    <div class="restricted-access-overlay">
+        <div class="restricted-access-modal">
+            <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-shield-x" style="font-size: 2.5rem; color: #dc2626;"></i>
+            </div>
+            <h2 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 0.75rem; text-align: center;">Restricted Access</h2>
+            <p style="font-family: 'Montserrat', Arial, sans-serif; color: #6b7280; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem; text-align: center;">
+                You do not have permission to access the notifications page. Only administrators can view system notifications.
+            </p>
+            <a href="{{ path('app_dashboard') }}" class="btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem; text-decoration: none; margin: 0 auto;">
+                Return to Dashboard
+            </a>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+

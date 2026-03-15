@@ -1,0 +1,287 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit User · {% if is_granted('ROLE_ADMIN') %}Admin{% else %}Staff{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ asset('styles/admin_staff.css') }}">
+{% endblock %}
+
+{% block body %}
+    {% include 'admin_staff/_adminstaffheader.html.twig' with { active: 'users' } %}
+    
+    <div class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Edit User</h1>
+                <p class="admin-subtitle">Update account information for {{ user.firstName }} {{ user.lastName }}</p>
+            </div>
+            <div class="admin-toolbar">
+                <a class="btn-secondary" href="{{ path('app_user_show', {'id': user.id}) }}">
+                    <i class="bi bi-arrow-left" style="margin-right: 0.5rem;"></i>Back to User
+                </a>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert {{ label == 'success' ? 'alert-success' : (label == 'error' ? 'alert-error' : '') }}" style="margin-bottom: 1.5rem;">
+                    <i class="bi bi-{{ label == 'success' ? 'check-circle' : 'exclamation-circle' }}" style="margin-right: 0.5rem;"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="admin-card" style="padding: 2rem;">
+            <div style="margin-bottom: 1.5rem;">
+                <h2 style="font-family: 'Poppins', Arial, sans-serif; font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0 0 0.5rem 0;">User Details</h2>
+                <p style="font-family: 'Montserrat', Arial, sans-serif; font-size: 0.875rem; color: #6b7280; margin: 0;">Modify the user's personal information and role</p>
+            </div>
+
+            {{ form_start(form, {'attr': {'class': 'staff-user-form'}}) }}
+                <div class="form-grid">
+                    <div class="form-field">
+                        {{ form_label(form.firstName, 'First Name', {'label_attr': {'style': 'font-weight: 500;'}}) }}
+                        {{ form_widget(form.firstName, {'attr': {'class': 'form-input', 'placeholder': 'Enter first name'}}) }}
+                        {% if form_errors(form.firstName) %}
+                            <div class="form-errors">{{ form_errors(form.firstName) }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-field">
+                        {{ form_label(form.lastName, 'Last Name', {'label_attr': {'style': 'font-weight: 500;'}}) }}
+                        {{ form_widget(form.lastName, {'attr': {'class': 'form-input', 'placeholder': (user.userType == 'staff' or user.userType == 'admin') ? 'Enter last name (optional)' : 'Enter last name'}}) }}
+                        {% if form_errors(form.lastName) %}
+                            <div class="form-errors">{{ form_errors(form.lastName) }}</div>
+                        {% else %}
+                            {% if user.userType == 'staff' or user.userType == 'admin' %}
+                                <small class="form-help-text">
+                                    <i class="bi bi-info-circle" style="margin-right: 0.25rem; font-size: 0.75rem;"></i>
+                                    Last name is optional for staff and admin users
+                                </small>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-field">
+                        {{ form_label(form.email, 'Email Address', {'label_attr': {'style': 'font-weight: 500;'}}) }}
+                        {{ form_widget(form.email, {'attr': {'class': 'form-input', 'placeholder': 'e.g. john.doe@example.com'}}) }}
+                        {% if form_errors(form.email) %}
+                            <div class="form-errors">{{ form_errors(form.email) }}</div>
+                        {% else %}
+                            <small class="form-help-text">
+                                <i class="bi bi-envelope" style="margin-right: 0.25rem; font-size: 0.75rem;"></i>
+                                This will be used for login and notifications
+                            </small>
+                        {% endif %}
+                    </div>
+
+                    {% if form.password is defined %}
+                    <div class="form-field" style="grid-column: 1 / -1;">
+                        {{ form_label(form.password, 'New Password', {'label_attr': {'style': 'font-weight: 500;'}}) }}
+                        <div class="password-wrapper">
+                            {{ form_widget(form.password, {'attr': {'class': 'form-input', 'placeholder': 'Leave blank to keep current password', 'id': 'editPassword'}}) }}
+                            <button type="button" class="toggle-password" id="toggleEditPassword" aria-label="Toggle password visibility">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        {% if form_errors(form.password) %}
+                            <div class="form-errors">{{ form_errors(form.password) }}</div>
+                        {% else %}
+                            <small class="form-help-text">
+                                <i class="bi bi-key" style="margin-right: 0.25rem; font-size: 0.75rem;"></i>
+                                Leave blank to keep the current password. Minimum 8 characters if changing.
+                            </small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-field" style="grid-column: 1 / -1;">
+                        <label style="display: block; font-family: 'Montserrat', Arial, sans-serif; font-size: 0.9rem; color: #374151; margin-bottom: 0.5rem; font-weight: 500;">Role</label>
+                        <div class="role-selection" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 0.5rem;">
+                            <label class="role-option" style="cursor: pointer; border: 2px solid #e5e7eb; border-radius: 8px; padding: 1rem; transition: all 0.2s; background: #ffffff;" data-role="staff">
+                                <input type="radio" name="{{ form.role.vars.full_name }}" value="staff" style="display: none;" {% if form.role.vars.value == 'staff' %}checked{% endif %}>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: #dc2626; border-radius: 50%;"></div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                            <span style="font-family: 'Poppins', Arial, sans-serif; font-weight: 500; font-size: 0.95rem; color: #111827;">Staff</span>
+                                            <span class="badge badge-danger" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; background: #dc2626; color: white; border-radius: 4px;">Limited Access</span>
+                                        </div>
+                                        <small class="form-help-text" style="margin: 0; color: #6b7280; font-size: 0.8rem;">
+                                            Limited administrative privileges
+                                        </small>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="role-option" style="cursor: pointer; border: 2px solid #e5e7eb; border-radius: 8px; padding: 1rem; transition: all 0.2s; background: #ffffff;" data-role="admin">
+                                <input type="radio" name="{{ form.role.vars.full_name }}" value="admin" style="display: none;" {% if form.role.vars.value == 'admin' %}checked{% endif %}>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                                    <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                            <span style="font-family: 'Poppins', Arial, sans-serif; font-weight: 500; font-size: 0.95rem; color: #111827;">Admin</span>
+                                            <span class="badge badge-success" style="font-size: 0.75rem; padding: 0.2rem 0.5rem; background: #10b981; color: white; border-radius: 4px;">Full Access</span>
+                                        </div>
+                                        <small class="form-help-text" style="margin: 0; color: #6b7280; font-size: 0.8rem;">
+                                            Full system access and user management
+                                        </small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        {# Hidden select field for form submission #}
+                        {{ form_widget(form.role, {'attr': {'style': 'display: none !important; position: absolute; left: -9999px; opacity: 0; pointer-events: none; width: 0; height: 0;'}}) }}
+                        {% if form_errors(form.role) %}
+                            <div class="form-errors">{{ form_errors(form.role) }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ path('app_user_show', {'id': user.id}) }}" class="btn-secondary">
+                        <i class="bi bi-x-circle" style="margin-right: 0.5rem;"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn-primary">
+                        <i class="bi bi-save" style="margin-right: 0.5rem;"></i>Save Changes
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('controllers/admin_staff.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Role selection functionality
+            function initRoleSelection() {
+                const hiddenSelect = document.querySelector('select[name="{{ form.role.vars.full_name }}"]');
+                const roleOptions = document.querySelectorAll('.role-option');
+                
+                // Hide the default select field
+                if (hiddenSelect) {
+                    hiddenSelect.style.display = 'none';
+                    hiddenSelect.style.position = 'absolute';
+                    hiddenSelect.style.left = '-9999px';
+                    hiddenSelect.style.opacity = '0';
+                    hiddenSelect.style.pointerEvents = 'none';
+                    hiddenSelect.style.width = '0';
+                    hiddenSelect.style.height = '0';
+                }
+                
+                roleOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        // Remove active state from all options
+                        roleOptions.forEach(opt => {
+                            opt.style.borderColor = '#e5e7eb';
+                            opt.style.background = '#ffffff';
+                        });
+                        
+                        // Set active state for selected option
+                        this.style.borderColor = '#3b82f6';
+                        this.style.background = '#eff6ff';
+                        
+                        // Check the radio button
+                        const radio = this.querySelector('input[type="radio"]');
+                        if (radio) {
+                            radio.checked = true;
+                            radio.dispatchEvent(new Event('change', { bubbles: true }));
+                            
+                            // Sync with hidden select field
+                            if (hiddenSelect) {
+                                hiddenSelect.value = radio.value;
+                            }
+                        }
+                    });
+                });
+                
+                // Set initial active state
+                const checkedRole = document.querySelector('.role-option input[type="radio"]:checked');
+                if (checkedRole) {
+                    const parentOption = checkedRole.closest('.role-option');
+                    if (parentOption) {
+                        parentOption.style.borderColor = '#3b82f6';
+                        parentOption.style.background = '#eff6ff';
+                    }
+                    if (hiddenSelect) {
+                        hiddenSelect.value = checkedRole.value;
+                    }
+                }
+            }
+            
+            // Initialize role selection
+            initRoleSelection();
+            
+            // Password toggle functionality
+            function initPasswordToggles() {
+                const toggleButtons = document.querySelectorAll('.toggle-password');
+                toggleButtons.forEach(button => {
+                    // Check if button already has a listener (prevent duplicates)
+                    if (button.dataset.initialized === 'true') {
+                        return;
+                    }
+                    button.dataset.initialized = 'true';
+                    
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Find the input in the same password-wrapper (most reliable method)
+                        const wrapper = this.closest('.password-wrapper');
+                        if (!wrapper) {
+                            console.warn('Password toggle button not inside a password-wrapper');
+                            return;
+                        }
+                        
+                        const input = wrapper.querySelector('input[type="password"], input[type="text"]');
+                        
+                        if (!input) {
+                            console.warn('Password input not found in wrapper');
+                            return;
+                        }
+                        
+                        // Toggle the input type
+                        const type = input.type === 'password' ? 'text' : 'password';
+                        input.type = type;
+                        
+                        // Update icon (toggle between eye and eye-slash)
+                        if (type === 'text') {
+                            // Show open eye icon (password is visible)
+                            this.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            `;
+                        } else {
+                            // Show closed/crossed eye icon (password is hidden)
+                            this.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            `;
+                        }
+                    });
+                });
+            }
+            
+            // Initialize on page load
+            initPasswordToggles();
+            
+            // Re-initialize on Turbo navigation
+            document.addEventListener('turbo:load', function() {
+                // Reset initialization flags
+                document.querySelectorAll('.toggle-password').forEach(btn => {
+                    btn.dataset.initialized = 'false';
+                });
+                initRoleSelection();
+                initPasswordToggles();
+            });
+        });
+    </script>
+{% endblock %}

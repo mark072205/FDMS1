@@ -14,7 +14,7 @@ final class Version20251001000000 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return '';
+        return 'Initial database schema: Create users, category, project, and messenger_messages tables';
     }
 
     public function up(Schema $schema): void

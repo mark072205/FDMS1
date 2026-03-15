@@ -17,6 +17,8 @@ final class LoginController extends AbstractController
             // Check user role and redirect accordingly
             if ($this->isGranted('ROLE_ADMIN')) {
                 return $this->redirectToRoute('app_dashboard');
+            } elseif ($this->isGranted('ROLE_STAFF')) {
+                return $this->redirectToRoute('app_dashboard');
             } elseif ($this->isGranted('ROLE_DESIGNER')) {
                 return $this->redirectToRoute('app_designer_homepage');
             } elseif ($this->isGranted('ROLE_CLIENT')) {
@@ -30,7 +32,7 @@ final class LoginController extends AbstractController
         // Last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return $this->render('login/index.html.twig', [
+        return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
         ]);
