@@ -50,10 +50,10 @@
     display: flex !important;
     align-items: center;
     justify-content: center;
-    /* Adjust login footer width here - FIXED WIDTH */
-    width: 1263px !important;
-    max-width: 1263px !important;
-    min-width: 1263px !important;
+    /* Keep footer consistent on all viewports */
+    width: min(1263px, calc(100vw - 32px)) !important;
+    max-width: min(1263px, calc(100vw - 32px)) !important;
+    min-width: 0 !important;
     /* Center using margin auto - more stable than transform for flex children */
     margin-left: auto !important;
     margin-right: auto !important;
@@ -65,8 +65,8 @@
     box-sizing: border-box !important;
     /* Prevent overflow to maintain fixed width */
     overflow: hidden !important;
-    /* Ensure footer width is locked regardless of parent */
-    contain: layout size style !important;
+    /* Avoid layout containment shrinking/flicker */
+    contain: none !important;
 }
 
 /* Designer Footer - Centered tagline */
@@ -220,7 +220,7 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 45rem;
+    gap: clamp(1rem, 6vw, 6rem);
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
@@ -299,17 +299,7 @@
     }
 }
 
-/* Login Footer Responsive - Only on very small screens */
-/* Current: 2000px footer = 2032px breakpoint */
-/* TEMPORARILY DISABLED FOR TESTING - Re-enable when done */
-/*
-@media (max-width: 2032px) {
-    .footer-login {
-        width: calc(100vw - 32px) !important;
-        max-width: calc(100vw - 32px) !important;
-    }
-}
-*/
+/* Login footer responsive behavior is handled by min() above */
 
 /* Designer Footer Responsive - Only on very small screens */
 @media (max-width: 1000px) {
@@ -338,9 +328,9 @@
     .footer-login {
         margin: 2rem 16px 1rem !important;
         padding: 48px 16px 24px !important;
-        width: 1263px !important;
-        max-width: 1263px !important;
-        min-width: 1263px !important;
+        width: calc(100vw - 32px) !important;
+        max-width: calc(100vw - 32px) !important;
+        min-width: 0 !important;
     }
     
     .footer-grid {

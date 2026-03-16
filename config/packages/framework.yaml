@@ -12,8 +12,10 @@ framework:
         # Session cookie settings - expires when browser closes
         cookie_lifetime: 0  # Session expires when browser closes
         cookie_httponly: true
-        cookie_secure: true  # Set to true for HTTPS (required for ngrok)
-        cookie_samesite: none  # Set to 'none' to allow cross-domain cookies (required for ngrok)
+        # Use "auto" so sessions work on HTTP locally and HTTPS in production/tunnels
+        cookie_secure: auto
+        # "none" requires Secure+HTTPS; use lax for local dev OAuth redirects
+        cookie_samesite: lax
         cookie_path: '/'  # Set cookie path to root
         # cookie_domain: null  # Don't set domain (allows cookies to work with any domain including ngrok)
         name: SESSID

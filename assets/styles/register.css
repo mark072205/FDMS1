@@ -24,6 +24,86 @@ body {
     font-weight: 600;
 }
 
+/* OAuth divider + Google button (shared style with login page) */
+.oauth-divider {
+    position: relative;
+    margin: 16px 0 22px; /* extra space below */
+    text-align: center;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oauth-divider::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.08);
+    transform: translateY(-50%);
+}
+
+.oauth-divider-text {
+    position: relative;
+    display: inline-block;
+    padding: 0 12px;
+    background: #fff;
+    color: #6b7280;
+    font-size: 16px;
+    line-height: 1;
+    font-family: 'Montserrat', Arial, sans-serif;
+}
+
+.oauth-google-btn {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #4285F4;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 24px;
+    height: 48px;
+    padding: 0 1rem;
+    font-weight: 600;
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 1rem;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: transform 0.05s ease, background 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    line-height: 1;
+}
+
+.oauth-google-btn:hover {
+    background: #357AE8;
+}
+
+.oauth-google-btn:active {
+    transform: translateY(1px);
+}
+
+.oauth-google-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 32px;
+}
+
+.oauth-google-text {
+    line-height: 1;
+}
+
 /* Add space only for step 2 heading */
 #step2 h1 {
     margin-top: 5rem;
